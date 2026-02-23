@@ -1,4 +1,5 @@
 using Fusion;
+using Photon.Voice.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -45,6 +46,16 @@ public class PlayerMovement : NetworkBehaviour
     if (!HasInputAuthority)
     {
         cameraPivot.gameObject.SetActive(false);
+        var recorder = GetComponent<Recorder>();
+    
+    if (Object.HasInputAuthority)
+    {
+        recorder.TransmitEnabled = true;
+    }
+    else
+    {
+        recorder.TransmitEnabled = false;
+    }
     }
 }
 }

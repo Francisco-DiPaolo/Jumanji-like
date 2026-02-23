@@ -1,4 +1,5 @@
 using Fusion;
+using Photon.Voice.Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,6 +29,8 @@ public class FusionLauncher : MonoBehaviour
     Scene = sceneInfo,
     SceneManager = runner.GetComponent<INetworkSceneManager>()
 });
+FusionVoiceClient voiceClient = FindFirstObjectByType<FusionVoiceClient>();
+voiceClient.ConnectAndJoinRoom();
 
     Debug.Log($"StartGame result: {result.Ok}, ShutdownReason: {result.ShutdownReason}");
     if (result.Ok)
