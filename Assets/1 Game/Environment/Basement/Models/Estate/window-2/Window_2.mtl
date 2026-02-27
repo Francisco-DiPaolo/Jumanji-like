@@ -1,0 +1,32 @@
+newmtl Group_57SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd ___metal_strips.jpg
+Ni 1.00
+newmtl ID127SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 0.12 0.12 0.12
+map_Kd ob_3_glass_H.jpg
+Ni 1.00
+newmtl kurch8FBXASC045outFBXASC045window_1SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd material_3.jpg
+Ni 1.00
+newmtl lambert19SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd building_kurch8_doors_diff.jpg
+bump building_kurch8_doors_normal.png -bm 1
+Ni 1.00
+Ks 0.00 0.00 0.00
+map_Ks building_kurch8_doors_spec.jpg
+Ns 82.92
