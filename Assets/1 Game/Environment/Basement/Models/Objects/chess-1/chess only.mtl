@@ -1,0 +1,111 @@
+# Blender MTL File: 'chess only.blend'
+# Material Count: 8
+
+newmtl bishop
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump texture\\bishop\\DefaultMaterial_Normal.png
+map_Kd texture\\bishop\\DefaultMaterial_Base_color.png
+map_Ns texture\\bishop\\DefaultMaterial_Roughness.png
+refl texture\\bishop\\DefaultMaterial_Metallic.png
+
+newmtl castel
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump texture\\castel\\DefaultMaterial_Normal.png
+map_Kd texture\\castel\\DefaultMaterial_Base_color.png
+map_Ns texture\\castel\\DefaultMaterial_Roughness.png
+refl texture\\castel\\DefaultMaterial_Metallic.png
+
+newmtl gold.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\\3D_asset\\material\\gold\\Metal007_2K_NormalDX.jpg
+map_Kd D:\\3D_asset\\material\\gold\\Metal007_2K_Color.jpg
+map_Ns D:\\3D_asset\\material\\gold\\Metal007_2K_Roughness.jpg
+refl D:\\3D_asset\\material\\gold\\Metal007_2K_Metalness.jpg
+
+newmtl horse.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump C:\\Users\\User\\Desktop\\Desktop\\chess\\texture\\horse\\DefaultMaterial_Normal.png
+map_Kd C:\\Users\\User\\Desktop\\Desktop\\chess\\texture\\horse\\DefaultMaterial_Base_color.png
+map_Ns C:\\Users\\User\\Desktop\\Desktop\\chess\\texture\\horse\\DefaultMaterial_Roughness.png
+refl C:\\Users\\User\\Desktop\\Desktop\\chess\\texture\\horse\\DefaultMaterial_Metallic.png
+
+newmtl king
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump texture\\king\\DefaultMaterial_Normal.png
+map_Kd texture\\king\\DefaultMaterial_Base_color.png
+map_Ns texture\\king\\DefaultMaterial_Roughness.png
+refl texture\\king\\DefaultMaterial_Metallic.png
+
+newmtl marbel_black
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump D:\\3D_asset\\material\\blackmarbel\\Marble13_NRM_3K.jpg
+
+newmtl prawn
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump texture\\prawn\\DefaultMaterial_Normal.png
+map_Kd texture\\prawn\\DefaultMaterial_Base_color.png
+map_Ns texture\\prawn\\DefaultMaterial_Roughness.png
+refl texture\\prawn\\DefaultMaterial_Metallic.png
+
+newmtl queen
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump texture\\queen\\DefaultMaterial_Normal.png
+map_Kd texture\\queen\\DefaultMaterial_Base_color.png
+map_Ns texture\\queen\\DefaultMaterial_Roughness.png
+refl texture\\queen\\DefaultMaterial_Metallic.png
