@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b79c3b0636148634a8a0ce51c6e71de6, type: 2}
+  - {fileID: 2100000, guid: 5919a04249d83d34e8fcc24085b2c298, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -178,6 +178,10 @@ PrefabInstance:
     - target: {fileID: 5127759385910195196, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Name
       value: VFX_TorchLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Intensity
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_ColorTemperature
