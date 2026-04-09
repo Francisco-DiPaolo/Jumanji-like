@@ -200,8 +200,12 @@ PrefabInstance:
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Lightmapping
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_ColorTemperature
-      value: 1913
+      value: 1900
       objectReference: {fileID: 0}
     - target: {fileID: 5332883511502982682, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: simulationSpeed
