@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6506541786728326025}
   - component: {fileID: 6737334690605554452}
   - component: {fileID: 266041352154853863}
+  - component: {fileID: 1135596341246621986}
   m_Layer: 0
   m_Name: SM_Step_Broken_Part_02_LOD0 (2)
   m_TagString: Untagged
@@ -90,6 +91,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &1135596341246621986
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139287685675823964}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06472434, y: 0.05054202, z: 0.14210136}
+  m_Center: {x: -0.00000012065641, y: 0.00033725228, z: 5.291535e-13}
 --- !u!1 &1401924734834628763
 GameObject:
   m_ObjectHideFlags: 0
@@ -101,6 +123,7 @@ GameObject:
   - component: {fileID: 5927699781749695355}
   - component: {fileID: 2595144850035357798}
   - component: {fileID: 494425362365936804}
+  - component: {fileID: 6112200172543608932}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (1)
   m_TagString: Untagged
@@ -180,6 +203,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &6112200172543608932
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1401924734834628763}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769238, y: 0.05332048, z: 0.25915423}
+  m_Center: {x: -0.00011439807, y: -0.00093063986, z: 0.0005956217}
 --- !u!1 &1813712223474158001
 GameObject:
   m_ObjectHideFlags: 0
@@ -191,6 +235,7 @@ GameObject:
   - component: {fileID: 127667767673445357}
   - component: {fileID: 4634894727101892104}
   - component: {fileID: 4133400069732647811}
+  - component: {fileID: 5753518674841765762}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (7)
   m_TagString: Untagged
@@ -270,6 +315,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &5753518674841765762
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1813712223474158001}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769252, y: 0.053320482, z: 0.25915426}
+  m_Center: {x: -0.00011415968, y: -0.00093040144, z: 0.000595741}
 --- !u!1 &1990017579600215975
 GameObject:
   m_ObjectHideFlags: 0
@@ -281,6 +347,7 @@ GameObject:
   - component: {fileID: 7946654030070256588}
   - component: {fileID: 4835130059379289512}
   - component: {fileID: 5730632445778291735}
+  - component: {fileID: 2687665028542466297}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (9)
   m_TagString: Untagged
@@ -360,6 +427,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &2687665028542466297
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990017579600215975}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769256, y: 0.05332048, z: 0.2591543}
+  m_Center: {x: -0.000114398106, y: -0.00093063986, z: 0.00059574103}
 --- !u!1 &2594456100855574330
 GameObject:
   m_ObjectHideFlags: 0
@@ -371,6 +459,7 @@ GameObject:
   - component: {fileID: 8272990502900376581}
   - component: {fileID: 1567699773370172830}
   - component: {fileID: 4934083128023664752}
+  - component: {fileID: 6524822267859757105}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0
   m_TagString: Untagged
@@ -450,6 +539,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &6524822267859757105
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2594456100855574330}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06076924, y: 0.05332048, z: 0.25915426}
+  m_Center: {x: -0.00011427887, y: -0.00093063986, z: 0.00059562176}
 --- !u!1 &2764261951912048026
 GameObject:
   m_ObjectHideFlags: 0
@@ -532,6 +642,7 @@ GameObject:
   - component: {fileID: 4313190560619884774}
   - component: {fileID: 7634410665756847139}
   - component: {fileID: 6800497966539744308}
+  - component: {fileID: 971907132871811624}
   m_Layer: 0
   m_Name: SM_Step_Broken_Part_05_LOD0
   m_TagString: Untagged
@@ -611,6 +722,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &971907132871811624
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2929011126836908224}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06777116, y: 0.04966615, z: 0.13651025}
+  m_Center: {x: 0, y: 0.00000023841858, z: 0.00000011920929}
 --- !u!1 &3609928887164230512
 GameObject:
   m_ObjectHideFlags: 0
@@ -622,6 +754,7 @@ GameObject:
   - component: {fileID: 5398805995607355537}
   - component: {fileID: 1285274484579822788}
   - component: {fileID: 3264725758176278407}
+  - component: {fileID: 7294620177377529941}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (4)
   m_TagString: Untagged
@@ -701,6 +834,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &7294620177377529941
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3609928887164230512}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769256, y: 0.05332048, z: 0.2591543}
+  m_Center: {x: -0.000114398106, y: -0.00093063986, z: 0.0005953834}
 --- !u!1 &3765186601432079810
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,6 +866,7 @@ GameObject:
   - component: {fileID: 8940186044996344854}
   - component: {fileID: 869942744773980508}
   - component: {fileID: 5085245116854867541}
+  - component: {fileID: 727190954447633101}
   m_Layer: 0
   m_Name: SM_Step_Broken_Part_01_LOD0 (1)
   m_TagString: Untagged
@@ -791,6 +946,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &727190954447633101
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3765186601432079810}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06820228, y: 0.04396689, z: 0.11894983}
+  m_Center: {x: 1.0179031e-18, y: -0.0032696924, z: 1.24717115e-17}
 --- !u!1 &3821848181296262669
 GameObject:
   m_ObjectHideFlags: 0
@@ -802,6 +978,7 @@ GameObject:
   - component: {fileID: 5450749223168700249}
   - component: {fileID: 8949256718870146719}
   - component: {fileID: 8673078801647997250}
+  - component: {fileID: 3088235026420407665}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (5)
   m_TagString: Untagged
@@ -881,6 +1058,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &3088235026420407665
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3821848181296262669}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06076925, y: 0.05332048, z: 0.25915426}
+  m_Center: {x: -0.00011439809, y: -0.00093063986, z: 0.00059550256}
 --- !u!1 &4249063469545696787
 GameObject:
   m_ObjectHideFlags: 0
@@ -962,6 +1160,7 @@ GameObject:
   - component: {fileID: 3499108137908484590}
   - component: {fileID: 3277969596155981437}
   - component: {fileID: 4147658522625427045}
+  - component: {fileID: 7484196837085763450}
   m_Layer: 0
   m_Name: SM_Step_Broken_Part_02_LOD0 (1)
   m_TagString: Untagged
@@ -1041,6 +1240,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &7484196837085763450
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5319393665279731639}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06472433, y: 0.0498676, z: 0.14210135}
+  m_Center: {x: 0.00000011920929, y: 0, z: 0}
 --- !u!1 &5747294786933956848
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,6 +1272,7 @@ GameObject:
   - component: {fileID: 780348497167278379}
   - component: {fileID: 163668802894985200}
   - component: {fileID: 1293844551065809135}
+  - component: {fileID: 4820988406742347641}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (3)
   m_TagString: Untagged
@@ -1131,6 +1352,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &4820988406742347641
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5747294786933956848}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769256, y: 0.05332048, z: 0.25915432}
+  m_Center: {x: -0.0001142789, y: -0.00093063986, z: 0.0005956219}
 --- !u!1 &6992306295824643144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1142,6 +1384,7 @@ GameObject:
   - component: {fileID: 1805164351513926200}
   - component: {fileID: 8198334230880720719}
   - component: {fileID: 3293444039481428019}
+  - component: {fileID: 7791658011752918395}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (2)
   m_TagString: Untagged
@@ -1221,6 +1464,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &7791658011752918395
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6992306295824643144}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769238, y: 0.05332048, z: 0.25915423}
+  m_Center: {x: -0.00011439807, y: -0.00093063986, z: 0.0005956217}
 --- !u!1 &7340096128621102399
 GameObject:
   m_ObjectHideFlags: 0
@@ -1232,6 +1496,7 @@ GameObject:
   - component: {fileID: 4964699916449061377}
   - component: {fileID: 1665560636306975475}
   - component: {fileID: 802433929564772767}
+  - component: {fileID: 897090688548482042}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (8)
   m_TagString: Untagged
@@ -1311,6 +1576,27 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &897090688548482042
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7340096128621102399}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.06076931, y: 0.053320494, z: 0.2591543}
+  m_Center: {x: -0.00011427901, y: -0.00093052094, z: 0.00059574103}
 --- !u!1 &7587524340299713859
 GameObject:
   m_ObjectHideFlags: 0
@@ -1322,6 +1608,7 @@ GameObject:
   - component: {fileID: 1269315354524636262}
   - component: {fileID: 8488682422160612255}
   - component: {fileID: 7061902349729579527}
+  - component: {fileID: 863049362423258704}
   m_Layer: 0
   m_Name: SM_Step_Broken_LOD0 (6)
   m_TagString: Untagged
@@ -1401,3 +1688,24 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &863049362423258704
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7587524340299713859}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.060769267, y: 0.05332048, z: 0.25915432}
+  m_Center: {x: -0.00011439813, y: -0.00093063986, z: 0.0005956219}
