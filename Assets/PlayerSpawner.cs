@@ -5,41 +5,29 @@ using UnityEngine;
 
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
-    public NetworkPrefabRef playerPrefab;
+    [SerializeField] NetworkPrefabRef playerPrefab;
 
-    private NetworkRunner runner;
+    bool registered;
 
-    void Awake()
+    void Update()
     {
-         runner = FindFirstObjectByType<NetworkRunner>();
+        if (registered)
+            return;
+
+        var runner = FindFirstObjectByType<NetworkRunner>();
         if (runner != null)
         {
             runner.AddCallbacks(this);
-            Debug.Log("PlayerSpawner: Callbacks added to runner.");
+            registered = true;
         }
-        else
-        {
-            Debug.LogError("PlayerSpawner: NetworkRunner not found in scene!");
-        }
-    }
-    void Start()
-    {
-       
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log($"Player Joined: ID={player.PlayerId}, IsLocal={player == runner.LocalPlayer}");
-
         if (runner.IsServer)
         {
-            Debug.Log($"Server spawning player for PlayerRef: {player}");
-            runner.Spawn(
-                playerPrefab,
-                new Vector3(player.RawEncoded * 2, 0, 0),
-                Quaternion.identity,
-                player
-            );
+            Vector3 spawnPos = new Vector3(player.RawEncoded * 2, 1, 0);
+            runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, player);
         }
     }
 
@@ -51,62 +39,32 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
             Input.GetAxisRaw("Horizontal"),
             Input.GetAxisRaw("Vertical")
         );
-         data.look = new Vector2(
-        Input.GetAxisRaw("Mouse X"),
-        Input.GetAxisRaw("Mouse Y")
-    );
+
+        data.look = new Vector2(
+            Input.GetAxisRaw("Mouse X"),
+            Input.GetAxisRaw("Mouse Y")
+        );
+
+        data.buttons.Set(InputButton.Jump, Input.GetKey(KeyCode.Space));
 
         input.Set(data);
     }
-    // Métodos obligatorios vacíos
+
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {}
-    
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) {}
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {}
-    public void OnConnectedToServer(NetworkRunner runner) 
-    {
-        Debug.Log("Connected to Server.");
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner) 
-    {
-        Debug.Log("Disconnected from Server.");
-    }
+    public void OnConnectedToServer(NetworkRunner runner) {}
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) {}
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) {}
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) {}
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) {}
     public void OnSessionListUpdated(NetworkRunner runner, System.Collections.Generic.List<SessionInfo> sessionList) {}
     public void OnCustomAuthenticationResponse(NetworkRunner runner, System.Collections.Generic.Dictionary<string, object> data) {}
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) {}
-
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-    }
-
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
-    {
-    }
-
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
-    {
-    }
-
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
-    {
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-    }
-
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-    }
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) {}
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) {}
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) {}
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) {}
+    public void OnSceneLoadDone(NetworkRunner runner) {}
+    public void OnSceneLoadStart(NetworkRunner runner) {}
 }
