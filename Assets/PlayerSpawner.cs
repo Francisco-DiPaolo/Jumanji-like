@@ -6,6 +6,8 @@ using UnityEngine;
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] NetworkPrefabRef playerPrefab;
+    [SerializeField] Transform playerSpawnPosition;
+    [SerializeField] float spawnRotationY = -344.922f;
 
     bool registered;
 
@@ -26,8 +28,8 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            Vector3 spawnPos = new Vector3(player.RawEncoded * 2, 1, 0);
-            runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, player);
+            Quaternion rotation = Quaternion.Euler(0, spawnRotationY, 0);
+            runner.Spawn(playerPrefab, playerSpawnPosition.position, rotation, player);
         }
     }
 
@@ -46,6 +48,7 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         );
 
         data.buttons.Set(InputButton.Jump, Input.GetKey(KeyCode.Space));
+        data.buttons.Set(InputButton.Sprint, Input.GetKey(KeyCode.LeftShift));
 
         input.Set(data);
     }

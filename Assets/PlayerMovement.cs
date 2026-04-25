@@ -3,11 +3,20 @@ using UnityEngine;
 
 public class PlayerMovement : NetworkBehaviour
 {
+    [Header("Movement Settings")]
+    [SerializeField] float walkSpeed = 4.0f;
+    [SerializeField] float sprintSpeed = 6.0f;
+    [SerializeField] float speedChangeRate = 10.0f;
+
+    [Header("Jump & Gravity")]
+    [SerializeField] float jumpHeight = 1.2f;
+    [SerializeField] float gravity = -15.0f;
+
+    [Header("Camera Settings")]
     [SerializeField] Transform cameraPivot;
-    [SerializeField] float speed = 6f;
-    [SerializeField] float acceleration = 12f;
-    [SerializeField] float jumpForce = 8f;
-    [SerializeField] float mouseSensitivity = 5f;
+    [SerializeField] float rotationSpeed = 1.0f;
+    [SerializeField] float topClamp = 90.0f;
+    [SerializeField] float bottomClamp = -90.0f;
 
     [Networked] float VerticalLook { get; set; }
 
@@ -17,18 +26,15 @@ public class PlayerMovement : NetworkBehaviour
     {
         controller = GetComponent<NetworkCharacterController>();
         controller.orientRotationToMovement = false;
-        controller.maxSpeed = speed;
-        controller.acceleration = acceleration;
-        controller.jumpImpulse = jumpForce;
+        
+        // Match the impulse calculation from FirstPersonController.cs
+        controller.jumpImpulse = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        controller.gravity = gravity;
 
         if (HasInputAuthority)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-
-            var lobbyCamera = GameObject.Find("LobbyCamera");
-            if (lobbyCamera != null)
-                lobbyCamera.SetActive(false);
         }
         else
         {
@@ -42,6 +48,11 @@ public class PlayerMovement : NetworkBehaviour
         if (!GetInput(out PlayerInputData data))
             return;
 
+        // Sprint logic
+        bool isSprinting = data.buttons.IsSet(InputButton.Sprint);
+        controller.maxSpeed = isSprinting ? sprintSpeed : walkSpeed;
+        controller.acceleration = speedChangeRate;
+
         Vector3 moveDirection = (transform.forward * data.move.y + transform.right * data.move.x).normalized;
 
         if (data.buttons.IsSet(InputButton.Jump))
@@ -49,13 +60,14 @@ public class PlayerMovement : NetworkBehaviour
 
         controller.Move(moveDirection * Runner.DeltaTime);
 
-        float mouseX = data.look.x * mouseSensitivity;
-        float mouseY = data.look.y * mouseSensitivity;
+        // Rotation logic
+        float mouseX = data.look.x * rotationSpeed;
+        float mouseY = data.look.y * rotationSpeed;
 
         transform.Rotate(Vector3.up * mouseX);
 
-        VerticalLook -= mouseY;
-        VerticalLook = Mathf.Clamp(VerticalLook, -80f, 80f);
+        VerticalLook += mouseY; // Note: Reverting to += if the teammate used that, or keeping standard FPS -=
+        VerticalLook = Mathf.Clamp(VerticalLook, bottomClamp, topClamp);
     }
 
     public override void Render()

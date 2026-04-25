@@ -8,10 +8,27 @@ public class SceneSetupTool : EditorWindow
     [MenuItem("Tools/Setup Jumanji Scene")]
     static void SetupScene()
     {
+        Vector3 spawnPos = new Vector3(-13.79f, -13.34f, 45.45f); // Defaults from teammate's scene
+        float spawnRot = -344.922f;
+
+        // Try to find the local player in scene to extract position and then remove it
+        var localPlayer = GameObject.Find("Player");
+        if (localPlayer == null) localPlayer = GameObject.Find("PlayerCapsule");
+        
+        if (localPlayer != null)
+        {
+            spawnPos = localPlayer.transform.position;
+            spawnRot = localPlayer.transform.eulerAngles.y;
+            Undo.DestroyObjectImmediate(localPlayer);
+            Debug.Log($"Removed local player and saved spawn point: {spawnPos}");
+        }
+
         RemoveOldFusionLauncher();
         CreateSessionLauncher();
         var lobbyCamera = CreateLobbyCamera();
         CreateLoginCanvas(lobbyCamera);
+        CreatePlayerSpawner(spawnPos, spawnRot);
+
         Debug.Log("Scene setup complete. Save the scene with Ctrl+S.");
     }
 
@@ -124,6 +141,43 @@ public class SceneSetupTool : EditorWindow
         }
 
         Debug.Log("Login Canvas created with LobbyCamera reference.");
+    }
+
+    static void CreatePlayerSpawner(Vector3 pos, float rot)
+    {
+        // Delete existing to ensure fresh state
+        var oldManagers = GameObject.Find("MultiplayerManagers");
+        if (oldManagers != null) Undo.DestroyObjectImmediate(oldManagers);
+
+        var mgr = new GameObject("MultiplayerManagers");
+        Undo.RegisterCreatedObjectUndo(mgr, "Create MultiplayerManagers");
+        
+        var spawner = mgr.AddComponent<PlayerSpawner>();
+        var so = new SerializedObject(spawner);
+        so.FindProperty("spawnPosition").vector3Value = pos;
+        so.FindProperty("spawnRotationY").floatValue = rot;
+
+        // Find the networked player prefab
+        string[] guids = AssetDatabase.FindAssets("Player t:Prefab");
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (path.EndsWith("Assets/1 Game/Player/Prefab/Player.prefab"))
+            {
+                var prefabProp = so.FindProperty("playerPrefab");
+                var guidProp = prefabProp.FindPropertyRelative("RawGuidValue") ?? prefabProp.FindPropertyRelative("m_AssetGuid");
+                
+                if (guidProp != null)
+                {
+                    guidProp.stringValue = guid;
+                    Debug.Log($"Successfully assigned new player prefab: {path}");
+                }
+                break;
+            }
+        }
+
+        so.ApplyModifiedProperties();
+        Debug.Log("PlayerSpawner setup complete.");
     }
 
     static GameObject CreatePanel(Transform parent)

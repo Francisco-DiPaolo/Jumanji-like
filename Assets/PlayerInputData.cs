@@ -10,5 +10,6 @@ public struct PlayerInputData : INetworkInput
 
 public enum InputButton
 {
-    Jump
+    Jump,
+    Sprint
 }

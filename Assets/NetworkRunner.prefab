@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 985645193139224152}
   - component: {fileID: 8097194209993465434}
+  - component: {fileID: 1150000000000000001}
   m_Layer: 0
   m_Name: NetworkRunner
   m_TagString: Untagged
@@ -44,3 +45,16 @@ MonoBehaviour:
   m_Script: {fileID: -1199893898, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkRunner
+--- !u!114 &1150000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5733228333941791472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33a38d73a8571ce438052dd31e09df5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+
