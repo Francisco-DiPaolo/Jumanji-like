@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 5500000000000000001}
   - component: {fileID: 5500000000000000002}
   - component: {fileID: 5989695226466159440}
+  - component: {fileID: -6962561565382774457}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -70,6 +71,7 @@ MonoBehaviour:
   - {fileID: 5500000000000000001}
   - {fileID: 5500000000000000002}
   - {fileID: 5989695226466159440}
+  - {fileID: -6962561565382774457}
   ForceRemoteRenderTimeframe: 0
 --- !u!143 &6122514887274884769
 CharacterController:
@@ -348,6 +350,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoiceEffectController
   _CurrentMode: 1
+--- !u!114 &-6962561565382774457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446421614054784240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c78e34a0f83187245830464c2c631fa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VoiceOcclusionController
+  occlusionLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  muffledFrequency: 10
+  clearFrequency: 22000
+  occlusionVolumeFactor: 0
+  occlusionCheckInterval: 0.1
+  smoothingSpeed: 5
 --- !u!1001 &1583257786383850791
 PrefabInstance:
   m_ObjectHideFlags: 0
