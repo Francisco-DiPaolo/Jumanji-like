@@ -3,7 +3,22 @@ guid: 28b02d8d4fccbc743991b8692ef1b106
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BookMat
+    second: {fileID: 2100000, guid: 7e9cb779138700641883b868e919e7c4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: InkMat
+    second: {fileID: 2100000, guid: 6b3802e1cd772af44b15367ff1b6ee0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PulpitMat
+    second: {fileID: 2100000, guid: f1ce4ea45ea3e4e4e9dc7ba7e583925f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -68,7 +83,7 @@ ModelImporter:
     secondaryUVMinLightmapResolution: 40
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
-    useFileScale: 1
+    useFileScale: 0
     strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60

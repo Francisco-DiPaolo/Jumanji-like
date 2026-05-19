@@ -3,7 +3,22 @@ guid: 512c5214367828a44b7a92b4e4aff261
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bottle_Poison_01
+    second: {fileID: 2100000, guid: e4c7e999efc96ed449bcf47f33c7d1e3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bottle_Poison_01_Bottle_Poison_01_albedo.jpeg
+    second: {fileID: 2100000, guid: 7b748ee51213e4249a70d73130ce31eb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bottle_Poison_01_Bottle_Poison_02_albedo_WED.png
+    second: {fileID: 2100000, guid: 307d9bdcc152d3346bc7b50d91599078, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -33,7 +48,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.01
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
@@ -91,7 +106,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
+    globalScale: 0.01
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

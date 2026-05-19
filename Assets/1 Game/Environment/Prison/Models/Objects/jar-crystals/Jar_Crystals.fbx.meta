@@ -3,7 +3,27 @@ guid: d9f25e0376548074fb92db40c2780eef
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blue crystal
+    second: {fileID: 2100000, guid: 9e125c3b662b98b4ab6f726d3e7b03d4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cork
+    second: {fileID: 2100000, guid: aa35e33c7d1fa32498f206fadeb22049, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: jar
+    second: {fileID: 2100000, guid: b9b4a3579dbb7114ab680e9ecf997132, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Cork Seamless Texture #1301
+    second: {fileID: 2800000, guid: 0ee09acc00b7b5a4695ea951045b59de, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

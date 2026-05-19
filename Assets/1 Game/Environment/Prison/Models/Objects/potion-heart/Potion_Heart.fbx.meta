@@ -3,7 +3,27 @@ guid: dd1cf7b95961ce4498113cfe50fa2f83
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bottle_Glass
+    second: {fileID: 2100000, guid: 245bba60e51fcc24098feeb60a36ef76, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bottle_handleish
+    second: {fileID: 2100000, guid: 616e3be56d3e0f1449d5eed96d7ee222, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cap_top
+    second: {fileID: 2100000, guid: 9dd74b2cb3d2cc444883fe74f3e9e558, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: beads
+    second: {fileID: 2100000, guid: d5c5cb4ba47a9554280aedda71f3cf5b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -33,7 +53,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.1
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
@@ -91,7 +111,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
+    globalScale: 0.1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
