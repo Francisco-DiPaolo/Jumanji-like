@@ -431,7 +431,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: de577c19556999d4c9602925556b15e6, type: 2}
+  - {fileID: 2100000, guid: 40d9393ce837c2d4d811cf1d7ca53501, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1548,6 +1548,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8002770394064938868}
     m_Modifications:
+    - target: {fileID: 2874432446143914929, guid: 88f2aefcff1d30b49a8b8be7cbb7b9fc, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 40d9393ce837c2d4d811cf1d7ca53501, type: 2}
     - target: {fileID: 5531852374876030061, guid: 88f2aefcff1d30b49a8b8be7cbb7b9fc, type: 3}
       propertyPath: m_Name
       value: Worm
@@ -1822,6 +1826,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4334576335172924217, guid: 2afd1e97718c70e47bb15666ca24e81f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 40d9393ce837c2d4d811cf1d7ca53501, type: 2}
     - target: {fileID: 8852562218804892596, guid: 2afd1e97718c70e47bb15666ca24e81f, type: 3}
       propertyPath: m_Name
       value: Cross
