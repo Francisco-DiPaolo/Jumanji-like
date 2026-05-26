@@ -33,7 +33,7 @@ Material:
     - _DiffuseStrength: 0.6
     - _EmissionIntensity: 8.45
     - _Softness: 0.96
-    - _Threshold: 0.05
+    - _Threshold: 0.105
     m_Colors:
     - _BaseColor: {r: 1, g: 0.4292453, b: 0.45461223, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

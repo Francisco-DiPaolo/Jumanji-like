@@ -45,7 +45,7 @@ LightingSettings:
   m_ForceUpdates: 0
   m_PVRCulling: 1
   m_PVRSampling: 1
-  m_PVRDirectSampleCount: 32
+  m_PVRDirectSampleCount: 64
   m_PVRSampleCount: 512
   m_PVREnvironmentSampleCount: 256
   m_PVREnvironmentReferencePointCount: 2048
@@ -60,7 +60,7 @@ LightingSettings:
   m_PVRFilterTypeDirect: 0
   m_PVRFilterTypeIndirect: 0
   m_PVRFilterTypeAO: 0
-  m_PVRFilteringGaussRadiusDirect: 1
+  m_PVRFilteringGaussRadiusDirect: 1.1
   m_PVRFilteringGaussRadiusIndirect: 1
   m_PVRFilteringGaussRadiusAO: 1
   m_PVRFilteringAtrousPositionSigmaDirect: 0.5
