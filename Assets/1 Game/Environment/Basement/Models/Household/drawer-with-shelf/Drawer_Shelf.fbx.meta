@@ -3,7 +3,62 @@ guid: a7c675d8fb80b204a8808e781e7ba132
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Book1
+    second: {fileID: 2100000, guid: 7b3299e0cc7f6f140b79e23b43c19e83, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Book2
+    second: {fileID: 2100000, guid: 93d7256b6b1cfb342a3318d23d7dafb2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Book3
+    second: {fileID: 2100000, guid: 2590cde7efc35fd4184ea9b3b4b9bb72, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Book4
+    second: {fileID: 2100000, guid: 75e6da6de3c8759458f56d069bba3fd2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Book5
+    second: {fileID: 2100000, guid: ec9b4d5967523774287f8e633cc808f5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Box
+    second: {fileID: 2100000, guid: 7eed3ef400d34ac47b1a32bbce0d4f3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Box 2
+    second: {fileID: 2100000, guid: ea671b7efd93af5408a495c3a284df7c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Box Gray
+    second: {fileID: 2100000, guid: 459d6fd2adee6714c9f15acc4e790bef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shelf2-1
+    second: {fileID: 2100000, guid: 8ce08a153b0d68346a2d0845a58e7884, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shelf2-2
+    second: {fileID: 2100000, guid: a1e90923fbc73e146ac58a93ce7df5c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shelf2-3
+    second: {fileID: 2100000, guid: b6587d67f2b3cdf4e9646e20df6731be, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

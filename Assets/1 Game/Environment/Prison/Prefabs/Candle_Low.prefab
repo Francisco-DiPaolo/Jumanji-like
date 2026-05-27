@@ -292,6 +292,10 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_ColorTemperature
       value: 18599
       objectReference: {fileID: 0}
