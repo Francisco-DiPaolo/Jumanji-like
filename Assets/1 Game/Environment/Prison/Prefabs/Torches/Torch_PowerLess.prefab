@@ -200,6 +200,10 @@ PrefabInstance:
       value: VFX_TorchLight
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Range
+      value: 5.73
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Intensity
       value: 1
       objectReference: {fileID: 0}

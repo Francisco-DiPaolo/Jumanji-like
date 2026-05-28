@@ -131,13 +131,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6376691692847593991}
     m_Modifications:
+    - target: {fileID: 1049440574223281845, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_AdditionalLightsShadowResolutionTier
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1501296021505451972, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.236
+      value: 0.307
       objectReference: {fileID: 0}
     - target: {fileID: 1501296021505451972, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.105
+      value: 0.324
       objectReference: {fileID: 0}
     - target: {fileID: 3403893716154915419, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -188,8 +192,12 @@ PrefabInstance:
       value: VFX_TorchLight
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Range
+      value: 4.474103
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Intensity
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Lightmapping
@@ -198,6 +206,10 @@ PrefabInstance:
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_ColorTemperature
       value: 1900
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Shadows.m_Strength
+      value: 0.77
       objectReference: {fileID: 0}
     - target: {fileID: 8460789242142899497, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Name
