@@ -141,15 +141,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1501296021505451972, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.186
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 1501296021505451972, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.268
+      value: 0.37
       objectReference: {fileID: 0}
     - target: {fileID: 1501296021505451972, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.045
+      value: 0.09
       objectReference: {fileID: 0}
     - target: {fileID: 3403893716154915419, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -205,7 +205,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Intensity
-      value: 1
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Lightmapping
