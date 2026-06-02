@@ -3,7 +3,62 @@ guid: 91559d62cccb5af418bf93622978972c
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chain
+    second: {fileID: 2100000, guid: 0ee7eec95f85e9e46a7886b7709b2008, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Frame
+    second: {fileID: 2100000, guid: d3210640cebb7374a8767bd599c1f769, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Handles
+    second: {fileID: 2100000, guid: cc044178b80f82c449fcc6ee75204525, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pad
+    second: {fileID: 2100000, guid: 626a4004513086c47bd068719c47b60e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Peg
+    second: {fileID: 2100000, guid: 89e81edcc6db6f040a3f9b41cc745681, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Rim
+    second: {fileID: 2100000, guid: 83d47a761bfbfa544aa48f56c891c6ca, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Seat
+    second: {fileID: 2100000, guid: a6a8efe6919b27c43afbcc98a4b003f7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Silver
+    second: {fileID: 2100000, guid: 2bb85d585096c6e4996bde9305a721c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tire_Side
+    second: {fileID: 2100000, guid: 5b23d0750d70f594ebaa95679cec658c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tire_Tread
+    second: {fileID: 2100000, guid: 12cf3557f01a6b64b9c3210fb554a508, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pedals
+    second: {fileID: 2100000, guid: cbf2cb3b17db6f641a23ceb9e2d16bd0, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
