@@ -1,44 +1,9 @@
 fileFormatVersion: 2
-guid: 75f236f4f8594ad4e92e2c30bbde2f2c
+guid: 7b520388e6b4e5c46aa4060a03021a75
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: 22 - Default
-    second: {fileID: 2100000, guid: 0d22929e5d6897240b09ac71bb3b46c8, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: 23 - Default
-    second: {fileID: 2100000, guid: 8efc8e982aec5ff40bf809d758cc84c1, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: 24 - Default
-    second: {fileID: 2100000, guid: 720945c0c664e0c4292b57f6bfd5207c, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material #29
-    second: {fileID: 2100000, guid: 69a341e9d7f34f94081ad6a3e4f7dbc1, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material #34
-    second: {fileID: 2100000, guid: e28f3fe9586e333458f1624b931a6f5e, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material #35
-    second: {fileID: 2100000, guid: 9e6b0d402dfd789488c35c2bdc8ea50d, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material #43
-    second: {fileID: 2100000, guid: 54a83420609522c41937db0647507559, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -103,7 +68,7 @@ ModelImporter:
     secondaryUVMinLightmapResolution: 40
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
-    useFileScale: 0
+    useFileScale: 1
     strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
