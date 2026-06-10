@@ -2,7 +2,11 @@ using UnityEngine;
 
 public class FoodStepSoundsPlayer : MonoBehaviour
 {
-    public AudioClip[] Clips;
+    public AudioClip[] WoodClips;
+    public AudioClip[] ConcreteClips;
+
+    public LayerMask Environment;
+
     public Animator Animator;
     private float _lastFootstep;
 
@@ -18,16 +22,28 @@ public class FoodStepSoundsPlayer : MonoBehaviour
 
         if (_lastFootstep > 0 && footstep < 0 || _lastFootstep < 0 && footstep > 0)
         {
-            var randomClip = Clips[Random.Range(0, Clips.Length - 1)];
+            var clips = GetClipsForSurface();
+            var randomClip = clips[Random.Range(0, clips.Length - 1)];
             AudioSource.PlayClipAtPoint(randomClip, transform.position);
         }
 
         _lastFootstep = footstep;
     }
 
-    /*public void FoodStepSounds()
+    private AudioClip[] GetClipsForSurface()
     {
-        //var randomClip = Clips[Random.Range(0, Clips.Length - 1)];
-        //AudioSource.PlayClipAtPoint(randomClip, transform.position);
-    }*/
+        var isHit = Physics.Raycast(transform.position + Vector3.up * .01f, Vector3.down, out RaycastHit hit, .1f, Environment);
+
+        if (isHit)
+        {
+            var surface = hit.collider.GetComponent<SurfaceDefinition>();
+            if (surface)
+            {
+                if (surface.SurfaceType == SurfaceType.Concrete) return ConcreteClips;
+                if (surface.SurfaceType == SurfaceType.Wood) return WoodClips;
+            }
+        }
+
+        return WoodClips;
+    }
 }

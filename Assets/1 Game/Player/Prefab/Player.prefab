@@ -540,11 +540,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ba8edd93d85f5e45a39e7fff7a91902, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodStepSoundsPlayer
-  Clips:
-  - {fileID: 8300000, guid: c8d476bb0e6d125469f453ea8b1ffa76, type: 3}
+  WoodClips:
   - {fileID: 8300000, guid: 10b25964cef7de547b2c20d9287583cb, type: 3}
   - {fileID: 8300000, guid: f38360424f19fe5449142df830a4726c, type: 3}
   - {fileID: 8300000, guid: 4bc1a017d53091a40a775f0901d7fa4d, type: 3}
+  - {fileID: 8300000, guid: f90b783352db2d14f8bd2334c34fe543, type: 3}
+  - {fileID: 8300000, guid: 131863fcf0538144d98ae35f74e10aae, type: 3}
+  - {fileID: 8300000, guid: 08b2c8871649b6045a8f1175070aa59c, type: 3}
+  - {fileID: 8300000, guid: a6985cf7a70f42c43a385a2fdda1c1c4, type: 3}
+  - {fileID: 8300000, guid: 75849450919b422478408c5bd37736a0, type: 3}
+  - {fileID: 8300000, guid: 9985bff6e2ec2b244ae54f85e6750907, type: 3}
+  - {fileID: 8300000, guid: 90f0b7d5ab9dbd740bb699741ad9a196, type: 3}
+  - {fileID: 8300000, guid: 3bcdc348309112f48b4c4d28d6ebcc96, type: 3}
+  - {fileID: 8300000, guid: ebbb1f623bb8b8641a56ebe06ee83dd6, type: 3}
+  - {fileID: 8300000, guid: 9b55c4068e581fa4f954dcb34d93bd1e, type: 3}
+  - {fileID: 8300000, guid: 3d373030785181d46af59fb0e4a28a96, type: 3}
+  - {fileID: 8300000, guid: 34f093993b5cf504d9ca0810ab8bbb88, type: 3}
+  - {fileID: 8300000, guid: d6d04e25eb760dd4e914d75277c47080, type: 3}
+  - {fileID: 8300000, guid: dee385c9733865f428ce493277176d5e, type: 3}
+  - {fileID: 8300000, guid: 5505596bc60a3d842bd3a5b6f377d40a, type: 3}
+  - {fileID: 8300000, guid: 83edee09fdda6424fafafe4fc3dcd7d2, type: 3}
+  - {fileID: 8300000, guid: c8d476bb0e6d125469f453ea8b1ffa76, type: 3}
+  ConcreteClips:
+  - {fileID: 8300000, guid: 3bf0ac32786d3fc4f9a11c04f08259d0, type: 3}
+  - {fileID: 8300000, guid: 9bdac8a69fb18604f945e0899053be08, type: 3}
+  - {fileID: 8300000, guid: ca280e72847473a49b4a9ee561de85f0, type: 3}
+  - {fileID: 8300000, guid: 2fbd7979647c65844847779929291be0, type: 3}
+  - {fileID: 8300000, guid: 6ed8c086a2b4ecd4798af0491957e2de, type: 3}
+  - {fileID: 8300000, guid: e456906b5acb02d4d91af0c7bb6f3a43, type: 3}
+  - {fileID: 8300000, guid: 4ac81a3a56c2e31428e1c27c21c3cb5a, type: 3}
+  - {fileID: 8300000, guid: 748b42a8fd3ce274fa57fc8f6640cf84, type: 3}
+  - {fileID: 8300000, guid: 93d691ea6c97e6845a754c49083ac72f, type: 3}
+  - {fileID: 8300000, guid: fa1dc2002ab60dc4f9763be8b6f59346, type: 3}
+  - {fileID: 8300000, guid: e426abab802798741afde0b1d93a0754, type: 3}
+  - {fileID: 8300000, guid: 5744c01f39a4790419263f8d96a3cda9, type: 3}
+  - {fileID: 8300000, guid: 17d4773fa5daa704082a66c8e3ec73bb, type: 3}
+  - {fileID: 8300000, guid: a65652cd77694794da86871bf93cc40d, type: 3}
+  - {fileID: 8300000, guid: 93dc0eb410c39fd4f8a2949156a8069d, type: 3}
+  Environment:
+    serializedVersion: 2
+    m_Bits: 0
+  Animator: {fileID: 8925748940849128339}
 --- !u!4 &673758258196407451 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
