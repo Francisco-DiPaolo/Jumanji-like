@@ -328,7 +328,7 @@ BlendTree:
   m_Name: Locomotion
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: caec70e7834249e49813aec01e39b428, type: 2}
+    m_Motion: {fileID: -203655887218126122, guid: 7a4483f6c58ee9448bae9ebb56c58fb7, type: 3}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
