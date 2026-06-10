@@ -497,6 +497,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8925748940849128339}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4503939577657403096}
   m_SourcePrefab: {fileID: 100100000, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
 --- !u!1 &149317237280882209 stripped
 GameObject:
@@ -525,6 +528,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4503939577657403096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 149317237280882209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ba8edd93d85f5e45a39e7fff7a91902, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodStepSoundsPlayer
+  Clips:
+  - {fileID: 8300000, guid: c8d476bb0e6d125469f453ea8b1ffa76, type: 3}
+  - {fileID: 8300000, guid: 10b25964cef7de547b2c20d9287583cb, type: 3}
+  - {fileID: 8300000, guid: f38360424f19fe5449142df830a4726c, type: 3}
+  - {fileID: 8300000, guid: 4bc1a017d53091a40a775f0901d7fa4d, type: 3}
 --- !u!4 &673758258196407451 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
