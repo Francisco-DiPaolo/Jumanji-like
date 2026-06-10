@@ -569,6 +569,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ch19_nonPBR
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 09741e6ded57e774aa606cb0f772cd99, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 09741e6ded57e774aa606cb0f772cd99, type: 3}
       propertyPath: m_Controller
       value: 
@@ -849,7 +853,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 75f236f4f8594ad4e92e2c30bbde2f2c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
