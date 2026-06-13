@@ -155,7 +155,5 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (doorAudioSource != null)
             doorAudioSource.Play();
-
-            doorAnimator.gameObject.SetActive(false);
     }
 }
