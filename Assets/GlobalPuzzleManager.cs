@@ -10,7 +10,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [SerializeField] float timeBetweenTorches = 2f;
     [SerializeField] float allLitDuration = 3f;
     [SerializeField] float resetPauseDuration = 1f;
-    [SerializeField] float syncWindowDuration = 0.5f;
+    [SerializeField] float syncWindowDuration = 1.5f;
 
     [Networked] public NetworkBool IsBrickEnabled { get; set; }
     [Networked] public NetworkBool IsPuzzleSolved { get; set; }
@@ -112,13 +112,25 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     void TryResolveSync()
     {
-        int playerCount = 0;
-        foreach (var _ in Runner.ActivePlayers)
-            playerCount++;
+        var managers = FindObjectsByType<GlobalPuzzleManager>(FindObjectsSortMode.None);
+        
+        bool allSolved = true;
+        foreach (var manager in managers)
+        {
+            if (manager.PlayerInteracted.Count == 0)
+            {
+                allSolved = false;
+                break;
+            }
+        }
 
-        if (PlayerInteracted.Count < playerCount) return;
-
-        IsPuzzleSolved = true;
+        if (allSolved)
+        {
+            foreach (var manager in managers)
+            {
+                manager.IsPuzzleSolved = true;
+            }
+        }
     }
 
     void ResetSyncWindow()
