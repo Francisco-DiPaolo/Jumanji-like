@@ -23,15 +23,16 @@ public class BrickInteractable : NetworkBasicInteraction
 
     public override void Select()
     {
+        if (!IsInteractable) return;
         base.Select();
         RPC_RegisterInteract();
         Debug.Log("Select");
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    void RPC_RegisterInteract()
+    void RPC_RegisterInteract(RpcInfo info = default)
     {
         var manager = GetComponentInParent<GlobalPuzzleManager>();
-        manager?.RegisterPlayerInteract(Object.InputAuthority);
+        manager?.RegisterPlayerInteract(info.Source);
     }
 }
