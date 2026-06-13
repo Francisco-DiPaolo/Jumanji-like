@@ -262,6 +262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TriggerButton
   pressed: 0
+  playersInside: 0
 --- !u!4 &4285348525565124627 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 05182d431ed33ca49b110809e63ab714, type: 3}
