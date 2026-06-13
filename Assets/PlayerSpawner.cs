@@ -49,6 +49,7 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
         data.buttons.Set(InputButton.Jump, Input.GetKey(KeyCode.Space));
         data.buttons.Set(InputButton.Sprint, Input.GetKey(KeyCode.LeftShift));
+        data.buttons.Set(InputButton.Interact, Input.GetKey(KeyCode.E));
 
         input.Set(data);
     }

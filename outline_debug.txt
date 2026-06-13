@@ -1,0 +1,4 @@
+--- OUTLINE DEBUG INFO ---
+Active URP Asset: PC_RPAsset
+Active Renderer: PC_Renderer
+OutlineFxFeature IS added.

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
@@ -5,6 +6,138 @@ using TMPro;
 
 public class SceneSetupTool : EditorWindow
 {
+    [MenuItem("Tools/Setup Torch Puzzle")]
+    static void SetupTorchPuzzle()
+    {
+        var root = new GameObject("TorchPuzzleRoot");
+        Undo.RegisterCreatedObjectUndo(root, "Create TorchPuzzleRoot");
+        root.transform.position = Vector3.zero;
+
+        var torchList = new List<TorchController>();
+        torchList.Add(CreateTorch(root.transform, "Torch_1", 0, false));
+        torchList.Add(CreateTorch(root.transform, "Torch_2", 1, false));
+        torchList.Add(CreateTorch(root.transform, "Torch_3_Green", 2, true));
+
+        var door = CreateDoor(root.transform);
+        var brick = CreateBrick(root.transform);
+        CreateManager(root, torchList, door, brick);
+
+        Selection.activeGameObject = root;
+        Debug.Log("[TorchPuzzle] Setup completo. Revisa TorchPuzzleRoot en la jerarquía.");
+    }
+
+    static TorchController CreateTorch(Transform parent, string name, int index, bool isGreen)
+    {
+        return TorchPrefabCreator.InstantiateTorch(parent, name, index, isGreen);
+    }
+
+
+    static GameObject CreateDoor(Transform parent)
+    {
+        var door = new GameObject("Door");
+        Undo.RegisterCreatedObjectUndo(door, "Create Door");
+        door.transform.SetParent(parent, false);
+        door.transform.position = new Vector3(3f, 0f, 4f);
+
+        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Undo.RegisterCreatedObjectUndo(cube, "Create Door Mesh");
+        cube.name = "DoorMesh";
+        cube.transform.SetParent(door.transform, false);
+        cube.transform.localScale = new Vector3(2f, 3f, 0.2f);
+
+        door.AddComponent<Animator>();
+
+        return door;
+    }
+
+    static BrickInteractable CreateBrick(Transform parent)
+    {
+        var go = new GameObject("Brick");
+        Undo.RegisterCreatedObjectUndo(go, "Create Brick");
+        go.transform.SetParent(parent, false);
+        go.transform.position = new Vector3(3f, 0f, 2f);
+
+        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Undo.RegisterCreatedObjectUndo(cube, "Create Brick Mesh");
+        cube.name = "BrickMesh";
+        cube.transform.SetParent(go.transform, false);
+        cube.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+        DestroyImmediate(cube.GetComponent<BoxCollider>());
+
+        var trigger = go.AddComponent<BoxCollider>();
+        trigger.isTrigger = true;
+        trigger.size = new Vector3(2f, 2f, 2f);
+
+        go.AddComponent<BrickInteractableView>();
+        var netObj = go.AddComponent<Fusion.NetworkObject>();
+        var brick = go.AddComponent<BrickInteractable>();
+
+        var hint = CreateInteractHint(go.transform);
+
+        var so = new SerializedObject(brick);
+        so.FindProperty("interactHint").objectReferenceValue = hint;
+        so.ApplyModifiedProperties();
+
+        return brick;
+    }
+
+    static GameObject CreateInteractHint(Transform parent)
+    {
+        var canvasGo = new GameObject("InteractHint");
+        Undo.RegisterCreatedObjectUndo(canvasGo, "Create InteractHint");
+        canvasGo.transform.SetParent(parent, false);
+        canvasGo.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+
+        var canvas = canvasGo.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+
+        var rect = canvasGo.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(200f, 60f);
+        rect.localScale = Vector3.one * 0.005f;
+
+        var textGo = new GameObject("HintText");
+        Undo.RegisterCreatedObjectUndo(textGo, "Create HintText");
+        textGo.transform.SetParent(canvasGo.transform, false);
+
+        var text = textGo.AddComponent<TextMeshProUGUI>();
+        text.text = "[E] Activar";
+        text.fontSize = 36;
+        text.alignment = TextAlignmentOptions.Center;
+        text.color = Color.white;
+
+        var textRect = textGo.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        canvasGo.SetActive(false);
+        return canvasGo;
+    }
+
+    static void CreateManager(GameObject root, List<TorchController> torches, GameObject door, BrickInteractable brick)
+    {
+        var netObj = root.AddComponent<Fusion.NetworkObject>();
+        var audioSource = root.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        var manager = root.AddComponent<GlobalPuzzleManager>();
+
+        var so = new SerializedObject(manager);
+
+        var torchListProp = so.FindProperty("torches");
+        torchListProp.ClearArray();
+        for (int i = 0; i < torches.Count; i++)
+        {
+            torchListProp.InsertArrayElementAtIndex(i);
+            torchListProp.GetArrayElementAtIndex(i).objectReferenceValue = torches[i];
+        }
+
+        so.FindProperty("doorAnimator").objectReferenceValue = door.GetComponent<Animator>();
+        so.FindProperty("doorAudioSource").objectReferenceValue = audioSource;
+        so.FindProperty("syncWindowDuration").floatValue = 0.5f;
+        so.ApplyModifiedProperties();
+    }
+
     [MenuItem("Tools/Setup Jumanji Scene")]
     static void SetupScene()
     {

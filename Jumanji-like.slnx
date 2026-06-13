@@ -8,7 +8,9 @@
   <Project Path="Fusion.Unity.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="PhotonChat.csproj" />
+  <Project Path="OutlineFx.csproj" />
   <Project Path="PhotonVoice.Fusion.csproj" />
+  <Project Path="OutlineFx.Editor.csproj" />
   <Project Path="MicAmplifierEditor.Editor.csproj" />
   <Project Path="Fusion.Addons.Physics.Editor.csproj" />
   <Project Path="Voice.FMOD.Editor.csproj" />
