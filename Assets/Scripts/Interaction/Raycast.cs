@@ -8,6 +8,7 @@ public class Raycast : MonoBehaviour
 {
     [SerializeField] Camera mainCamera;
     [SerializeField] float refreshVelocity = 0.1f;
+    [SerializeField] float maxDistance = Mathf.Infinity;
     public List<IInteractable> currentInteractable;
     public GameObject currentObjectReference;
     public Action<GameObject> onHover;
@@ -52,7 +53,7 @@ public class Raycast : MonoBehaviour
     private void FindObjectByRay()
     {
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-        bool hit = Physics.Raycast(ray, out RaycastHit raycastHit);
+        bool hit = Physics.Raycast(ray, out RaycastHit raycastHit, maxDistance);
         if (!hit) { UnHover(); return; }
 
         if (raycastHit.collider.gameObject == currentObjectReference)
