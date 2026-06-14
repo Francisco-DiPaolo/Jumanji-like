@@ -33,6 +33,6 @@ public class ButtonsManager : MonoBehaviour
 
     public void checkButton()
     {
-        if(triggerButtons.Any(b=> b.pressed)) floor.SetActive(false);
+        if(triggerButtons.All(b=> b.pressed)) floor.SetActive(false);
     }
 }
