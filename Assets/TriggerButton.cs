@@ -7,7 +7,7 @@ public class TriggerButton : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) // O usar TryGetComponent
+    if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
         {
             playersInside++;
             UpdateState();
@@ -16,7 +16,7 @@ public class TriggerButton : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
         {
             playersInside--;
             // Un pequeño fail-safe para que no baje de cero por errores de física
