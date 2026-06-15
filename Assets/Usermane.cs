@@ -14,10 +14,11 @@ public class Usermane : NetworkBehaviour
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
-        // Si este es mi jugador local, le envío mi nombre local a la variable de red
-        if (HasStateAuthority)
+        // Si este es el objeto del jugador local (Input Authority)
+        if (HasInputAuthority)
         {
-            SincronizedNickname = SessionLauncher.LocalNickname;
+            // Le enviamos un RPC al servidor/host para que actualice la variable de red
+            RpcSetNickname(SessionLauncher.LocalNickname);
         }
 
         // Inicializamos el texto al aparecer (útil si un jugador se une tarde)
@@ -25,6 +26,13 @@ public class Usermane : NetworkBehaviour
         {
             text.text = SincronizedNickname.ToString();
         }
+    }
+
+    // El RPC lo envía el cliente dueño de este objeto y lo ejecuta el Host/Server
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RpcSetNickname(string nickname)
+    {
+        SincronizedNickname = nickname;
     }
 
     public override void Render()
