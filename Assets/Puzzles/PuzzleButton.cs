@@ -30,10 +30,7 @@ public class PuzzleButton : MonoBehaviour
         if (other.TryGetComponent<PlayerMovement>(out _))
         {
             playersInside--;
-            if (playersInside < 0)
-            {
-                playersInside = 0;
-            }
+            if (playersInside < 0) playersInside = 0;
             UpdateState();
         }
     }

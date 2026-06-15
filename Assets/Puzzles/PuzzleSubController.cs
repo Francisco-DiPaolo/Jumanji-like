@@ -12,6 +12,8 @@ public class PuzzleSubController : MonoBehaviour
     private string incorrectButtonId2;
 
     public string ControllerIndex => controllerIndex;
+    public string IncorrectId1 => incorrectButtonId1;
+    public string IncorrectId2 => incorrectButtonId2;
 
     public UnityEvent OnCorrectButtonPressed;
     public event Action OnButtonStateChanged;
@@ -84,8 +86,8 @@ public class PuzzleSubController : MonoBehaviour
 
         foreach (var button in buttons)
         {
-            if (CompareIds(button.Id, correctButtonId) || 
-                CompareIds(button.Id, incorrectButtonId1) || 
+            if (CompareIds(button.Id, correctButtonId) ||
+                CompareIds(button.Id, incorrectButtonId1) ||
                 CompareIds(button.Id, incorrectButtonId2))
             {
                 button.TriggerPhaseStarted();
@@ -93,42 +95,42 @@ public class PuzzleSubController : MonoBehaviour
         }
     }
 
-    public void TriggerCurrentButtonCorrect()
+    public void TriggerPhaseButtonsOnSuccess(string correctId, string inc1Id, string inc2Id)
     {
-        var pressedBtn = CurrentPressedButton;
-        if (pressedBtn != null)
-        {
-            pressedBtn.TriggerCorrectPressed();
-            Debug.Log("[puzle]: OnCorrectButtonPressed en subcontrolador de sala " + controllerIndex);
-            OnCorrectButtonPressed?.Invoke();
-        }
-    }
-
-    public void TriggerPhaseButtonsOnSuccess()
-    {
-        var pressedBtn = CurrentPressedButton;
-        if (pressedBtn != null)
-        {
-            pressedBtn.TriggerCorrectPressed();
-            Debug.Log("[puzle]: OnCorrectButtonPressed en subcontrolador de sala " + controllerIndex);
-            OnCorrectButtonPressed?.Invoke();
-        }
-
         foreach (var button in buttons)
         {
-            if (CompareIds(button.Id, incorrectButtonId1) || CompareIds(button.Id, incorrectButtonId2))
+            if (CompareIds(button.Id, correctId))
+            {
+                Debug.Log("[puzle]: OnCorrectButtonPressed en subcontrolador de sala " + controllerIndex);
+                button.TriggerCorrectPressed();
+                OnCorrectButtonPressed?.Invoke();
+            }
+            else if (CompareIds(button.Id, inc1Id) || CompareIds(button.Id, inc2Id))
             {
                 button.TriggerIncorrectPressed();
             }
         }
     }
 
-    public void TriggerCurrentButtonIncorrect()
+    public void TriggerButtonResult(string pressedId, bool isCorrect)
     {
-        var pressedBtn = CurrentPressedButton;
-        if (pressedBtn != null)
+        if (string.IsNullOrEmpty(pressedId)) return;
+        foreach (var button in buttons)
         {
-            pressedBtn.TriggerIncorrectPressed();
+            if (CompareIds(button.Id, pressedId))
+            {
+                if (isCorrect)
+                {
+                    Debug.Log("[puzle]: OnCorrectButtonPressed en subcontrolador de sala " + controllerIndex);
+                    button.TriggerCorrectPressed();
+                    OnCorrectButtonPressed?.Invoke();
+                }
+                else
+                {
+                    button.TriggerIncorrectPressed();
+                }
+                return;
+            }
         }
     }
 
