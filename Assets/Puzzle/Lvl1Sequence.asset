@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18c1e731d9c26c549922bbcf7e078b9c, type: 3}
+  m_Name: Lvl1Sequence
+  m_EditorClassIdentifier: Assembly-CSharp::PuzzleSequenceData
+  phases:
+  - sub1:
+      correctButtonId: a3
+      incorrectButtonId1: a1
+      incorrectButtonId2: a2
+    sub2:
+      correctButtonId: b3
+      incorrectButtonId1: b1
+      incorrectButtonId2: b2
+    sub3:
+      correctButtonId: c1
+      incorrectButtonId1: c2
+      incorrectButtonId2: c3
+  - sub1:
+      correctButtonId: a6
+      incorrectButtonId1: a5
+      incorrectButtonId2: a4
+    sub2:
+      correctButtonId: b5
+      incorrectButtonId1: b4
+      incorrectButtonId2: b6
+    sub3:
+      correctButtonId: c6
+      incorrectButtonId1: c4
+      incorrectButtonId2: c5
+  - sub1:
+      correctButtonId: a8
+      incorrectButtonId1: a7
+      incorrectButtonId2: a9
+    sub2:
+      correctButtonId: b7
+      incorrectButtonId1: b8
+      incorrectButtonId2: b9
+    sub3:
+      correctButtonId: c8
+      incorrectButtonId1: c7
+      incorrectButtonId2: c9
+  - sub1:
+      correctButtonId: a10
+      incorrectButtonId1: a11
+      incorrectButtonId2: a12
+    sub2:
+      correctButtonId: b11
+      incorrectButtonId1: b10
+      incorrectButtonId2: b12
+    sub3:
+      correctButtonId: c10
+      incorrectButtonId1: c11
+      incorrectButtonId2: c12
