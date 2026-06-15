@@ -19,6 +19,7 @@ public class PuzzleGlobalController : NetworkBehaviour
     [Networked] private NetworkBool IsPuzzleSolved { get; set; }
 
     private ChangeDetector changeDetector;
+    private bool isEvaluating;
 
     public UnityEvent OnPhaseCompleted;
     public UnityEvent OnPuzzleCompleted;
@@ -110,6 +111,7 @@ public class PuzzleGlobalController : NetworkBehaviour
     {
         if (!HasStateAuthority) return;
         if (IsPuzzleSolved) return;
+        if (isEvaluating) return;
 
         bool allRoomsReady = true;
         string notReadyRooms = "";
@@ -158,36 +160,44 @@ public class PuzzleGlobalController : NetworkBehaviour
 
         Debug.Log("[puzle]: Evaluación - Todas las salas listas. Correctas = " + allCorrect);
 
-        if (allCorrect)
+        isEvaluating = true;
+        try
         {
-            string r1Correct = isRoom1Enabled && subController1 != null ? subController1.CurrentPressedButton?.Id ?? "" : "";
-            string r2Correct = isRoom2Enabled && subController2 != null ? subController2.CurrentPressedButton?.Id ?? "" : "";
-            string r3Correct = isRoom3Enabled && subController3 != null ? subController3.CurrentPressedButton?.Id ?? "" : "";
+            if (allCorrect)
+            {
+                string r1Correct = isRoom1Enabled && subController1 != null ? subController1.CurrentPressedButton?.Id ?? "" : "";
+                string r2Correct = isRoom2Enabled && subController2 != null ? subController2.CurrentPressedButton?.Id ?? "" : "";
+                string r3Correct = isRoom3Enabled && subController3 != null ? subController3.CurrentPressedButton?.Id ?? "" : "";
 
-            string r1Inc1 = isRoom1Enabled && subController1 != null ? subController1.IncorrectId1 : "";
-            string r1Inc2 = isRoom1Enabled && subController1 != null ? subController1.IncorrectId2 : "";
-            string r2Inc1 = isRoom2Enabled && subController2 != null ? subController2.IncorrectId1 : "";
-            string r2Inc2 = isRoom2Enabled && subController2 != null ? subController2.IncorrectId2 : "";
-            string r3Inc1 = isRoom3Enabled && subController3 != null ? subController3.IncorrectId1 : "";
-            string r3Inc2 = isRoom3Enabled && subController3 != null ? subController3.IncorrectId2 : "";
+                string r1Inc1 = isRoom1Enabled && subController1 != null ? subController1.IncorrectId1 : "";
+                string r1Inc2 = isRoom1Enabled && subController1 != null ? subController1.IncorrectId2 : "";
+                string r2Inc1 = isRoom2Enabled && subController2 != null ? subController2.IncorrectId1 : "";
+                string r2Inc2 = isRoom2Enabled && subController2 != null ? subController2.IncorrectId2 : "";
+                string r3Inc1 = isRoom3Enabled && subController3 != null ? subController3.IncorrectId1 : "";
+                string r3Inc2 = isRoom3Enabled && subController3 != null ? subController3.IncorrectId2 : "";
 
-            Rpc_BroadcastSuccess(r1Correct, r1Inc1, r1Inc2, r2Correct, r2Inc1, r2Inc2, r3Correct, r3Inc1, r3Inc2);
+                Rpc_BroadcastSuccess(r1Correct, r1Inc1, r1Inc2, r2Correct, r2Inc1, r2Inc2, r3Correct, r3Inc1, r3Inc2);
 
-            CurrentPhaseIndex++;
-            LoadCurrentPhase();
+                CurrentPhaseIndex++;
+                LoadCurrentPhase();
+            }
+            else
+            {
+                string r1Pressed = isRoom1Enabled && subController1 != null ? subController1.CurrentPressedButton?.Id ?? "" : "";
+                bool r1IsCorrect = isRoom1Enabled && subController1 != null && subController1.IsCorrectButtonPressed;
+
+                string r2Pressed = isRoom2Enabled && subController2 != null ? subController2.CurrentPressedButton?.Id ?? "" : "";
+                bool r2IsCorrect = isRoom2Enabled && subController2 != null && subController2.IsCorrectButtonPressed;
+
+                string r3Pressed = isRoom3Enabled && subController3 != null ? subController3.CurrentPressedButton?.Id ?? "" : "";
+                bool r3IsCorrect = isRoom3Enabled && subController3 != null && subController3.IsCorrectButtonPressed;
+
+                Rpc_BroadcastIncorrect(r1Pressed, r1IsCorrect, r2Pressed, r2IsCorrect, r3Pressed, r3IsCorrect);
+            }
         }
-        else
+        finally
         {
-            string r1Pressed = isRoom1Enabled && subController1 != null ? subController1.CurrentPressedButton?.Id ?? "" : "";
-            bool r1IsCorrect = isRoom1Enabled && subController1 != null && subController1.IsCorrectButtonPressed;
-
-            string r2Pressed = isRoom2Enabled && subController2 != null ? subController2.CurrentPressedButton?.Id ?? "" : "";
-            bool r2IsCorrect = isRoom2Enabled && subController2 != null && subController2.IsCorrectButtonPressed;
-
-            string r3Pressed = isRoom3Enabled && subController3 != null ? subController3.CurrentPressedButton?.Id ?? "" : "";
-            bool r3IsCorrect = isRoom3Enabled && subController3 != null && subController3.IsCorrectButtonPressed;
-
-            Rpc_BroadcastIncorrect(r1Pressed, r1IsCorrect, r2Pressed, r2IsCorrect, r3Pressed, r3IsCorrect);
+            isEvaluating = false;
         }
     }
 
@@ -202,7 +212,7 @@ public class PuzzleGlobalController : NetworkBehaviour
         if (isRoom2Enabled && subController2 != null) subController2.TriggerPhaseButtonsOnSuccess(r2CorrectId, r2Inc1, r2Inc2);
         if (isRoom3Enabled && subController3 != null) subController3.TriggerPhaseButtonsOnSuccess(r3CorrectId, r3Inc1, r3Inc2);
 
-        Debug.Log("[puzle]: OnPhaseCompleted para fase " + (CurrentPhaseIndex - 1));
+        Debug.Log("[puzle]: OnPhaseCompleted para fase " + CurrentPhaseIndex);
         OnPhaseCompleted?.Invoke();
     }
 
