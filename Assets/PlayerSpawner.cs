@@ -6,9 +6,10 @@ using UnityEngine;
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] NetworkPrefabRef playerPrefab;
-    [SerializeField] Transform playerSpawnPosition;
+    [SerializeField] Transform[] playerSpawnPositions;
     [SerializeField] float spawnRotationY = -344.922f;
 
+    int spawnIndex;
     bool registered;
 
     void Update()
@@ -29,7 +30,10 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (runner.IsServer)
         {
             Quaternion rotation = Quaternion.Euler(0, spawnRotationY, 0);
-            runner.Spawn(playerPrefab, playerSpawnPosition.position, rotation, player);
+            int index = Mathf.Min(spawnIndex, playerSpawnPositions.Length - 1);
+            Transform spawnPoint = playerSpawnPositions[index];
+            spawnIndex++;
+            runner.Spawn(playerPrefab, spawnPoint.position, rotation, player);
         }
     }
 
