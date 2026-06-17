@@ -14,48 +14,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleSequenceData
   phases:
   - sub1:
-      correctButtonId: a3
-      incorrectButtonId1: a1
-      incorrectButtonId2: a2
+      correctButtonId: a1
+      incorrectButtonId1: a2
+      incorrectButtonId2: a3
     sub2:
-      correctButtonId: b3
+      correctButtonId: b2
       incorrectButtonId1: b1
-      incorrectButtonId2: b2
+      incorrectButtonId2: b3
     sub3:
-      correctButtonId: c1
-      incorrectButtonId1: c2
-      incorrectButtonId2: c3
+      correctButtonId: c3
+      incorrectButtonId1: c1
+      incorrectButtonId2: c2
   - sub1:
-      correctButtonId: a6
-      incorrectButtonId1: a5
-      incorrectButtonId2: a4
+      correctButtonId: a5
+      incorrectButtonId1: a4
+      incorrectButtonId2: a6
     sub2:
-      correctButtonId: b5
-      incorrectButtonId1: b4
+      correctButtonId: b4
+      incorrectButtonId1: b5
       incorrectButtonId2: b6
     sub3:
-      correctButtonId: c6
+      correctButtonId: c5
       incorrectButtonId1: c4
-      incorrectButtonId2: c5
+      incorrectButtonId2: c6
   - sub1:
-      correctButtonId: a8
+      correctButtonId: a9
       incorrectButtonId1: a7
-      incorrectButtonId2: a9
+      incorrectButtonId2: a8
     sub2:
-      correctButtonId: b7
-      incorrectButtonId1: b8
-      incorrectButtonId2: b9
+      correctButtonId: b9
+      incorrectButtonId1: b7
+      incorrectButtonId2: b8
     sub3:
       correctButtonId: c8
       incorrectButtonId1: c7
       incorrectButtonId2: c9
   - sub1:
-      correctButtonId: a10
-      incorrectButtonId1: a11
-      incorrectButtonId2: a12
+      correctButtonId: a12
+      incorrectButtonId1: a10
+      incorrectButtonId2: a11
     sub2:
-      correctButtonId: b11
-      incorrectButtonId1: b10
+      correctButtonId: b10
+      incorrectButtonId1: b11
       incorrectButtonId2: b12
     sub3:
       correctButtonId: c10
