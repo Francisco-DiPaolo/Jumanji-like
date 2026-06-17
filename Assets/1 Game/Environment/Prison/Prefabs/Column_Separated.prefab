@@ -321,6 +321,7 @@ Transform:
   m_LocalScale: {x: 1.0064679, y: 1.0064679, z: 1.0064679}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5197084625347029846}
   - {fileID: 5918923781049608203}
   - {fileID: 6337210567586665450}
   - {fileID: 7430991642267819302}
@@ -352,12 +353,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1721004844734916846}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.044872, y: -0.089124, z: 0.028182}
-  m_LocalScale: {x: 1.0480635, y: 1.094264, z: 0.9872388}
+  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -10.712247, y: 0.46804267, z: 37.255863}
+  m_LocalScale: {x: 2.5983777, y: 2.712919, z: 2.4475803}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5918923781049608203}
+  m_Father: {fileID: 6194879637821218075}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8644190841412907533
 MeshFilter:
@@ -1226,7 +1227,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1802024721505657381}
   m_Layer: 0
-  m_Name: polySurface102
+  m_Name: Brick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1403,6 +1404,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5918923781049608203}
   - component: {fileID: 7019578732679400702}
+  - component: {fileID: 68452359706517311}
   - component: {fileID: 1051706056278205419}
   - component: {fileID: 1030442753324210164}
   m_Layer: 0
@@ -1425,7 +1427,6 @@ Transform:
   m_LocalScale: {x: 2.479218, y: 2.479218, z: 2.479218}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 5197084625347029846}
   - {fileID: 1802024721505657381}
   m_Father: {fileID: 6194879637821218075}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1452,6 +1453,18 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 8300000, guid: 18457a7e453817e47a0b5be4c2a9d0fa, type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.AudioClip, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 68452359706517311}
+        m_TargetAssemblyTypeName: LeanTweenBrickMovement, Assembly-CSharp
+        m_MethodName: HundirBrick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1514,6 +1527,34 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 7019578732679400702}
+        m_TargetAssemblyTypeName: PuzzleButton, Assembly-CSharp
+        m_MethodName: PlaySound
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 8300000, guid: d19c5c0635fe26b49bb50228106bd553, type: 3}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.AudioClip, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &68452359706517311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8325264588637324981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aebd017815039ff4bb1a9facca97e68e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeanTweenBrickMovement
+  distanciaHundir: 0.15
+  tiempoMovimiento: 0.2
+  curvaAlBajar: 2
+  curvaAlSubir: 2
 --- !u!65 &1051706056278205419
 BoxCollider:
   m_ObjectHideFlags: 0
