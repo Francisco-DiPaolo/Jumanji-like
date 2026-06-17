@@ -190,6 +190,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7336160011894622579}
+  - component: {fileID: 7341631850282881914}
   m_Layer: 0
   m_Name: door
   m_TagString: Untagged
@@ -205,14 +206,29 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5612747434231823766}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0001809299, y: 0.87295103, z: -0.0003592372, w: 0.48780778}
+  m_LocalRotation: {x: 0.00040147157, y: 0.0000000069914567, z: -0.000017414573, w: 0.99999994}
   m_LocalPosition: {x: -2.0595877e-14, y: 0.48362663, z: 0.00000014901161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7087402166674503923}
   m_Father: {fileID: 4898854013335683817}
-  m_LocalEulerAnglesHint: {x: 0.046, y: 121.607, z: -0.002}
+  m_LocalEulerAnglesHint: {x: 0.046, y: 0, z: -0.002}
+--- !u!114 &7341631850282881914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5612747434231823766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03aa786520cb7eb4d99334cc3f50495b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeanTweenDoor
+  anguloApertura: 121.607
+  tiempoApertura: 1.5
+  tipoCurva: 2
 --- !u!1 &7433063231592319288
 GameObject:
   m_ObjectHideFlags: 0

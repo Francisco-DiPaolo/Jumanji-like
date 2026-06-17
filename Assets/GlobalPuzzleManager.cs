@@ -5,7 +5,7 @@ using UnityEngine;
 public class GlobalPuzzleManager : NetworkBehaviour
 {
     [SerializeField] List<TorchController> torches;
-    [SerializeField] Animator doorAnimator;
+    [SerializeField] LeanTweenDoor tweenDoor;
     [SerializeField] AudioSource doorAudioSource;
     [SerializeField] float timeBetweenTorches = 2f;
     [SerializeField] float allLitDuration = 3f;
@@ -24,8 +24,6 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     ChangeDetector _changeDetector;
     BrickInteractable _brick;
-
-    static readonly int OpenHash = Animator.StringToHash("Open");
 
     BrickInteractable Brick => _brick != null ? _brick : (_brick = GetComponentInChildren<BrickInteractable>());
 
@@ -150,8 +148,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     void ResolvePuzzle()
     {
-        if (doorAnimator != null)
-            doorAnimator.SetTrigger(OpenHash);
+        if (tweenDoor != null)
+        {
+            tweenDoor.OpenDoor();
+        }
 
         if (doorAudioSource != null)
             doorAudioSource.Play();
