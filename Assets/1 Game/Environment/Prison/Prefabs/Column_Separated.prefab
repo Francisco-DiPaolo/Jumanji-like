@@ -323,7 +323,6 @@ Transform:
   m_Children:
   - {fileID: 5197084625347029846}
   - {fileID: 5918923781049608203}
-  - {fileID: 6337210567586665450}
   - {fileID: 7430991642267819302}
   m_Father: {fileID: 1817075222353128597}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -535,11 +534,11 @@ Transform:
   m_GameObject: {fileID: 2595777317376629766}
   serializedVersion: 2
   m_LocalRotation: {x: 1, y: -0, z: -0, w: 0}
-  m_LocalPosition: {x: -11.165, y: 0.59633255, z: 37.22499}
-  m_LocalScale: {x: -0.12030478, y: 0.3568501, z: 0.111601986}
+  m_LocalPosition: {x: -0.5639992, y: -0.0926671, z: 0.03899002}
+  m_LocalScale: {x: -0.12030478, y: 0.35685006, z: 0.111601986}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6194879637821218075}
+  m_Father: {fileID: 5918923781049608203}
   m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
 --- !u!33 &9161729650078225245
 MeshFilter:
@@ -738,8 +737,8 @@ Transform:
   m_GameObject: {fileID: 3855529926994572418}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.10274, y: 0.31464, z: -0.403}
-  m_LocalScale: {x: 1.0442, y: 0.7369738, z: 1.1312265}
+  m_LocalPosition: {x: 0.09608, y: 0.323728, z: -0.4047}
+  m_LocalScale: {x: 2.6302254, y: 1.4922951, z: 2.745972}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1802024721505657381}
@@ -1424,9 +1423,10 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -10.601, y: 0.6890001, z: 37.185997}
-  m_LocalScale: {x: 2.479218, y: 2.479218, z: 2.479218}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6337210567586665450}
   - {fileID: 1802024721505657381}
   m_Father: {fileID: 6194879637821218075}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1451,7 +1451,7 @@ MonoBehaviour:
         m_MethodName: PlaySound
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 8300000, guid: 18457a7e453817e47a0b5be4c2a9d0fa, type: 3}
+          m_ObjectArgument: {fileID: 8300000, guid: 10e159f07a83bb047923c4237d78cf33, type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.AudioClip, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -1589,7 +1589,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.55
   m_Pitch: 1
   Loop: 0
   Mute: 0

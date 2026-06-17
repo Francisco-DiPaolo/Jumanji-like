@@ -87,7 +87,7 @@ public class PuzzleButton : MonoBehaviour
         OnPressedStarted?.Invoke();
 
         // 2. Espera el segundo de gracia
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         // 3. Confirma la presión para el sistema
         isPressed = true;
