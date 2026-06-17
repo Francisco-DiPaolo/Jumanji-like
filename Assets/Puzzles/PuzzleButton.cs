@@ -1,20 +1,32 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
+[RequireComponent(typeof(AudioSource))]
 public class PuzzleButton : MonoBehaviour
 {
     private bool isPressed;
     private int playersInside;
+    private AudioSource audioSource;
+    private Coroutine pressRoutine;
 
+    [Header("Puzzle Settings")]
     public string Id;
     public bool IsPressed => isPressed;
 
     public event Action<PuzzleButton, bool> OnPressedStateChanged;
 
-    public UnityEvent OnCorrectPressed;
-    public UnityEvent OnIncorrectPressed;
+    [Header("Unity Events (Inspector)")]
+    public UnityEvent OnPressedStarted;   // Se ejecuta apenas lo pisan
+    public UnityEvent OnCorrectPressed;   // Se ejecuta al acertar
+    public UnityEvent OnIncorrectPressed; // Se ejecuta al errar
     public UnityEvent OnPhaseStarted;
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -44,22 +56,67 @@ public class PuzzleButton : MonoBehaviour
     private void UpdateState()
     {
         bool pressed = playersInside > 0;
-        if (isPressed == pressed) return;
-        isPressed = pressed;
-        Debug.Log("[puzle]: Botón " + Id + (isPressed ? " PRESIONADO" : " LIBERADO") + " por el jugador.");
-        OnPressedStateChanged?.Invoke(this, isPressed);
+        
+        if (pressed)
+        {
+            if (pressRoutine == null && !isPressed)
+            {
+                pressRoutine = StartCoroutine(PressSequenceRoutine());
+            }
+        }
+        else
+        {
+            if (pressRoutine != null)
+            {
+                StopCoroutine(pressRoutine);
+                pressRoutine = null;
+            }
+            
+            if (isPressed)
+            {
+                isPressed = false;
+                Debug.Log("[puzle]: Botón " + Id + " LIBERADO por el jugador.");
+                OnPressedStateChanged?.Invoke(this, false);
+            }
+        }
+    }
+
+    private IEnumerator PressSequenceRoutine()
+    {
+        // 1. Dispara el evento de inicio (Aquí vas a colgar el sonido de deslice)
+        OnPressedStarted?.Invoke();
+
+        // 2. Espera el segundo de gracia
+        yield return new WaitForSeconds(1f);
+
+        // 3. Confirma la presión para el sistema
+        isPressed = true;
+        Debug.Log("[puzle]: Botón " + Id + " PRESIONADO por el jugador tras 1s.");
+        OnPressedStateChanged?.Invoke(this, true);
+        
+        pressRoutine = null;
+    }
+
+    // --- FUNCIONES PÚBLICAS PARA QUE LAS ASIGNES EN LOS EVENTOS ---
+
+    public void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 
     public void TriggerCorrectPressed()
     {
         Debug.Log("[puzle]: OnCorrectPressed en " + Id);
-        OnCorrectPressed?.Invoke();
+        OnCorrectPressed?.Invoke(); // Dispara tu evento del Inspector
     }
 
     public void TriggerIncorrectPressed()
     {
         Debug.Log("[puzle]: OnIncorrectPressed en " + Id);
-        OnIncorrectPressed?.Invoke();
+        OnIncorrectPressed?.Invoke(); // Dispara tu evento del Inspector
     }
 
     public void TriggerPhaseStarted()
