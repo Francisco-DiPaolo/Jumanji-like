@@ -1,17 +1,43 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 using Fusion;
 
 public class LoadScene : MonoBehaviour
 {
+    private AsyncOperation preloadedSceneOperation;
+
+    private void Start()
+    {
+        // Iniciamos la precarga de la escena "Game" en segundo plano
+        StartCoroutine(PreloadSceneCoroutine());
+    }
+
+    private IEnumerator PreloadSceneCoroutine()
+    {
+        // Esperamos un cuadro para asegurar que el sistema esté listo
+        yield return null;
+
+        // Comenzamos la carga asíncrona de la escena "Game"
+        preloadedSceneOperation = SceneManager.LoadSceneAsync("Game");
+
+        if (preloadedSceneOperation != null)
+        {
+            // Impedimos que la escena se active automáticamente al terminar de cargar.
+            // Esto detiene el progreso en aproximadamente 90% en el fondo.
+            preloadedSceneOperation.allowSceneActivation = false;
+        }
+    }
+
     public void Play()
     {
-        // Buscamos si hay un NetworkRunner activo en la escena (partida online)
         NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
 
         if (runner != null)
         {
-            // En Photon Fusion, solo el Host/Server tiene la autoridad para cambiar la escena
+            // --- MODO ONLINE (Photon Fusion) ---
+            // Nota: En multijugador activo, Fusion debe gestionar la carga y sincronización
+            // de escenas para todos los clientes, por lo que no se usa la precarga local.
             if (runner.IsSceneAuthority)
             {
                 int gameSceneIndex = SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/Game.unity");
@@ -21,7 +47,7 @@ public class LoadScene : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("No se pudo encontrar la escena 'Game' en los Build Settings. Asegúrate de agregarla.");
+                    Debug.LogError("No se pudo encontrar la escena 'Game' en los Build Settings.");
                 }
             }
             else
@@ -31,8 +57,19 @@ public class LoadScene : MonoBehaviour
         }
         else
         {
-            // Si no hay sesión de Fusion (modo offline o pruebas), cargamos de manera clásica
-            SceneManager.LoadScene("Game");
+            // --- MODO OFFLINE / LOCAL ---
+            if (preloadedSceneOperation != null)
+            {
+                // Permitimos la activación de la escena precargada.
+                // Si ya llegó al 90%, se activará de forma casi instantánea.
+                // Si aún no ha terminado de cargar, se activará automáticamente en cuanto finalice.
+                preloadedSceneOperation.allowSceneActivation = true;
+            }
+            else
+            {
+                // Salvaguarda por si la precarga no se inició o falló
+                SceneManager.LoadScene("Game");
+            }
         }
     }
 }
