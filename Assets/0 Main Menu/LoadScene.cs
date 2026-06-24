@@ -15,8 +15,8 @@ public class LoadScene : MonoBehaviour
 
     private IEnumerator PreloadSceneCoroutine()
     {
-        // Esperamos un cuadro para asegurar que el sistema esté listo
-        yield return null;
+        // Esperamos 3 segundos antes de iniciar la precarga para dejar que el menú se estabilice
+        yield return new WaitForSeconds(3f);
 
         // Comenzamos la carga asíncrona de la escena "Game"
         preloadedSceneOperation = SceneManager.LoadSceneAsync("Game");
