@@ -21,18 +21,38 @@ public class BrickInteractable : NetworkBasicInteraction
         base.FixedUpdateNetwork();
     }
 
+    public override void Hover()
+    {
+        Debug.Log("[Brick] Hover — IsInteractable: " + IsInteractable);
+        base.Hover();
+    }
+
+    public override void UnHover()
+    {
+        Debug.Log("[Brick] UnHover");
+        base.UnHover();
+    }
+
     public override void Select()
     {
-        if (!IsInteractable) return;
+        Debug.Log("[Brick] Select called — IsInteractable: " + IsInteractable + " | isHovered: " + isHovered);
+        if (!IsInteractable)
+        {
+            Debug.LogWarning("[Brick] Select blocked: brick is NOT interactable yet (torches not all lit)");
+            return;
+        }
         base.Select();
-        RPC_RegisterInteract();
-        Debug.Log("Select");
+        Debug.Log("[Brick] Firing RPC_RegisterInteract");
+        RPC_RegisterInteract(Runner.LocalPlayer);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    void RPC_RegisterInteract(RpcInfo info = default)
+    void RPC_RegisterInteract(PlayerRef player)
     {
         var manager = GetComponentInParent<GlobalPuzzleManager>();
-        manager?.RegisterPlayerInteract(info.Source);
+        Debug.Log("[Brick] RPC received — manager found: " + (manager != null) + " | player: " + player);
+        if (manager == null)
+            Debug.LogError("[Brick] RPC_RegisterInteract: GlobalPuzzleManager not found in parent!");
+        manager?.RegisterPlayerInteract(player);
     }
 }

@@ -96,11 +96,13 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     public void RegisterPlayerInteract(PlayerRef player)
     {
-        if (Object == null || !Object.HasStateAuthority) return;
-        if (!IsBrickEnabled || IsPuzzleSolved) return;
+        Debug.Log("[PuzzleManager] RegisterPlayerInteract — player: " + player + " | HasStateAuthority: " + Object.HasStateAuthority + " | IsBrickEnabled: " + IsBrickEnabled + " | IsPuzzleSolved: " + IsPuzzleSolved);
+        if (Object == null || !Object.HasStateAuthority) { Debug.LogWarning("[PuzzleManager] Blocked: no StateAuthority"); return; }
+        if (!IsBrickEnabled || IsPuzzleSolved) { Debug.LogWarning("[PuzzleManager] Blocked: IsBrickEnabled=" + IsBrickEnabled + " IsPuzzleSolved=" + IsPuzzleSolved); return; }
 
         bool isFirstInteract = PlayerInteracted.Count == 0;
         PlayerInteracted.Set(player, true);
+        Debug.Log("[PuzzleManager] PlayerInteracted count after set: " + PlayerInteracted.Count);
 
         if (isFirstInteract)
             SyncWindowOpenTime = Runner.SimulationTime;
@@ -111,10 +113,12 @@ public class GlobalPuzzleManager : NetworkBehaviour
     void TryResolveSync()
     {
         var managers = FindObjectsByType<GlobalPuzzleManager>(FindObjectsSortMode.None);
-        
+        Debug.Log("[PuzzleManager] TryResolveSync — total managers in scene: " + managers.Length);
+
         bool allSolved = true;
         foreach (var manager in managers)
         {
+            Debug.Log("[PuzzleManager] Manager: " + manager.name + " | PlayerInteracted.Count: " + manager.PlayerInteracted.Count);
             if (manager.PlayerInteracted.Count == 0)
             {
                 allSolved = false;
@@ -122,6 +126,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
             }
         }
 
+        Debug.Log("[PuzzleManager] allSolved: " + allSolved);
         if (allSolved)
         {
             foreach (var manager in managers)
