@@ -12,6 +12,9 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [SerializeField] float resetPauseDuration = 1f;
     [SerializeField] float syncWindowDuration = 1.5f;
 
+    [Header("Puzzle Resuelto")]
+    [SerializeField] GameObject candado; // Objeto que se apaga al resolver el puzzle
+
     [Networked] public NetworkBool IsBrickEnabled { get; set; }
     [Networked] public NetworkBool IsPuzzleSolved { get; set; }
     [Networked] int CurrentTorchIndex { get; set; }
@@ -154,11 +157,12 @@ public class GlobalPuzzleManager : NetworkBehaviour
     void ResolvePuzzle()
     {
         if (tweenDoor != null)
-        {
             tweenDoor.OpenDoor();
-        }
 
         if (doorAudioSource != null)
             doorAudioSource.Play();
+
+        if (candado != null)
+            candado.SetActive(false);
     }
 }
