@@ -8,12 +8,12 @@ public class LeanTweenDoor : MonoBehaviour
     [SerializeField] private LeanTweenType tipoCurva = LeanTweenType.easeOutQuad; // Suavizado prolijo
 
     private bool isOpen = false;
-    private float initialRotationY;
+    private Vector3 initialLocalAngles;
 
     private void Start()
     {
-        // Guardamos la rotación Y inicial local del objeto
-        initialRotationY = transform.localEulerAngles.y;
+        // Guardamos los ángulos locales iniciales del objeto
+        initialLocalAngles = transform.localEulerAngles;
     }
 
     [ContextMenu("Toggle Door")]
@@ -22,11 +22,12 @@ public class LeanTweenDoor : MonoBehaviour
         if (isOpen) return; // Si ya está abierta, no hace nada
         isOpen = true;
 
-        // Calculamos el destino final sumando el ángulo a la posición inicial
-        float targetY = initialRotationY + anguloApertura;
-
-        // Esta sintaxis es universal en LeanTween y no tira error de compilación
-        LeanTween.rotateY(gameObject, targetY, tiempoApertura)
-            .setEase(tipoCurva);
+        // Usamos LeanTween.value para realizar una rotación local robusta e independiente de wrapping
+        LeanTween.value(gameObject, 0f, anguloApertura, tiempoApertura)
+            .setEase(tipoCurva)
+            .setOnUpdate((float val) =>
+            {
+                transform.localEulerAngles = new Vector3(initialLocalAngles.x, initialLocalAngles.y + val, initialLocalAngles.z);
+            });
     }
 }
