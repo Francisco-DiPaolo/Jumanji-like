@@ -18,12 +18,21 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] float topClamp = 90.0f;
     [SerializeField] float bottomClamp = -90.0f;
 
+    [Header("Stamina Settings")]
+    [SerializeField] float maxStamina = 100f;
+    [SerializeField] float staminaDrainRate = 20f;
+    [SerializeField] float staminaRegenRate = 15f;
+
+    [Networked] public float CurrentStamina { get; set; }
+    public System.Action<float, float> OnStaminaChanged; // actual, max
+
     [Networked] float VerticalLook { get; set; }
 
     NetworkCharacterController controller;
 
     public override void Spawned()
     {
+        CurrentStamina = maxStamina;
         controller = GetComponent<NetworkCharacterController>();
         controller.orientRotationToMovement = false;
         
@@ -48,9 +57,30 @@ public class PlayerMovement : NetworkBehaviour
         if (!GetInput(out PlayerInputData data))
             return;
 
-        // Sprint logic
+        // Sprint & Stamina logic
         bool isSprinting = data.buttons.IsSet(InputButton.Sprint);
-        controller.maxSpeed = isSprinting ? sprintSpeed : walkSpeed;
+        
+        if (isSprinting && data.move.sqrMagnitude > 0.01f && CurrentStamina > 0)
+        {
+            CurrentStamina -= staminaDrainRate * Runner.DeltaTime;
+            if (CurrentStamina < 0) CurrentStamina = 0;
+        }
+        else
+        {
+            if (CurrentStamina < maxStamina)
+            {
+                CurrentStamina += staminaRegenRate * Runner.DeltaTime;
+                if (CurrentStamina > maxStamina) CurrentStamina = maxStamina;
+            }
+        }
+
+        if (HasInputAuthority)
+        {
+            OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
+        }
+
+        bool canRun = isSprinting && CurrentStamina > 0;
+        controller.maxSpeed = canRun ? sprintSpeed : walkSpeed;
         controller.acceleration = speedChangeRate;
 
         Vector3 moveDirection = (transform.forward * data.move.y + transform.right * data.move.x).normalized;
