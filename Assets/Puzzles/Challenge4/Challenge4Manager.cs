@@ -1,0 +1,256 @@
+using Fusion;
+using UnityEngine;
+using UnityEngine.Events;
+
+public class Challenge4Manager : NetworkBehaviour
+{
+    [Header("Fase 1 — Rueda Individual")]
+    [SerializeField] private SoloWheelController soloWheel;
+    [SerializeField] private int soloWheelTargetSymbol0 = 0;
+    [SerializeField] private int soloWheelTargetSymbol1 = 1;
+    [SerializeField] private int soloWheelTargetSymbol2 = 2;
+
+    [Header("Fase 2 — Reloj + 3 Ruedas Cooperativas")]
+    [SerializeField] private CentralClockManager centralClock;
+    [SerializeField] private WheelRingController wheel0;
+    [SerializeField] private WheelRingController wheel1;
+    [SerializeField] private WheelRingController wheel2;
+
+    [Header("Puertas")]
+    [SerializeField] private LeanTweenDoor gateA;
+    [SerializeField] private LeanTweenDoor gateB;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource puzzleAudioSource;
+    [SerializeField] private AudioClip phase1SuccessClip;
+    [SerializeField] private AudioClip phase2SuccessClip;
+    [SerializeField] private AudioClip wrongCombinationClip;
+
+    [Header("Events")]
+    public UnityEvent OnPhase1Completed;
+    public UnityEvent OnPuzzleFullyCompleted;
+    public UnityEvent OnWrongCombinationAttempt;
+
+    [Networked] private NetworkBool IsPhase1Done { get; set; }
+    [Networked] private NetworkBool IsPuzzleSolved { get; set; }
+
+    private ChangeDetector _changeDetector;
+    private float _validationCooldown;
+    private float _wrongFeedbackCooldown;
+    private bool _needsCoopEvaluation;
+
+    private const float ValidationCooldownSeconds = 2f;
+    private const float WrongFeedbackCooldownSeconds = 1.5f;
+
+    public override void Spawned()
+    {
+        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
+        if (HasStateAuthority)
+        {
+            IsPhase1Done = false;
+            IsPuzzleSolved = false;
+        }
+
+        soloWheel?.OnSelectionChanged.AddListener(EvaluateSoloWheel);
+
+        wheel0?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
+        wheel1?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
+        wheel2?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
+        centralClock?.OnCycleChanged.AddListener(MarkNeedsCoopEvaluation);
+    }
+
+    private void OnDestroy()
+    {
+        soloWheel?.OnSelectionChanged.RemoveListener(EvaluateSoloWheel);
+
+        wheel0?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
+        wheel1?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
+        wheel2?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
+        centralClock?.OnCycleChanged.RemoveListener(MarkNeedsCoopEvaluation);
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (!HasStateAuthority) return;
+        if (IsPuzzleSolved) return;
+
+        if (_validationCooldown > 0f) _validationCooldown -= Runner.DeltaTime;
+        if (_wrongFeedbackCooldown > 0f) _wrongFeedbackCooldown -= Runner.DeltaTime;
+
+        if (!IsPhase1Done) return;
+
+        if (!_needsCoopEvaluation) return;
+        _needsCoopEvaluation = false;
+        EvaluateCoopWheels();
+    }
+
+    private void EvaluateSoloWheel()
+    {
+        if (!HasStateAuthority) return;
+        if (IsPhase1Done) return;
+        if (_validationCooldown > 0f) return;
+
+        if (soloWheel == null) return;
+
+        bool correct = soloWheel.SelectedSymbolIndex0 == soloWheelTargetSymbol0
+                    && soloWheel.SelectedSymbolIndex1 == soloWheelTargetSymbol1
+                    && soloWheel.SelectedSymbolIndex2 == soloWheelTargetSymbol2;
+
+        if (correct)
+        {
+            _validationCooldown = ValidationCooldownSeconds;
+            soloWheel.MarkResolved();
+            Rpc_CompletePhase1();
+        }
+        else if (_wrongFeedbackCooldown <= 0f)
+        {
+            _wrongFeedbackCooldown = WrongFeedbackCooldownSeconds;
+            Rpc_TriggerSoloWrongFeedback();
+        }
+    }
+
+    private void MarkNeedsCoopEvaluation()
+    {
+        _needsCoopEvaluation = true;
+    }
+
+    private void EvaluateCoopWheels()
+    {
+        if (!HasStateAuthority) return;
+        if (IsPuzzleSolved) return;
+        if (_validationCooldown > 0f) return;
+
+        bool allMatch = CheckAllWheelsMatch();
+
+        if (allMatch)
+        {
+            _validationCooldown = ValidationCooldownSeconds;
+            _wrongFeedbackCooldown = 0f;
+            IsPuzzleSolved = true;
+            centralClock.StopClock();
+            Rpc_CompletePhase2();
+        }
+        else if (_wrongFeedbackCooldown <= 0f)
+        {
+            bool anyPartialMatch = CheckAnyWheelMatches();
+            if (!anyPartialMatch)
+            {
+                _wrongFeedbackCooldown = WrongFeedbackCooldownSeconds;
+                Rpc_TriggerCoopWrongFeedback();
+            }
+        }
+    }
+
+    private bool CheckAllWheelsMatch()
+    {
+        if (centralClock == null || wheel0 == null || wheel1 == null || wheel2 == null) return false;
+
+        int sym0 = centralClock.ActiveSymbolIndices[0];
+        int sym1 = centralClock.ActiveSymbolIndices[1];
+        int sym2 = centralClock.ActiveSymbolIndices[2];
+
+        int sel0 = wheel0.SelectedSymbolIndex;
+        int sel1 = wheel1.SelectedSymbolIndex;
+        int sel2 = wheel2.SelectedSymbolIndex;
+
+        bool w0ok = sel0 == sym0 || sel0 == sym1 || sel0 == sym2;
+        bool w1ok = sel1 == sym0 || sel1 == sym1 || sel1 == sym2;
+        bool w2ok = sel2 == sym0 || sel2 == sym1 || sel2 == sym2;
+
+        return w0ok && w1ok && w2ok
+               && sel0 != sel1 && sel0 != sel2 && sel1 != sel2;
+    }
+
+    private bool CheckAnyWheelMatches()
+    {
+        int sym0 = centralClock.ActiveSymbolIndices[0];
+        int sym1 = centralClock.ActiveSymbolIndices[1];
+        int sym2 = centralClock.ActiveSymbolIndices[2];
+
+        int sel0 = wheel0.SelectedSymbolIndex;
+        int sel1 = wheel1.SelectedSymbolIndex;
+        int sel2 = wheel2.SelectedSymbolIndex;
+
+        bool w0ok = sel0 == sym0 || sel0 == sym1 || sel0 == sym2;
+        bool w1ok = sel1 == sym0 || sel1 == sym1 || sel1 == sym2;
+        bool w2ok = sel2 == sym0 || sel2 == sym1 || sel2 == sym2;
+
+        return w0ok || w1ok || w2ok;
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_CompletePhase1()
+    {
+        IsPhase1Done = true;
+
+        gateA?.OpenDoor();
+        soloWheel?.TriggerSuccessFeedback();
+
+        if (puzzleAudioSource != null && phase1SuccessClip != null)
+            puzzleAudioSource.PlayOneShot(phase1SuccessClip);
+
+        if (HasStateAuthority && centralClock != null && soloWheel != null)
+        {
+            centralClock.SetActiveSymbols(
+                soloWheel.SelectedSymbolIndex0,
+                soloWheel.SelectedSymbolIndex1,
+                soloWheel.SelectedSymbolIndex2
+            );
+        }
+
+        OnPhase1Completed?.Invoke();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_CompletePhase2()
+    {
+        gateB?.OpenDoor();
+
+        wheel0?.TriggerSuccessFeedback();
+        wheel1?.TriggerSuccessFeedback();
+        wheel2?.TriggerSuccessFeedback();
+
+        if (puzzleAudioSource != null && phase2SuccessClip != null)
+            puzzleAudioSource.PlayOneShot(phase2SuccessClip);
+
+        OnPuzzleFullyCompleted?.Invoke();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_TriggerSoloWrongFeedback()
+    {
+        soloWheel?.TriggerErrorFeedback();
+
+        if (puzzleAudioSource != null && wrongCombinationClip != null)
+            puzzleAudioSource.PlayOneShot(wrongCombinationClip);
+
+        OnWrongCombinationAttempt?.Invoke();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_TriggerCoopWrongFeedback()
+    {
+        wheel0?.TriggerErrorFeedback();
+        wheel1?.TriggerErrorFeedback();
+        wheel2?.TriggerErrorFeedback();
+
+        if (puzzleAudioSource != null && wrongCombinationClip != null)
+            puzzleAudioSource.PlayOneShot(wrongCombinationClip);
+
+        OnWrongCombinationAttempt?.Invoke();
+    }
+
+    public override void Render()
+    {
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            if (change == nameof(IsPuzzleSolved) && IsPuzzleSolved)
+            {
+                wheel0?.TriggerSuccessFeedback();
+                wheel1?.TriggerSuccessFeedback();
+                wheel2?.TriggerSuccessFeedback();
+            }
+        }
+    }
+}
