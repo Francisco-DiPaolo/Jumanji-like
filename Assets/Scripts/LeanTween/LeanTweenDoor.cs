@@ -9,6 +9,10 @@ public class LeanTweenDoor : MonoBehaviour
 
     private bool isOpen = false;
     private Vector3 initialLocalAngles;
+    
+    [Header("Configuración de Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip openSound;
 
     private void Start()
     {
@@ -21,6 +25,11 @@ public class LeanTweenDoor : MonoBehaviour
     {
         if (isOpen) return; // Si ya está abierta, no hace nada
         isOpen = true;
+
+        if (audioSource != null && openSound != null)
+        {
+            audioSource.PlayOneShot(openSound);
+        }
 
         // Usamos LeanTween.value para realizar una rotación local robusta e independiente de wrapping
         LeanTween.value(gameObject, 0f, anguloApertura, tiempoApertura)
