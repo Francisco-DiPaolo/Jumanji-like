@@ -6,11 +6,13 @@ public class GlobalPuzzleManager : NetworkBehaviour
 {
     [SerializeField] List<TorchController> torches;
     [SerializeField] LeanTweenDoor tweenDoor;
-    [SerializeField] AudioSource doorAudioSource;
     [SerializeField] float timeBetweenTorches = 2f;
     [SerializeField] float allLitDuration = 3f;
     [SerializeField] float resetPauseDuration = 1f;
     [SerializeField] float syncWindowDuration = 1.5f;
+
+    [Header("Sonido de puerta al resolver")]
+    [SerializeField] AudioSource doorAudioSource; // Sonido de puerta de prisión al abrir
 
     [Header("Puzzle Resuelto")]
     [SerializeField] GameObject candado; // Objeto que se apaga al resolver el puzzle
