@@ -25,6 +25,9 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] bool invertY = false;
     [SerializeField] float topClamp = 85.0f;
     [SerializeField] float bottomClamp = -85.0f;
+    
+    [HideInInspector] public bool CameraOverrideActive = false;
+    public Transform CameraPivot => cameraPivot;
 
     [Header("Stamina Settings")]
     [SerializeField] float maxStamina = 100f;
@@ -93,6 +96,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private void HandleCamera(PlayerInputData data)
     {
+        if (CameraOverrideActive) return;
+        
         float mouseX = data.look.x * mouseSensitivityX;
         float mouseY = data.look.y * mouseSensitivityY;
 
@@ -174,6 +179,8 @@ public class PlayerMovement : NetworkBehaviour
 
     public override void Render()
     {
+        if (CameraOverrideActive) return;
+        
         if (cameraPivot != null)
             cameraPivot.localRotation = Quaternion.Euler(VerticalLook, 0, 0);
     }
