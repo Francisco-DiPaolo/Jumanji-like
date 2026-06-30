@@ -40,6 +40,13 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] float VerticalLook { get; set; }
     [Networked] Vector3 CurrentVelocity { get; set; }
     [Networked] NetworkBool IsGrounded { get; set; }
+    [Networked] public NetworkBool IsReadyAtBoard { get; set; }
+
+    [Rpc(RpcSources.InputAuthority | RpcSources.StateAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetReadyAtBoard(NetworkBool isReady)
+    {
+        IsReadyAtBoard = isReady;
+    }
 
     CharacterController unityController;
 
@@ -117,6 +124,12 @@ public class PlayerMovement : NetworkBehaviour
 
     private void HandleMovement(PlayerInputData data)
     {
+        if (CameraOverrideActive)
+        {
+            data.move = Vector2.zero;
+            data.buttons = default;
+        }
+
         // 1. Ground Check más preciso usando CheckSphere en la base
         Vector3 spherePos = transform.position + unityController.center + Vector3.down * (unityController.height / 2f - groundCheckRadius + 0.05f);
         IsGrounded = Physics.CheckSphere(spherePos, groundCheckRadius, groundMask, QueryTriggerInteraction.Ignore);

@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.Events;
 using Fusion;
 
 public class BoardCameraOverride : MonoBehaviour
 {
     [SerializeField] private float transitionDuration = 1.0f;
     [SerializeField] private LeanTweenType easeType = LeanTweenType.easeInOutQuad;
+    
+    public UnityEvent onCameraReachedTarget;
 
     private PlayerMovement activePlayer;
     private Transform originalParent;
@@ -48,7 +51,11 @@ public class BoardCameraOverride : MonoBehaviour
         LeanTween.cancel(camPivot.gameObject);
 
         // Tween to the board view (world space)
-        LeanTween.move(camPivot.gameObject, transform.position, transitionDuration).setEase(easeType);
+        LeanTween.move(camPivot.gameObject, transform.position, transitionDuration)
+            .setEase(easeType)
+            .setOnComplete(() => {
+                onCameraReachedTarget?.Invoke();
+            });
         LeanTween.rotate(camPivot.gameObject, transform.eulerAngles, transitionDuration).setEase(easeType);
 
         // Unlock cursor
