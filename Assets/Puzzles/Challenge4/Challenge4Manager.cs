@@ -6,9 +6,9 @@ public class Challenge4Manager : NetworkBehaviour
 {
     [Header("Fase 1 — Rueda Individual")]
     [SerializeField] private SoloWheelController soloWheel;
-    [SerializeField] private int soloWheelTargetSymbol0 = 0;
-    [SerializeField] private int soloWheelTargetSymbol1 = 1;
-    [SerializeField] private int soloWheelTargetSymbol2 = 2;
+    [SerializeField] private string soloWheelTargetId0 = "sun";
+    [SerializeField] private string soloWheelTargetId1 = "moon";
+    [SerializeField] private string soloWheelTargetId2 = "star";
 
     [Header("Fase 2 — Reloj + 3 Ruedas Cooperativas")]
     [SerializeField] private CentralClockManager centralClock;
@@ -93,9 +93,9 @@ public class Challenge4Manager : NetworkBehaviour
 
         if (soloWheel == null) return;
 
-        bool correct = soloWheel.SelectedSymbolIndex0 == soloWheelTargetSymbol0
-                    && soloWheel.SelectedSymbolIndex1 == soloWheelTargetSymbol1
-                    && soloWheel.SelectedSymbolIndex2 == soloWheelTargetSymbol2;
+        bool correct = soloWheel.SelectedSymbolId0 == soloWheelTargetId0
+                    && soloWheel.SelectedSymbolId1 == soloWheelTargetId1
+                    && soloWheel.SelectedSymbolId2 == soloWheelTargetId2;
 
         if (correct)
         {
@@ -142,42 +142,28 @@ public class Challenge4Manager : NetworkBehaviour
         }
     }
 
-    private bool CheckAllWheelsMatch()
-    {
-        if (centralClock == null || wheel0 == null || wheel1 == null || wheel2 == null) return false;
+   private bool CheckAllWheelsMatch()
+{
+    if (centralClock == null || wheel0 == null || wheel1 == null || wheel2 == null) return false;
 
-        int sym0 = centralClock.ActiveSymbolIndices[0];
-        int sym1 = centralClock.ActiveSymbolIndices[1];
-        int sym2 = centralClock.ActiveSymbolIndices[2];
+    bool w0ok = wheel0.TryGetMatchingSymbolId(centralClock, out string id0);
+    bool w1ok = wheel1.TryGetMatchingSymbolId(centralClock, out string id1);
+    bool w2ok = wheel2.TryGetMatchingSymbolId(centralClock, out string id2);
 
-        int sel0 = wheel0.SelectedSymbolIndex;
-        int sel1 = wheel1.SelectedSymbolIndex;
-        int sel2 = wheel2.SelectedSymbolIndex;
+    return w0ok && w1ok && w2ok
+           && id0 != id1 && id0 != id2 && id1 != id2;
+}
 
-        bool w0ok = sel0 == sym0 || sel0 == sym1 || sel0 == sym2;
-        bool w1ok = sel1 == sym0 || sel1 == sym1 || sel1 == sym2;
-        bool w2ok = sel2 == sym0 || sel2 == sym1 || sel2 == sym2;
+private bool CheckAnyWheelMatches()
+{
+    if (centralClock == null || wheel0 == null || wheel1 == null || wheel2 == null) return false;
 
-        return w0ok && w1ok && w2ok
-               && sel0 != sel1 && sel0 != sel2 && sel1 != sel2;
-    }
+    bool w0ok = wheel0.TryGetMatchingSymbolId(centralClock, out _);
+    bool w1ok = wheel1.TryGetMatchingSymbolId(centralClock, out _);
+    bool w2ok = wheel2.TryGetMatchingSymbolId(centralClock, out _);
 
-    private bool CheckAnyWheelMatches()
-    {
-        int sym0 = centralClock.ActiveSymbolIndices[0];
-        int sym1 = centralClock.ActiveSymbolIndices[1];
-        int sym2 = centralClock.ActiveSymbolIndices[2];
-
-        int sel0 = wheel0.SelectedSymbolIndex;
-        int sel1 = wheel1.SelectedSymbolIndex;
-        int sel2 = wheel2.SelectedSymbolIndex;
-
-        bool w0ok = sel0 == sym0 || sel0 == sym1 || sel0 == sym2;
-        bool w1ok = sel1 == sym0 || sel1 == sym1 || sel1 == sym2;
-        bool w2ok = sel2 == sym0 || sel2 == sym1 || sel2 == sym2;
-
-        return w0ok || w1ok || w2ok;
-    }
+    return w0ok || w1ok || w2ok;
+}
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_CompletePhase1()
@@ -193,9 +179,9 @@ public class Challenge4Manager : NetworkBehaviour
         if (HasStateAuthority && centralClock != null && soloWheel != null)
         {
             centralClock.SetActiveSymbols(
-                soloWheel.SelectedSymbolIndex0,
-                soloWheel.SelectedSymbolIndex1,
-                soloWheel.SelectedSymbolIndex2
+                soloWheel.SelectedSymbolId0,
+                soloWheel.SelectedSymbolId1,
+                soloWheel.SelectedSymbolId2
             );
         }
 

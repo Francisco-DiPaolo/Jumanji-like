@@ -41,15 +41,49 @@ public class SoloWheelController : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
     private bool _isAnimating;
-    private int _previousSelected0 = -1;
-    private int _previousSelected1 = -1;
-    private int _previousSelected2 = -1;
+    private string _previousSelected0;
+    private string _previousSelected1;
+    private string _previousSelected2;
     private bool _playerIsPresent;
 
-    public int SelectedSymbolIndex0 => ComputeSelected(Ring0Steps, ring0SymbolRenderers);
-    public int SelectedSymbolIndex1 => ComputeSelected(Ring1Steps, ring1SymbolRenderers);
-    public int SelectedSymbolIndex2 => ComputeSelected(Ring2Steps, ring2SymbolRenderers);
+    private string[] _ring0Ids;
+    private string[] _ring1Ids;
+    private string[] _ring2Ids;
+
+    private int SelectedPosition0 => ComputePosition(Ring0Steps, ring0SymbolRenderers);
+    private int SelectedPosition1 => ComputePosition(Ring1Steps, ring1SymbolRenderers);
+    private int SelectedPosition2 => ComputePosition(Ring2Steps, ring2SymbolRenderers);
+
+    public string SelectedSymbolId0 => MapPositionToId(SelectedPosition0, _ring0Ids);
+    public string SelectedSymbolId1 => MapPositionToId(SelectedPosition1, _ring1Ids);
+    public string SelectedSymbolId2 => MapPositionToId(SelectedPosition2, _ring2Ids);
+
     public bool PlayerIsPresent => _playerIsPresent;
+
+    private void Awake()
+    {
+        _ring0Ids = CacheIds(ring0SymbolRenderers);
+        _ring1Ids = CacheIds(ring1SymbolRenderers);
+        _ring2Ids = CacheIds(ring2SymbolRenderers);
+    }
+
+    private string[] CacheIds(Renderer[] renderers)
+    {
+        if (renderers == null) return new string[0];
+        var ids = new string[renderers.Length];
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            var identity = renderers[i] != null ? renderers[i].GetComponent<SymbolIdentity>() : null;
+            if (identity == null)
+            {
+                Debug.LogError($"Falta SymbolIdentity en {renderers[i]?.name}", this);
+                ids[i] = null;
+                continue;
+            }
+            ids[i] = identity.SymbolId;
+        }
+        return ids;
+    }
 
     public override void Spawned()
     {
@@ -65,7 +99,7 @@ public class SoloWheelController : NetworkBehaviour
             if (change == nameof(Ring0Steps)) ApplyRotation(ring0, Ring0Steps);
             else if (change == nameof(Ring1Steps)) ApplyRotation(ring1, Ring1Steps);
             else if (change == nameof(Ring2Steps)) ApplyRotation(ring2, Ring2Steps);
-            
+
             if (change == nameof(IsResolved) && IsResolved) OnResolved?.Invoke();
         }
 
@@ -73,15 +107,15 @@ public class SoloWheelController : NetworkBehaviour
 
         RefreshMaterials();
 
-        int s0 = SelectedSymbolIndex0;
-        int s1 = SelectedSymbolIndex1;
-        int s2 = SelectedSymbolIndex2;
+        string id0 = SelectedSymbolId0;
+        string id1 = SelectedSymbolId1;
+        string id2 = SelectedSymbolId2;
 
-        if (s0 != _previousSelected0 || s1 != _previousSelected1 || s2 != _previousSelected2)
+        if (id0 != _previousSelected0 || id1 != _previousSelected1 || id2 != _previousSelected2)
         {
-            _previousSelected0 = s0;
-            _previousSelected1 = s1;
-            _previousSelected2 = s2;
+            _previousSelected0 = id0;
+            _previousSelected1 = id1;
+            _previousSelected2 = id2;
             OnSelectionChanged?.Invoke();
         }
     }
@@ -117,6 +151,39 @@ public class SoloWheelController : NetworkBehaviour
         IsResolved = true;
     }
 
+    public bool MatchesClock(CentralClockManager clock)
+    {
+        if (clock == null) return false;
+
+        var selected = new System.Collections.Generic.HashSet<string>
+        {
+            SelectedSymbolId0,
+            SelectedSymbolId1,
+            SelectedSymbolId2
+        };
+
+        if (selected.Count != 3) return false;
+
+        return clock.IsSymbolActive(SelectedSymbolId0)
+            && clock.IsSymbolActive(SelectedSymbolId1)
+            && clock.IsSymbolActive(SelectedSymbolId2);
+    }
+
+    public void TryResolve(CentralClockManager clock)
+    {
+        if (!HasStateAuthority) return;
+
+        if (MatchesClock(clock))
+        {
+            MarkResolved();
+            TriggerSuccessFeedback();
+        }
+        else
+        {
+            TriggerErrorFeedback();
+        }
+    }
+
     private void ApplyRotation(Transform ringTransform, int steps)
     {
         if (ringTransform == null) return;
@@ -130,47 +197,49 @@ public class SoloWheelController : NetworkBehaviour
 
         LeanTween.value(ringTransform.gameObject, startAngle, targetAngle, rotationDuration)
             .setEase(rotationEase)
-            .setOnUpdate((float angle) => ringTransform.localRotation = Quaternion.Euler(0f, 0f, angle))
+            .setOnUpdate((float angle) => ringTransform.localRotation = Quaternion.Euler(0f,-90, angle))
             .setOnComplete(() => _isAnimating = false);
     }
 
-    private int ComputeSelected(int steps, Renderer[] renderers)
+    private int ComputePosition(int steps, Renderer[] renderers)
     {
         int count = renderers != null ? renderers.Length : 1;
         return ((steps % count) + count) % count;
     }
 
-    private void RefreshMaterials()
+    private string MapPositionToId(int position, string[] ids)
     {
-        ApplySelectionToRenderers(ring0SymbolRenderers, SelectedSymbolIndex0);
-        ApplySelectionToRenderers(ring1SymbolRenderers, SelectedSymbolIndex1);
-        ApplySelectionToRenderers(ring2SymbolRenderers, SelectedSymbolIndex2);
+        if (ids == null || position < 0 || position >= ids.Length) return null;
+        return ids[position];
     }
 
-    private void ApplySelectionToRenderers(Renderer[] renderers, int selectedIndex)
+    private void RefreshMaterials()
+    {
+        ApplySelectionToRenderers(ring0SymbolRenderers, SelectedPosition0);
+        ApplySelectionToRenderers(ring1SymbolRenderers, SelectedPosition1);
+        ApplySelectionToRenderers(ring2SymbolRenderers, SelectedPosition2);
+    }
+
+    private void ApplySelectionToRenderers(Renderer[] renderers, int selectedPosition)
     {
         if (renderers == null) return;
         for (int i = 0; i < renderers.Length; i++)
         {
             if (renderers[i] == null) continue;
-            renderers[i].material = i == selectedIndex ? symbolSelectedMaterial : symbolDefaultMaterial;
+            renderers[i].material = i == selectedPosition ? symbolSelectedMaterial : symbolDefaultMaterial;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent<PlayerMovement>(out _))
-        {
             _playerIsPresent = true;
-        }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.TryGetComponent<PlayerMovement>(out _))
-        {
             _playerIsPresent = false;
-        }
     }
 
     public void TriggerErrorFeedback()

@@ -21,9 +21,39 @@ public class CentralClockManager : NetworkBehaviour
     [Networked] public NetworkBool IsRunning { get; set; }
 
     [Networked, Capacity(3)]
-    public NetworkArray<int> ActiveSymbolIndices => default;
+    private NetworkArray<NetworkString<_32>> ActiveSymbolIdsNetworked => default;
 
     private ChangeDetector _changeDetector;
+    private string[] _symbolIds; // id de SymbolIdentity por cada posición del array de renderers
+
+    public string ActiveSymbolId0 => ActiveSymbolIdsNetworked[0].ToString();
+    public string ActiveSymbolId1 => ActiveSymbolIdsNetworked[1].ToString();
+    public string ActiveSymbolId2 => ActiveSymbolIdsNetworked[2].ToString();
+
+    private void Awake()
+    {
+        CacheSymbolIds();
+    }
+
+    private void CacheSymbolIds()
+    {
+        _symbolIds = new string[clockSymbolRenderers.Length];
+        for (int i = 0; i < clockSymbolRenderers.Length; i++)
+        {
+            var identity = clockSymbolRenderers[i] != null
+                ? clockSymbolRenderers[i].GetComponent<SymbolIdentity>()
+                : null;
+
+            if (identity == null)
+            {
+                Debug.LogError($"Falta SymbolIdentity en {clockSymbolRenderers[i]?.name}", this);
+                _symbolIds[i] = null;
+                continue;
+            }
+
+            _symbolIds[i] = identity.SymbolId;
+        }
+    }
 
     public override void Spawned()
     {
@@ -36,11 +66,7 @@ public class CentralClockManager : NetworkBehaviour
             PickNewSymbols();
         }
 
-        ApplyActiveSymbolMaterials(
-            ActiveSymbolIndices[0],
-            ActiveSymbolIndices[1],
-            ActiveSymbolIndices[2]
-        );
+        ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
     }
 
     public override void FixedUpdateNetwork()
@@ -64,12 +90,12 @@ public class CentralClockManager : NetworkBehaviour
         PickNewSymbols();
     }
 
-    public void SetActiveSymbols(int sym0, int sym1, int sym2)
+    public void SetActiveSymbols(string id0, string id1, string id2)
     {
         if (!HasStateAuthority) return;
-        ActiveSymbolIndices.Set(0, sym0);
-        ActiveSymbolIndices.Set(1, sym1);
-        ActiveSymbolIndices.Set(2, sym2);
+        ActiveSymbolIdsNetworked.Set(0, id0);
+        ActiveSymbolIdsNetworked.Set(1, id1);
+        ActiveSymbolIdsNetworked.Set(2, id2);
     }
 
     public void StopClock()
@@ -83,14 +109,14 @@ public class CentralClockManager : NetworkBehaviour
     {
         int total = clockSymbolRenderers.Length;
 
-        var picked = new System.Collections.Generic.HashSet<int>();
-        while (picked.Count < activeSymbolCount)
-            picked.Add(UnityEngine.Random.Range(0, total));
+        var pickedPositions = new System.Collections.Generic.HashSet<int>();
+        while (pickedPositions.Count < activeSymbolCount)
+            pickedPositions.Add(UnityEngine.Random.Range(0, total));
 
         int i = 0;
-        foreach (int idx in picked)
+        foreach (int position in pickedPositions)
         {
-            ActiveSymbolIndices.Set(i, idx);
+            ActiveSymbolIdsNetworked.Set(i, _symbolIds[position]);
             i++;
         }
     }
@@ -99,13 +125,9 @@ public class CentralClockManager : NetworkBehaviour
     {
         foreach (var change in _changeDetector.DetectChanges(this))
         {
-            if (change == nameof(ActiveSymbolIndices))
+            if (change == nameof(ActiveSymbolIdsNetworked))
             {
-                ApplyActiveSymbolMaterials(
-                    ActiveSymbolIndices[0],
-                    ActiveSymbolIndices[1],
-                    ActiveSymbolIndices[2]
-                );
+                ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
                 OnCycleChanged?.Invoke();
             }
         }
@@ -117,25 +139,23 @@ public class CentralClockManager : NetworkBehaviour
         OnClockStopped?.Invoke();
     }
 
-    private void ApplyActiveSymbolMaterials(int s0, int s1, int s2)
+    private void ApplyActiveSymbolMaterials(string id0, string id1, string id2)
     {
         if (clockSymbolRenderers == null) return;
 
         for (int i = 0; i < clockSymbolRenderers.Length; i++)
         {
             if (clockSymbolRenderers[i] == null) continue;
-            bool isActive = i == s0 || i == s1 || i == s2;
+            string id = _symbolIds[i];
+            bool isActive = id == id0 || id == id1 || id == id2;
             clockSymbolRenderers[i].material = isActive ? symbolActiveMaterial : symbolDefaultMaterial;
         }
     }
 
-    public bool IsSymbolActive(int symbolIndex)
+    public bool IsSymbolActive(string symbolId)
     {
-        for (int i = 0; i < activeSymbolCount; i++)
-        {
-            if (ActiveSymbolIndices[i] == symbolIndex) return true;
-        }
-        return false;
+        if (string.IsNullOrEmpty(symbolId)) return false;
+        return symbolId == ActiveSymbolId0 || symbolId == ActiveSymbolId1 || symbolId == ActiveSymbolId2;
     }
 
     public float GetNormalizedTimeRemaining()

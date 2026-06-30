@@ -18,11 +18,11 @@ public class RingInteractable : MonoBehaviour, IInteractable
 
     public void Select()
     {
-        if (_wheel != null && _wheel.PlayerIsPresent)
+        if (_wheel != null)
         {
             _wheel.RotateRing(ringIndex, 1);
         }
-        else if (_soloWheel != null && _soloWheel.PlayerIsPresent)
+        else if (_soloWheel != null)
         {
             _soloWheel.RotateRing(ringIndex, 1);
         }
