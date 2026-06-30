@@ -13,8 +13,8 @@ public class BoardGameSequence : MonoBehaviour
     [SerializeField] private float fastTypewriterSpeed = 0.02f; // Tiempo entre letras del mensaje de espera
     
     [Header("Dice Physics")]
-    [SerializeField] private float diceJumpForce = 3.0f;
-    [SerializeField] private float diceTorqueForce = 2.0f;
+    public float diceJumpForce = 3.0f;
+    public float diceTorqueForce = 2.0f;
     
     [Header("Scene References")]
     [SerializeField] private Transform[] dices;
