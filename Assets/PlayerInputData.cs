@@ -12,5 +12,6 @@ public enum InputButton
 {
     Jump,
     Sprint,
-    Interact
+    Interact,
+    Weave
 }

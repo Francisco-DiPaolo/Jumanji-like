@@ -18,6 +18,7 @@ public class Raycast : MonoBehaviour
 
     public Color outlineColor = Color.yellow;
     private OutlineFxParent currentOutline;
+    private PlayerMovement playerMovement;
 
     void Start()
     {
@@ -27,6 +28,9 @@ public class Raycast : MonoBehaviour
             enabled = false;
             return;
         }
+
+        // Cache PlayerMovement for animation triggers
+        playerMovement = GetComponentInParent<PlayerMovement>();
 
         if (mainCamera == null) mainCamera = Camera.main;
         InvokeRepeating("FindObjectByRay", 0, refreshVelocity);
@@ -44,9 +48,11 @@ public class Raycast : MonoBehaviour
     private void select()
     {
         if (!SelectEnabled) return;
-        if (currentInteractable != null) 
+        if (currentInteractable != null && currentInteractable.Count > 0)
         {
             foreach (var item in currentInteractable) item?.Select();
+            // Fire the Interact animation on the local player
+            playerMovement?.TriggerInteractAnimation();
         }
     }
 

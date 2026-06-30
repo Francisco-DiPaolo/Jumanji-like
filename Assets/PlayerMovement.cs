@@ -53,7 +53,11 @@ public class PlayerMovement : NetworkBehaviour
 
     CharacterController unityController;
     Animator animator;
-    Vector2 lastMoveInput; // Guardamos el input de dirección para usarlo en Render()
+    Vector2 lastMoveInput;        // Input de dirección para Render()
+    bool lastJumpPressed;         // Si se apretó Jump en el último FixedUpdate (rising edge únicamente)
+    bool wasJumpHeld;             // Estado anterior del botón Jump para detectar rising edge
+    bool lastWeavePressed;        // Si se apretó Weave en el último FixedUpdate
+    bool localIsGrounded;         // Copia local de IsGrounded para el Animator (sin lag de red)
 
     public override void Spawned()
     {
@@ -66,6 +70,20 @@ public class PlayerMovement : NetworkBehaviour
             animator = model.GetComponent<Animator>();
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
+
+        // Inicializar el Animator en estado Idle/Grounded para evitar
+        // que el primer frame de física lo ponga en el estado de salto
+        if (animator != null)
+        {
+            animator.SetBool("IsGrounded", true);
+            animator.SetFloat("Speed", 0f);
+            animator.SetFloat("PositionX", 0f);
+            animator.SetFloat("PositionY", 0f);
+            // Limpiar triggers que pudieran haber quedado sucios del frame anterior
+            animator.ResetTrigger("Jump");
+            animator.ResetTrigger("Weave");
+            animator.ResetTrigger("Interact");
+        }
 
         if (HasInputAuthority)
         {
@@ -144,10 +162,31 @@ public class PlayerMovement : NetworkBehaviour
 
         // Guardar input de dirección para Render() / Animator
         lastMoveInput = data.move;
+        
+        // Rising edge del Jump: solo true en el frame que se APRIETA, no mientras se sostiene
+        bool jumpHeld = data.buttons.IsSet(InputButton.Jump);
+        lastJumpPressed = jumpHeld && !wasJumpHeld;
+        wasJumpHeld = jumpHeld;
+        
+        lastWeavePressed = data.buttons.IsSet(InputButton.Weave);
 
-        // 1. Ground Check más preciso usando CheckSphere en la base
+        // 1. Ground Check más preciso usando OverlapSphere que ignora al propio jugador
         Vector3 spherePos = transform.position + unityController.center + Vector3.down * (unityController.height / 2f - groundCheckRadius + 0.05f);
-        IsGrounded = Physics.CheckSphere(spherePos, groundCheckRadius, groundMask, QueryTriggerInteraction.Ignore);
+        
+        Collider[] hitColliders = new Collider[5];
+        int numHits = Physics.OverlapSphereNonAlloc(spherePos, groundCheckRadius, hitColliders, groundMask, QueryTriggerInteraction.Ignore);
+        
+        IsGrounded = false;
+        for (int i = 0; i < numHits; i++)
+        {
+            if (hitColliders[i].gameObject != gameObject) // Ignorar el propio CharacterController
+            {
+                IsGrounded = true;
+                break;
+            }
+        }
+        
+        localIsGrounded = IsGrounded; // Copia local sin lag de red para el Animator
 
         // 2. Sprint & Speed logic
         bool isSprinting = data.buttons.IsSet(InputButton.Sprint) && CurrentStamina > 0;
@@ -226,10 +265,37 @@ public class PlayerMovement : NetworkBehaviour
 
         float currentSpeed = animator.GetFloat("Speed");
         float smoothedSpeed = Mathf.Lerp(currentSpeed, targetAnimSpeed, animatorDampTime / Time.deltaTime * Runner.DeltaTime);
+        
+        // Filtro Deadzone para limpiar valores de notación científica extremadamente chicos
+        if (smoothedSpeed < 0.01f)
+        {
+            smoothedSpeed = 0f;
+        }
+        
         animator.SetFloat("Speed", smoothedSpeed);
 
         // Dirección para los Blend Trees 2D anidados
         animator.SetFloat("PositionX", lastMoveInput.x);
         animator.SetFloat("PositionY", lastMoveInput.y);
+
+        // IsGrounded (bool local, sin lag de red) — actualizar siempre
+        animator.SetBool("IsGrounded", localIsGrounded);
+
+        // Jump Trigger — solo dispara en el rising edge (primer frame del press)
+        if (lastJumpPressed && localIsGrounded)
+            animator.SetTrigger("Jump");
+
+        // Weave Trigger — G key
+        if (lastWeavePressed)
+            animator.SetTrigger("Weave");
+    }
+
+    /// <summary>
+    /// Llamar desde Raycast.cs cuando el jugador local interactúa con un objeto.
+    /// </summary>
+    public void TriggerInteractAnimation()
+    {
+        if (animator != null)
+            animator.SetTrigger("Interact");
     }
 }
