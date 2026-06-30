@@ -29,6 +29,9 @@ public class PlayerMovement : NetworkBehaviour
     [HideInInspector] public bool CameraOverrideActive = false;
     public Transform CameraPivot => cameraPivot;
 
+    [Header("Animation Settings")]
+    [SerializeField] float animatorDampTime = 0.1f; // Suavidad del Lerp de Speed
+
     [Header("Stamina Settings")]
     [SerializeField] float maxStamina = 100f;
     [SerializeField] float staminaDrainRate = 20f;
@@ -49,11 +52,20 @@ public class PlayerMovement : NetworkBehaviour
     }
 
     CharacterController unityController;
+    Animator animator;
+    Vector2 lastMoveInput; // Guardamos el input de dirección para usarlo en Render()
 
     public override void Spawned()
     {
         CurrentStamina = maxStamina;
         unityController = GetComponent<CharacterController>();
+
+        // Busca el Animator en el hijo llamado Character_Model
+        Transform model = transform.Find("Character_Model");
+        if (model != null)
+            animator = model.GetComponent<Animator>();
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
 
         if (HasInputAuthority)
         {
@@ -130,6 +142,9 @@ public class PlayerMovement : NetworkBehaviour
             data.buttons = default;
         }
 
+        // Guardar input de dirección para Render() / Animator
+        lastMoveInput = data.move;
+
         // 1. Ground Check más preciso usando CheckSphere en la base
         Vector3 spherePos = transform.position + unityController.center + Vector3.down * (unityController.height / 2f - groundCheckRadius + 0.05f);
         IsGrounded = Physics.CheckSphere(spherePos, groundCheckRadius, groundMask, QueryTriggerInteraction.Ignore);
@@ -192,9 +207,29 @@ public class PlayerMovement : NetworkBehaviour
 
     public override void Render()
     {
-        if (CameraOverrideActive) return;
-        
-        if (cameraPivot != null)
+        if (!CameraOverrideActive && cameraPivot != null)
             cameraPivot.localRotation = Quaternion.Euler(VerticalLook, 0, 0);
+
+        HandleAnimator();
+    }
+
+    private void HandleAnimator()
+    {
+        if (animator == null) return;
+
+        bool isMoving = lastMoveInput.sqrMagnitude > 0.01f;
+        bool isSprinting = isMoving && (CurrentVelocity.magnitude >= sprintSpeed * 0.8f);
+
+        // Speed: 0 = Idle, 1 = Walk, 2 = Run
+        float targetAnimSpeed = 0f;
+        if (isMoving) targetAnimSpeed = isSprinting ? 2f : 1f;
+
+        float currentSpeed = animator.GetFloat("Speed");
+        float smoothedSpeed = Mathf.Lerp(currentSpeed, targetAnimSpeed, animatorDampTime / Time.deltaTime * Runner.DeltaTime);
+        animator.SetFloat("Speed", smoothedSpeed);
+
+        // Dirección para los Blend Trees 2D anidados
+        animator.SetFloat("PositionX", lastMoveInput.x);
+        animator.SetFloat("PositionY", lastMoveInput.y);
     }
 }
