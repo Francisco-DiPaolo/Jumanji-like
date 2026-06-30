@@ -1,7 +1,6 @@
-using Fusion;
 using UnityEngine;
 
-public class RingInteractable : NetworkBasicInteraction
+public class RingInteractable : MonoBehaviour, IInteractable
 {
     [SerializeField] private int ringIndex;
 
@@ -14,10 +13,11 @@ public class RingInteractable : NetworkBasicInteraction
         _soloWheel = GetComponentInParent<SoloWheelController>();
     }
 
-    public override void Select()
-    {
-        base.Select();
+    public void Hover() { }
+    public void UnHover() { }
 
+    public void Select()
+    {
         if (_wheel != null && _wheel.PlayerIsPresent)
         {
             _wheel.RotateRing(ringIndex, 1);

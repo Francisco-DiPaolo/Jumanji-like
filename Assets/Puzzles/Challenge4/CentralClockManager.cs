@@ -1,4 +1,3 @@
-using System;
 using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
@@ -7,7 +6,6 @@ public class CentralClockManager : NetworkBehaviour
 {
     [Header("Clock Settings")]
     [SerializeField] private float cycleDuration = 15f;
-    [SerializeField] private int totalSymbols = 12;
     [SerializeField] private int activeSymbolCount = 3;
 
     [Header("Materials")]
@@ -27,8 +25,6 @@ public class CentralClockManager : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
 
-    public event Action<NetworkArray<int>> OnActiveSymbolsChangedLocally;
-
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
@@ -36,8 +32,15 @@ public class CentralClockManager : NetworkBehaviour
         if (HasStateAuthority)
         {
             CycleTimeRemaining = cycleDuration;
-            IsRunning = false;
+            IsRunning = true;
+            PickNewSymbols();
         }
+
+        ApplyActiveSymbolMaterials(
+            ActiveSymbolIndices[0],
+            ActiveSymbolIndices[1],
+            ActiveSymbolIndices[2]
+        );
     }
 
     public override void FixedUpdateNetwork()
@@ -67,7 +70,6 @@ public class CentralClockManager : NetworkBehaviour
         ActiveSymbolIndices.Set(0, sym0);
         ActiveSymbolIndices.Set(1, sym1);
         ActiveSymbolIndices.Set(2, sym2);
-        Rpc_BroadcastCycleChanged(sym0, sym1, sym2);
     }
 
     public void StopClock()
@@ -79,9 +81,11 @@ public class CentralClockManager : NetworkBehaviour
 
     private void PickNewSymbols()
     {
+        int total = clockSymbolRenderers.Length;
+
         var picked = new System.Collections.Generic.HashSet<int>();
         while (picked.Count < activeSymbolCount)
-            picked.Add(UnityEngine.Random.Range(0, totalSymbols));
+            picked.Add(UnityEngine.Random.Range(0, total));
 
         int i = 0;
         foreach (int idx in picked)
@@ -89,15 +93,22 @@ public class CentralClockManager : NetworkBehaviour
             ActiveSymbolIndices.Set(i, idx);
             i++;
         }
-
-        Rpc_BroadcastCycleChanged(ActiveSymbolIndices[0], ActiveSymbolIndices[1], ActiveSymbolIndices[2]);
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void Rpc_BroadcastCycleChanged(int sym0, int sym1, int sym2)
+    public override void Render()
     {
-        ApplyActiveSymbolMaterials(sym0, sym1, sym2);
-        OnCycleChanged?.Invoke();
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            if (change == nameof(ActiveSymbolIndices))
+            {
+                ApplyActiveSymbolMaterials(
+                    ActiveSymbolIndices[0],
+                    ActiveSymbolIndices[1],
+                    ActiveSymbolIndices[2]
+                );
+                OnCycleChanged?.Invoke();
+            }
+        }
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
