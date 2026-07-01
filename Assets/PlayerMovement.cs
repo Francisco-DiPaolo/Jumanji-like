@@ -304,6 +304,16 @@ public class PlayerMovement : NetworkBehaviour
         {
             fishBowlObject.SetActive(currentFishBowl);
             lastFishBowlState = currentFishBowl;
+
+            // Si este jugador se puso el casco y es el jugador local, forzar voz Underwater
+            if (currentFishBowl && HasInputAuthority)
+            {
+                VoiceEffectController voiceEffect = GetComponent<VoiceEffectController>();
+                if (voiceEffect != null)
+                {
+                    voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
+                }
+            }
         }
     }
 

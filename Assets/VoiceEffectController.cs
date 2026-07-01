@@ -13,7 +13,8 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
         Robot = 3,
         Deep = 4,
         Echo = 5,
-        Muted = 6
+        Muted = 6,
+        Underwater = 7
     }
 
     [Networked]
@@ -37,6 +38,21 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     private float resampleReadIndex;
     private int resampleWriteIndex;
     private const int ResampleBufferSize = 96000;
+
+    // --- Underwater effect parameters ---
+    private float underwaterLpStateF;       // Low-pass filter state (float)
+    private float underwaterLpStateS;       // Low-pass filter state (short path, stored as float)
+    private float underwaterWobblePhase;    // Phase for subtle amplitude wobble
+    private const float UnderwaterCutoff = 900f;   // Low-pass cutoff Hz (keeps speech intelligible)
+    private const float UnderwaterWobbleFreq = 2.5f; // Slow wobble frequency Hz
+    private const float UnderwaterWobbleDepth = 0.12f; // Subtle wobble depth (0-1)
+    private const float UnderwaterPitch = 0.85f;   // Slight pitch down (less extreme than Deep's 0.7)
+
+    // Separate resample state for Underwater so it doesn't conflict with Squirrel/Deep
+    private float[] uwResampleBufferF;
+    private short[] uwResampleBufferS;
+    private float uwResampleReadIndex;
+    private int uwResampleWriteIndex;
 
     public override void Spawned()
     {
@@ -120,6 +136,7 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
             case VoiceMode.Robot: return ProcessRobotF(data);
             case VoiceMode.Deep: return ProcessResamplingF(data, 0.7f);
             case VoiceMode.Echo: return ProcessEchoF(data);
+            case VoiceMode.Underwater: return ProcessUnderwaterF(data);
             default: return data;
         }
     }
@@ -136,6 +153,7 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
             case VoiceMode.Robot: return ProcessRobotS(data);
             case VoiceMode.Deep: return ProcessResamplingS(data, 0.7f);
             case VoiceMode.Echo: return ProcessEchoS(data);
+            case VoiceMode.Underwater: return ProcessUnderwaterS(data);
             default: return data;
         }
     }
@@ -240,6 +258,104 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
             }
             float dist = (resampleWriteIndex - resampleReadIndex + ResampleBufferSize) % ResampleBufferSize;
             if (dist < data.Length || dist > ResampleBufferSize - data.Length) resampleReadIndex = (resampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
+        }
+        return data;
+    }
+
+    // ==================== Underwater Effect ====================
+    // Combines: pitch-down resampling → one-pole low-pass filter → subtle amplitude wobble.
+    // The result sounds muffled like speaking inside a fishbowl/underwater, but remains intelligible.
+
+    private unsafe float[] ProcessUnderwaterF(float[] data)
+    {
+        // Step 1: Pitch-down resampling (using separate buffers to not conflict with Squirrel/Deep)
+        if (uwResampleBufferF == null) uwResampleBufferF = new float[ResampleBufferSize];
+        fixed (float* pData = data, pBuf = uwResampleBufferF)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                pBuf[uwResampleWriteIndex] = pData[i];
+                uwResampleWriteIndex = (uwResampleWriteIndex + 1) % ResampleBufferSize;
+            }
+            for (int i = 0; i < data.Length; i++)
+            {
+                int i1 = (int)uwResampleReadIndex;
+                int i2 = (i1 + 1) % ResampleBufferSize;
+                float t = uwResampleReadIndex - i1;
+                pData[i] = pBuf[i1] * (1.0f - t) + pBuf[i2] * t;
+                uwResampleReadIndex += UnderwaterPitch;
+                if (uwResampleReadIndex >= ResampleBufferSize) uwResampleReadIndex -= ResampleBufferSize;
+            }
+            float dist = (uwResampleWriteIndex - uwResampleReadIndex + ResampleBufferSize) % ResampleBufferSize;
+            if (dist < data.Length || dist > ResampleBufferSize - data.Length)
+                uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
+        }
+
+        // Step 2: One-pole low-pass filter + amplitude wobble
+        float dt = 1.0f / sampleRate;
+        float rc = 1.0f / (2.0f * (float)Math.PI * UnderwaterCutoff);
+        float alpha = dt / (rc + dt);
+        float wobbleStep = 2.0f * (float)Math.PI * UnderwaterWobbleFreq / sampleRate;
+
+        fixed (float* pData = data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                // Low-pass filter
+                underwaterLpStateF += alpha * (pData[i] - underwaterLpStateF);
+                // Subtle amplitude wobble (1.0 ± depth)
+                float wobble = 1.0f - UnderwaterWobbleDepth + UnderwaterWobbleDepth * (float)Math.Sin(underwaterWobblePhase);
+                pData[i] = underwaterLpStateF * wobble;
+                underwaterWobblePhase += wobbleStep;
+                if (underwaterWobblePhase > 2.0f * (float)Math.PI) underwaterWobblePhase -= 2.0f * (float)Math.PI;
+            }
+        }
+        return data;
+    }
+
+    private unsafe short[] ProcessUnderwaterS(short[] data)
+    {
+        // Step 1: Pitch-down resampling
+        if (uwResampleBufferS == null) uwResampleBufferS = new short[ResampleBufferSize];
+        fixed (short* pData = data, pBuf = uwResampleBufferS)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                pBuf[uwResampleWriteIndex] = pData[i];
+                uwResampleWriteIndex = (uwResampleWriteIndex + 1) % ResampleBufferSize;
+            }
+            for (int i = 0; i < data.Length; i++)
+            {
+                int i1 = (int)uwResampleReadIndex;
+                int i2 = (i1 + 1) % ResampleBufferSize;
+                float t = uwResampleReadIndex - i1;
+                pData[i] = (short)(pBuf[i1] * (1.0f - t) + pBuf[i2] * t);
+                uwResampleReadIndex += UnderwaterPitch;
+                if (uwResampleReadIndex >= ResampleBufferSize) uwResampleReadIndex -= ResampleBufferSize;
+            }
+            float dist = (uwResampleWriteIndex - uwResampleReadIndex + ResampleBufferSize) % ResampleBufferSize;
+            if (dist < data.Length || dist > ResampleBufferSize - data.Length)
+                uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
+        }
+
+        // Step 2: One-pole low-pass filter + amplitude wobble
+        float dt = 1.0f / sampleRate;
+        float rc = 1.0f / (2.0f * (float)Math.PI * UnderwaterCutoff);
+        float alpha = dt / (rc + dt);
+        float wobbleStep = 2.0f * (float)Math.PI * UnderwaterWobbleFreq / sampleRate;
+
+        fixed (short* pData = data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                // Low-pass filter (work in float precision)
+                underwaterLpStateS += alpha * (pData[i] - underwaterLpStateS);
+                // Subtle amplitude wobble
+                float wobble = 1.0f - UnderwaterWobbleDepth + UnderwaterWobbleDepth * (float)Math.Sin(underwaterWobblePhase);
+                pData[i] = (short)(underwaterLpStateS * wobble);
+                underwaterWobblePhase += wobbleStep;
+                if (underwaterWobblePhase > 2.0f * (float)Math.PI) underwaterWobblePhase -= 2.0f * (float)Math.PI;
+            }
         }
         return data;
     }
