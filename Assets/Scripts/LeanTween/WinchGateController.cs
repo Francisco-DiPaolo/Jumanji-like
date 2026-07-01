@@ -100,11 +100,11 @@ public class WinchGateController : MonoBehaviour
     // ESTADO INTERNO
     // ─────────────────────────────────────────────────────────────────────────
 
-    private bool  isBeingHeld       = false;
-    private int   activeTweenId     = -1;
-    private bool  winchAtLimit      = false;   // La rueda ya llegó a su tope de rotación
-    private float rotationAccumulated = 0f;    // Grados girados desde el último press
-    private bool  fallPending        = false;  // Hay un descenso con delay pendiente
+    private bool  isBeingHeld         = false;
+    private int   activeTweenId       = -1;
+    private bool  winchAtLimit        = false;   // La rueda ya llegó a su tope de rotación
+    private float rotationAccumulated = 0f;      // Grados girados desde el último press
+    private bool  fallPending         = false;   // Hay un descenso con delay pendiente
 
     // Offset en espacio local desde el pivot hasta el centro geométrico del mesh.
     // Se calcula una vez en Start() para rotar desde el centro, no desde el pivot.
@@ -224,7 +224,8 @@ public class WinchGateController : MonoBehaviour
         float currentY = gate.position.y;
 
         // Si ya llegó al tope superior, la rueda no gira más ni hay tween.
-        // Al soltar bajará normalmente.
+        // El audio NO arranca aquí (la puerta no se mueve todavía); arrancará
+        // cuando el jugador suelte y la puerta empiece a bajar.
         if (Mathf.Approximately(currentY, highestY))
         {
             winchAtLimit = true;
@@ -241,8 +242,8 @@ public class WinchGateController : MonoBehaviour
             .setOnComplete(OnReachedTop)
             .id;
 
-        PlayWinchSound();
         StartGateSound();
+        PlayWinchSound();
     }
 
     /// <summary>
@@ -267,6 +268,9 @@ public class WinchGateController : MonoBehaviour
             StopGateSound();
             return;
         }
+
+        // El audio arranca de inmediato (antes del delay de caída)
+        StartGateSound();
 
         // Espera el delay configurado antes de iniciar la bajada
         if (delayBeforeFall > 0f)
@@ -296,6 +300,8 @@ public class WinchGateController : MonoBehaviour
             .setOnComplete(OnReachedBottom)
             .id;
 
+        // El audio ya debería estar sonando desde OnUnPressed; lo iniciamos
+        // aquí sólo por si StartFall() se llama desde otro contexto.
         StartGateSound();
     }
 
@@ -346,6 +352,7 @@ public class WinchGateController : MonoBehaviour
         activeTweenId = -1;
     }
 
+
     private void PlayWinchSound()
     {
         if (winchAudioSource != null && winchPressClip != null)
@@ -354,13 +361,20 @@ public class WinchGateController : MonoBehaviour
 
     private void StartGateSound()
     {
-        if (gateAudioSource != null && gateMovingClip != null && !gateAudioSource.isPlaying)
+        if (gateAudioSource == null || gateMovingClip == null) return;
+
+        // Forzamos siempre el clip y el loop, y arrancamos la reproducción.
+        // No depende de isPlaying para evitar que el one-shot del winch
+        // (u otro clip previo) bloquee el arranque del loop de la puerta.
+        gateAudioSource.clip = gateMovingClip;
+        gateAudioSource.loop = true;
+        if (!gateAudioSource.isPlaying)
             gateAudioSource.Play();
     }
 
     private void StopGateSound()
     {
-        if (gateAudioSource != null && gateAudioSource.isPlaying)
+        if (gateAudioSource != null)
             gateAudioSource.Stop();
     }
 
