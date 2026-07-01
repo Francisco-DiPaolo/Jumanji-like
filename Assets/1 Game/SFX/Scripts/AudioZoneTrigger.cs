@@ -8,10 +8,20 @@ public class AudioZoneTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"AudioZoneTrigger: Algo entró al trigger -> {other.gameObject.name} con Tag: {other.tag}");
+
         // Asegúrate de que el objeto que entra sea el jugador
         if (other.CompareTag("Player"))
         {
-            zoneSnapshot.TransitionTo(fadeTime);
+            if (zoneSnapshot != null)
+            {
+                Debug.Log($"AudioZoneTrigger: ¡Es el Player! Cambiando a snapshot {zoneSnapshot.name}");
+                zoneSnapshot.TransitionTo(fadeTime);
+            }
+            else
+            {
+                Debug.LogWarning("AudioZoneTrigger: El Player entró, pero 'zoneSnapshot' no está asignado en el Inspector.");
+            }
         }
     }
 }
