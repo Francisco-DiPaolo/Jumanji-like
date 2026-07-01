@@ -736,24 +736,24 @@ MonoBehaviour:
   rotationDuration: 0.25
   rotationEase: 27
   ring0SymbolRenderers:
+  - {fileID: 5323263758323469967}
   - {fileID: 8589513488427621639}
   - {fileID: 3867757295452071843}
   - {fileID: 84444912985064248}
   - {fileID: 6049234989436332154}
-  - {fileID: 5323263758323469967}
   ring1SymbolRenderers:
+  - {fileID: 2581035639843437109}
   - {fileID: 9049470709767090413}
   - {fileID: 3672036995102878660}
   - {fileID: 966129902148123244}
   - {fileID: 1291476776773298008}
-  - {fileID: 2581035639843437109}
   ring2SymbolRenderers:
+  - {fileID: 3129495764878739621}
   - {fileID: 6960842920332324853}
   - {fileID: 2085701221787220923}
   - {fileID: 4123240328002130502}
   - {fileID: 7389507002371286368}
-  - {fileID: 3129495764878739621}
-  symbolDefaultMaterial: {fileID: 2100000, guid: b6d62158c8f638d4ea9d616b07826b57, type: 2}
+  symbolDefaultMaterial: {fileID: 2100000, guid: c9fb051ccb290a34e82364ac2c1dc687, type: 2}
   symbolSelectedMaterial: {fileID: 2100000, guid: 713a77dac261788409eaa33a2ece4b99, type: 2}
   audioSource: {fileID: 7113762929320180044}
   rotateClip: {fileID: 8300000, guid: 4cc220da677379d47bf1cba1956ba812, type: 3}
