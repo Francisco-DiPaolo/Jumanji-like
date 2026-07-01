@@ -42,6 +42,9 @@ public class DamageSource : MonoBehaviour
 
     private void TryApplyDamage(Collider other)
     {
+        // Cancelar si el juego ya terminó (para evitar sonidos o empujes extra)
+        if (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver) return;
+
         float currentTime = Time.time;
         float cooldown = (damageType == DamageType.Instant) ? damageCooldown : tickInterval;
 
@@ -56,17 +59,24 @@ public class DamageSource : MonoBehaviour
 
         if (SharedHealthSystem.Instance != null)
         {
-            SharedHealthSystem.Instance.TakeDamage(damageAmount);
+            bool isPoison = (damageType == DamageType.DamageOverTime);
+            SharedHealthSystem.Instance.TakeDamage(damageAmount, isPoison);
         }
         else
         {
             Debug.LogError("[DamageSource] ¡SharedHealthSystem.Instance NO ENCONTRADO!");
         }
 
+        // Play hurt sound directly from the player
+        PlayerMovement pm = other.GetComponent<PlayerMovement>();
+        if (pm != null)
+        {
+            pm.Rpc_PlayHurtSound();
+        }
+
         // Apply Knockback if it's an Instant trap (like Spikes)
         if (damageType == DamageType.Instant && applyKnockback)
         {
-            PlayerMovement pm = other.GetComponent<PlayerMovement>();
             if (pm != null)
             {
                 // Calculate push direction away from the trap's center

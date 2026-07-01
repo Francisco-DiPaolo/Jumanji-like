@@ -37,6 +37,14 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] float staminaDrainRate = 20f;
     [SerializeField] float staminaRegenRate = 15f;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip hurtSound;
+    [Tooltip("Volumen específico del sonido de daño (0 a 1).")]
+    [SerializeField, Range(0f, 1f)] private float hurtSoundVolume = 1.0f;
+    [Tooltip("Tiempo mínimo en segundos entre sonidos de daño.")]
+    [SerializeField] private float hurtSoundCooldown = 1.5f;
+
     [Networked] public float CurrentStamina { get; set; }
     public System.Action<float, float> OnStaminaChanged; // actual, max
 
@@ -154,14 +162,22 @@ public class PlayerMovement : NetworkBehaviour
 
     private void HandleMovement(PlayerInputData data)
     {
-        if (CameraOverrideActive)
+        // Freeze movement if game is over or camera is overridden
+        bool freezeMovement = CameraOverrideActive || (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver);
+
+        if (freezeMovement)
         {
             data.move = Vector2.zero;
             data.buttons = default;
+            
+            // Si está congelado, asegurarse de que no haya input residual para el animador
+            lastMoveInput = Vector2.zero;
         }
-
-        // Guardar input de dirección para Render() / Animator
-        lastMoveInput = data.move;
+        else
+        {
+            // Guardar input de dirección para Render() / Animator
+            lastMoveInput = data.move;
+        }
         
         // Rising edge del Jump: solo true en el frame que se APRIETA, no mientras se sostiene
         bool jumpHeld = data.buttons.IsSet(InputButton.Jump);
@@ -311,5 +327,20 @@ public class PlayerMovement : NetworkBehaviour
         }
         
         CurrentVelocity += force;
+    }
+
+    private float lastHurtSoundTime = -999f;
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void Rpc_PlayHurtSound()
+    {
+        // Limitar la frecuencia del sonido basado en la configuración del inspector
+        if (Time.time - lastHurtSoundTime < hurtSoundCooldown) return;
+        lastHurtSoundTime = Time.time;
+
+        if (audioSource != null && hurtSound != null)
+        {
+            audioSource.PlayOneShot(hurtSound, hurtSoundVolume);
+        }
     }
 }

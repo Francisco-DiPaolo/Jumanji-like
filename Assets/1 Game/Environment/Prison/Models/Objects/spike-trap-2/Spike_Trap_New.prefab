@@ -60,8 +60,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da321b4a1b42bc249b62cc03f9b13189, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageSource
+  damageType: 0
   damageAmount: 10
   playerTag: Player
+  damageCooldown: 3
+  applyKnockback: 1
+  knockbackForceUp: 5.5
+  knockbackForceSide: 15
+  tickInterval: 0.5
 --- !u!65 &1085130646408769591
 BoxCollider:
   m_ObjectHideFlags: 0
