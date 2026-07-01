@@ -23,12 +23,11 @@ public class GameUIManager : MonoBehaviour
         // Subscribe to Shared Health events
         if (SharedHealthSystem.Instance != null)
         {
-            SharedHealthSystem.Instance.OnHealthChanged += UpdateHealthBar;
-            SharedHealthSystem.Instance.OnGameOver += ShowGameOver;
+            SubscribeToHealth();
         }
         else
         {
-            Debug.LogWarning("SharedHealthSystem instance not found in Start!");
+            Debug.LogWarning("SharedHealthSystem instance not found in Start! Will keep looking...");
         }
 
         // Try to find local player if not assigned
@@ -42,6 +41,8 @@ public class GameUIManager : MonoBehaviour
         }
     }
 
+    private bool healthSubscribed = false;
+
     private void Update()
     {
         // Continuously try to find the local player if we haven't found them yet
@@ -49,6 +50,22 @@ public class GameUIManager : MonoBehaviour
         {
             FindLocalPlayerStamina();
         }
+
+        // Continuously try to find the health system if not subscribed
+        if (!healthSubscribed && SharedHealthSystem.Instance != null)
+        {
+            SubscribeToHealth();
+        }
+    }
+
+    private void SubscribeToHealth()
+    {
+        SharedHealthSystem.Instance.OnHealthChanged += UpdateHealthBar;
+        SharedHealthSystem.Instance.OnGameOver += ShowGameOver;
+        healthSubscribed = true;
+        
+        // Initial UI update just in case we subscribed late
+        UpdateHealthBar(SharedHealthSystem.Instance.CurrentHealth, 100f); 
     }
 
     private void FindLocalPlayerStamina()
@@ -103,7 +120,7 @@ public class GameUIManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (SharedHealthSystem.Instance != null)
+        if (healthSubscribed && SharedHealthSystem.Instance != null)
         {
             SharedHealthSystem.Instance.OnHealthChanged -= UpdateHealthBar;
             SharedHealthSystem.Instance.OnGameOver -= ShowGameOver;

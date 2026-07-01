@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1711717229853817523}
+  - component: {fileID: 6693672100618426812}
+  - component: {fileID: 1085130646408769591}
   m_Layer: 0
   m_Name: Spike_Trap_New
   m_TagString: Untagged
@@ -46,6 +48,41 @@ Transform:
   - {fileID: 8751417523667622120}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6693672100618426812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5124471094650757685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da321b4a1b42bc249b62cc03f9b13189, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageSource
+  damageAmount: 10
+  playerTag: Player
+--- !u!65 &1085130646408769591
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5124471094650757685}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.864045, y: 1.6509594, z: 2.8513644}
+  m_Center: {x: -8.772077, y: 0.32547992, z: 6.68091}
 --- !u!1001 &948619977017970559
 PrefabInstance:
   m_ObjectHideFlags: 0

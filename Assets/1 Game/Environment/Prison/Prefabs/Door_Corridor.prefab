@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5194654430580275191}
+  - component: {fileID: 6244168284582986796}
+  - component: {fileID: 8486050811384923325}
   m_Layer: 0
   m_Name: Door_Corridor
   m_TagString: Untagged
@@ -33,6 +35,143 @@ Transform:
   - {fileID: 3740813835791720659}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &6244168284582986796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902444852717829859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fa4bedb053bac94481ca18de4d5fbde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoubleDoorInteraction
+  onSelect:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8486050811384923325}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onUnhovered:
+    m_PersistentCalls:
+      m_Calls: []
+  onHover:
+    m_PersistentCalls:
+      m_Calls: []
+  isHovered: 0
+  leftDoor: {fileID: 8872074421866175074}
+  rightDoor: {fileID: 3740813835791720659}
+  openAngle: 100
+  openTime: 2
+  openEase: 6
+  closeEase: 6
+--- !u!82 &8486050811384923325
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902444852717829859}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 30bc0d04647cd7c4daf41fc9550c75ec, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 0.089
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 94
+  DopplerLevel: 0
+  MinDistance: 1
+  MaxDistance: 5
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &3774213439158093624
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -175,7 +314,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 04fec465c9a6394418ab910e1678be17, type: 2}
     - target: {fileID: 919132149155446097, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
       propertyPath: m_Name
-      value: Door_Medieval_Cut (1)
+      value: Door_Medieval_Right
       objectReference: {fileID: 0}
     - target: {fileID: 3291460997423930385, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
       propertyPath: m_LocalScale.x
@@ -212,13 +351,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -1611096478881174865, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5199651972052508869}
   m_SourcePrefab: {fileID: 100100000, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
 --- !u!4 &3740813835791720659 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
   m_PrefabInstance: {fileID: 3774213439158093624}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6756683024359861655 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1611096478881174865, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
+  m_PrefabInstance: {fileID: 3774213439158093624}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &5199651972052508869
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6756683024359861655}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.0003890276, y: 0.00005080001, z: 0.001611605}
+  m_Center: {x: 0.000216246, y: 0.0000004986951, z: 0.00014998093}
 --- !u!1001 &8977162604138265993
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -361,7 +529,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 04fec465c9a6394418ab910e1678be17, type: 2}
     - target: {fileID: 919132149155446097, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
       propertyPath: m_Name
-      value: Door_Medieval_Cut
+      value: Door_Medieval_Left
       objectReference: {fileID: 0}
     - target: {fileID: 3291460997423930385, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
       propertyPath: m_LocalScale.x
@@ -398,8 +566,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -1611096478881174865, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5663340978112273226}
   m_SourcePrefab: {fileID: 100100000, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
+--- !u!1 &1527131055557138214 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1611096478881174865, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}
+  m_PrefabInstance: {fileID: 8977162604138265993}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &5663340978112273226
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1527131055557138214}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.0003890276, y: 0.00005080001, z: 0.001611605}
+  m_Center: {x: 0.00021624636, y: 0.0000004986951, z: 0.00014998093}
 --- !u!4 &8872074421866175074 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4203a1aa61854f24fab38bea0bce2bdf, type: 3}

@@ -9,6 +9,10 @@ public class SharedHealthSystem : NetworkBehaviour
     [Header("Health Settings")]
     [SerializeField] private float maxHealth = 100f;
     [Networked] public float CurrentHealth { get; set; }
+    
+    [Header("Debug")]
+    [SerializeField] [Tooltip("Valor de debug para ver la vida en el inspector")]
+    private float debugCurrentHealth;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -45,6 +49,9 @@ public class SharedHealthSystem : NetworkBehaviour
 
     private void Update()
     {
+        // Update debug value so it can be seen in the Inspector
+        debugCurrentHealth = CurrentHealth;
+
         // Debug damage button
         if (Input.GetKeyDown(KeyCode.Alpha8))
         {
@@ -59,13 +66,38 @@ public class SharedHealthSystem : NetworkBehaviour
         
         if (Object != null && Object.IsValid)
         {
+            Debug.Log($"[SharedHealthSystem] TakeDamage RPC called for {amount} damage.");
             RPC_TakeDamage(amount);
+        }
+        else
+        {
+            Debug.LogWarning($"[SharedHealthSystem] Red no detectada (offline). Aplicando {amount} de daño localmente.");
+            ApplyDamageLocal(amount);
+        }
+    }
+
+    private void ApplyDamageLocal(float amount)
+    {
+        CurrentHealth -= amount;
+        if (CurrentHealth <= 0)
+        {
+            CurrentHealth = 0;
+            isGameOver = true;
+            OnGameOver?.Invoke();
+        }
+        
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        
+        if (audioSource != null && damageSound != null)
+        {
+            audioSource.PlayOneShot(damageSound);
         }
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_TakeDamage(float amount)
     {
+        Debug.Log($"[SharedHealthSystem] Ejecutando RPC_TakeDamage (Host) por {amount}. Vida antes: {CurrentHealth}");
         if (isGameOver) return;
 
         CurrentHealth -= amount;
@@ -76,12 +108,14 @@ public class SharedHealthSystem : NetworkBehaviour
             RPC_GameOver();
         }
 
+        Debug.Log($"[SharedHealthSystem] Vida despues: {CurrentHealth}. Llamando a RPC_BroadcastDamage...");
         RPC_BroadcastDamage(CurrentHealth);
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_BroadcastDamage(float newHealth)
     {
+        Debug.Log($"[SharedHealthSystem] Ejecutando RPC_BroadcastDamage (Todos) con nueva vida: {newHealth}");
         OnHealthChanged?.Invoke(newHealth, maxHealth);
         
         if (audioSource != null && damageSound != null)

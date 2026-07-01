@@ -71,7 +71,7 @@ public class Raycast : MonoBehaviour
             UnHover();
         }
 
-        List<IInteractable> interactable = new List<IInteractable>(raycastHit.collider.GetComponents<IInteractable>());
+        List<IInteractable> interactable = new List<IInteractable>(raycastHit.collider.GetComponentsInParent<IInteractable>());
         
         if (currentInteractable != null) foreach (var item in currentInteractable) item?.UnHover();
         
