@@ -1,38 +1,87 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class DamageSource : MonoBehaviour
 {
+    public enum DamageType { Instant, DamageOverTime }
+
+    [Header("General Settings")]
+    public DamageType damageType = DamageType.Instant;
     [SerializeField] private float damageAmount = 10f;
     [SerializeField] private string playerTag = "Player";
 
+    [Header("Instant Damage Settings (Pinchos)")]
+    [Tooltip("Tiempo de espera antes de volver a recibir daño (cooldown).")]
+    [SerializeField] private float damageCooldown = 1.5f;
+    [SerializeField] private bool applyKnockback = true;
+    [SerializeField] private float knockbackForceUp = 7f;
+    [SerializeField] private float knockbackForceSide = 10f;
+
+    [Header("Damage Over Time Settings (Ácido)")]
+    [Tooltip("Cada cuántos segundos se aplica el daño continuo.")]
+    [SerializeField] private float tickInterval = 0.5f;
+
+    // Track cooldowns per player collider
+    private Dictionary<Collider, float> playerCooldowns = new Dictionary<Collider, float>();
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(playerTag))
+        if (damageType == DamageType.Instant && other.CompareTag(playerTag))
         {
-            Debug.Log($"[DamageSource] OnTriggerEnter activado por {other.name}");
-            ApplyDamage();
+            TryApplyDamage(other);
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerStay(Collider other)
     {
-        if (collision.collider.CompareTag(playerTag))
+        if (damageType == DamageType.DamageOverTime && other.CompareTag(playerTag))
         {
-            Debug.Log($"[DamageSource] OnCollisionEnter activado por {collision.collider.name}");
-            ApplyDamage();
+            TryApplyDamage(other);
         }
     }
 
-    private void ApplyDamage()
+    private void TryApplyDamage(Collider other)
     {
+        float currentTime = Time.time;
+        float cooldown = (damageType == DamageType.Instant) ? damageCooldown : tickInterval;
+
+        // Check if player is still in cooldown
+        if (playerCooldowns.TryGetValue(other, out float lastTime))
+        {
+            if (currentTime - lastTime < cooldown) return;
+        }
+
+        // Apply damage
+        playerCooldowns[other] = currentTime;
+
         if (SharedHealthSystem.Instance != null)
         {
-            Debug.Log($"[DamageSource] Aplicando {damageAmount} de daño al SharedHealthSystem.");
             SharedHealthSystem.Instance.TakeDamage(damageAmount);
         }
         else
         {
-            Debug.LogError("[DamageSource] ¡SharedHealthSystem.Instance NO ENCONTRADO en la escena!");
+            Debug.LogError("[DamageSource] ¡SharedHealthSystem.Instance NO ENCONTRADO!");
+        }
+
+        // Apply Knockback if it's an Instant trap (like Spikes)
+        if (damageType == DamageType.Instant && applyKnockback)
+        {
+            PlayerMovement pm = other.GetComponent<PlayerMovement>();
+            if (pm != null)
+            {
+                // Calculate push direction away from the trap's center
+                Vector3 pushDir = (other.transform.position - transform.position);
+                pushDir.y = 0; // Keep it horizontal
+                
+                if (pushDir.sqrMagnitude < 0.01f) 
+                    pushDir = Random.onUnitSphere; // random if exactly centered
+                    
+                pushDir.y = 0;
+                pushDir.Normalize();
+
+                Vector3 knockback = (pushDir * knockbackForceSide) + (Vector3.up * knockbackForceUp);
+                pm.ApplyKnockback(knockback);
+            }
         }
     }
 }

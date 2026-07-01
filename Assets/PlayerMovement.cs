@@ -298,4 +298,18 @@ public class PlayerMovement : NetworkBehaviour
         if (animator != null)
             animator.SetTrigger("Interact");
     }
+
+    /// <summary>
+    /// Llamar para empujar al jugador (ej: trampas de pinchos).
+    /// </summary>
+    public void ApplyKnockback(Vector3 force)
+    {
+        // Cancelar velocidad vertical negativa para que el empuje hacia arriba funcione bien
+        if (CurrentVelocity.y < 0)
+        {
+            CurrentVelocity = new Vector3(CurrentVelocity.x, 0, CurrentVelocity.z);
+        }
+        
+        CurrentVelocity += force;
+    }
 }
