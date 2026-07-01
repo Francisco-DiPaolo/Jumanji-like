@@ -62,6 +62,21 @@ public class BoardGameSequence : MonoBehaviour
             }
         }
 
+        // Si nadie tiene el casco todavía, este jugador (el primero en llegar) se lo pone
+        bool anyoneHasHelmet = false;
+        foreach (var p in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
+        {
+            if (p.HasFishBowl)
+            {
+                anyoneHasHelmet = true;
+                break;
+            }
+        }
+        if (!anyoneHasHelmet && localPlayer != null)
+        {
+            localPlayer.Rpc_SetHasFishBowl(true);
+        }
+
         // Wait until ALL players are ready
         while (true)
         {

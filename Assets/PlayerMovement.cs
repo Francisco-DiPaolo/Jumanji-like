@@ -53,10 +53,19 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] NetworkBool IsGrounded { get; set; }
     [Networked] public NetworkBool IsReadyAtBoard { get; set; }
 
+    /// <summary>True cuando este jugador es el primero que interactuó con el tablero y debe llevar el casco Fish_Bowl_2.</summary>
+    [Networked] public NetworkBool HasFishBowl { get; set; }
+
     [Rpc(RpcSources.InputAuthority | RpcSources.StateAuthority, RpcTargets.StateAuthority)]
     public void Rpc_SetReadyAtBoard(NetworkBool isReady)
     {
         IsReadyAtBoard = isReady;
+    }
+
+    [Rpc(RpcSources.InputAuthority | RpcSources.StateAuthority, RpcTargets.StateAuthority)]
+    public void Rpc_SetHasFishBowl(NetworkBool hasHelmet)
+    {
+        HasFishBowl = hasHelmet;
     }
 
     CharacterController unityController;
@@ -66,6 +75,8 @@ public class PlayerMovement : NetworkBehaviour
     bool wasJumpHeld;             // Estado anterior del botón Jump para detectar rising edge
     bool lastWeavePressed;        // Si se apretó Weave en el último FixedUpdate
     bool localIsGrounded;         // Copia local de IsGrounded para el Animator (sin lag de red)
+    GameObject fishBowlObject;    // Referencia al casco Fish_Bowl_2 en el rig
+    bool lastFishBowlState;       // Estado anterior de HasFishBowl para evitar llamadas redundantes
 
     public override void Spawned()
     {
@@ -93,6 +104,14 @@ public class PlayerMovement : NetworkBehaviour
             animator.ResetTrigger("Interact");
         }
 
+        // Buscar el casco Fish_Bowl_2 en toda la jerarquía del prefab (está dentro del rig)
+        Transform fishBowlTransform = FindInHierarchy(transform, "Fish_Bowl_2");
+        if (fishBowlTransform != null)
+        {
+            fishBowlObject = fishBowlTransform.gameObject;
+            fishBowlObject.SetActive(false); // Asegurar que inicie desactivado
+        }
+
         if (HasInputAuthority)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -103,6 +122,18 @@ public class PlayerMovement : NetworkBehaviour
             if (cameraPivot != null)
                 cameraPivot.gameObject.SetActive(false);
         }
+    }
+
+    /// <summary>Búsqueda recursiva de un Transform por nombre en toda la jerarquía.</summary>
+    private Transform FindInHierarchy(Transform parent, string name)
+    {
+        if (parent.name == name) return parent;
+        foreach (Transform child in parent)
+        {
+            Transform found = FindInHierarchy(child, name);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     public override void FixedUpdateNetwork()
@@ -266,6 +297,14 @@ public class PlayerMovement : NetworkBehaviour
             cameraPivot.localRotation = Quaternion.Euler(VerticalLook, 0, 0);
 
         HandleAnimator();
+
+        // Activar/desactivar el casco Fish_Bowl_2 según el estado networked (solo cambia cuando hay diferencia)
+        bool currentFishBowl = HasFishBowl;
+        if (fishBowlObject != null && lastFishBowlState != currentFishBowl)
+        {
+            fishBowlObject.SetActive(currentFishBowl);
+            lastFishBowlState = currentFishBowl;
+        }
     }
 
     private void HandleAnimator()
