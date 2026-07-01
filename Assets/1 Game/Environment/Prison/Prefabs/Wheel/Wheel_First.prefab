@@ -1914,7 +1914,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d015b82e12bb0234ab0c2131ae3f078e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SymbolIdentity
-  symbolId: x
+  symbolId: _x
 --- !u!4 &6855866365789112004 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3092856789667102193, guid: 3507b221b2c88fc46814cad20b3991de, type: 3}
