@@ -68,6 +68,7 @@ public class CameraBreathing : MonoBehaviour
 
     // Posición original de la cámara (offset base respecto al pivot)
     private Vector3 _originLocalPos;
+    private Quaternion _originLocalRot;
 
     // Seguimiento del flanco de subida del override
     private bool _wasOverrideActive = false;
@@ -75,6 +76,7 @@ public class CameraBreathing : MonoBehaviour
     private void Start()
     {
         _originLocalPos   = transform.localPosition;
+        _originLocalRot   = transform.localRotation;
         _currentLocalPos  = _originLocalPos;
         _currentLocalEuler= Vector3.zero;
     }
@@ -83,25 +85,27 @@ public class CameraBreathing : MonoBehaviour
     {
         bool overrideActive = playerMovement != null && playerMovement.CameraOverrideActive;
 
-        // ── Flanco de subida: el override acaba de activarse ──────────────────
-        // Hacemos snap INMEDIATO al origen UNA sola vez y dejamos de tocar
-        // transform para no pelear contra el tween de LeanTween (BoardCameraOverride).
+        // ── Si el override del tablero está activo ──────────────────
+        // No tocamos nada para no pelear contra LeanTween, y evitamos forzar posiciones
+        // que puedan causar un salto si el objeto fue desparentado.
         if (overrideActive)
         {
-            if (!_wasOverrideActive)
-            {
-                // Snap instantáneo: limpiamos cualquier offset residual del bob
-                _currentLocalPos   = _originLocalPos;
-                _currentLocalEuler = Vector3.zero;
-                transform.localPosition = _originLocalPos;
-                transform.localRotation = Quaternion.identity;
-            }
             _wasOverrideActive = true;
-            return; // No escribimos nada más — LeanTween tiene control total
+            return; 
         }
 
-        // Flanco de bajada: el override acaba de desactivarse → resetear flag
-        _wasOverrideActive = false;
+        // Flanco de bajada: el override acaba de desactivarse
+        if (_wasOverrideActive)
+        {
+            _wasOverrideActive = false;
+            // Para evitar un salto fuerte, reseteamos el punto de inicio de la interpolación al actual
+            _currentLocalPos = transform.localPosition;
+            
+            // Extraer solo el roll (Z) actual relativo al origen
+            Quaternion relativeRot = Quaternion.Inverse(_originLocalRot) * transform.localRotation;
+            _currentLocalEuler = new Vector3(0, 0, relativeRot.eulerAngles.z);
+            if (_currentLocalEuler.z > 180f) _currentLocalEuler.z -= 360f;
+        }
 
         // Solo aplica en el jugador local
         if (playerMovement != null && !playerMovement.HasInputAuthority)
@@ -146,8 +150,8 @@ public class CameraBreathing : MonoBehaviour
         _currentLocalEuler = Vector3.Lerp(_currentLocalEuler, _targetLocalEuler, Time.deltaTime * smoothSpeed);
 
         transform.localPosition = _currentLocalPos;
-        // Solo modificamos el roll (Z), los demás ejes los maneja PlayerMovement / cameraPivot
-        transform.localRotation = Quaternion.Euler(0f, 0f, _currentLocalEuler.z);
+        // Solo modificamos el roll (Z) relativo a su rotación original
+        transform.localRotation = _originLocalRot * Quaternion.Euler(0f, 0f, _currentLocalEuler.z);
     }
 
     // ──────────────────────────────────────────────

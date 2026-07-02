@@ -56,7 +56,15 @@ public class BoardCameraOverride : MonoBehaviour
             .setOnComplete(() => {
                 onCameraReachedTarget?.Invoke();
             });
-        LeanTween.rotate(camPivot.gameObject, transform.eulerAngles, transitionDuration).setEase(easeType);
+
+        // Use Quaternion.Slerp instead of LeanTween.rotate to avoid Euler wrapping issues (e.g. camera looking back for a split second)
+        Quaternion startRot = camPivot.rotation;
+        Quaternion targetRot = transform.rotation;
+        LeanTween.value(camPivot.gameObject, 0f, 1f, transitionDuration)
+            .setEase(easeType)
+            .setOnUpdate((float t) => {
+                camPivot.rotation = Quaternion.Slerp(startRot, targetRot, t);
+            });
 
         // Unlock cursor
         Cursor.lockState = CursorLockMode.None;
