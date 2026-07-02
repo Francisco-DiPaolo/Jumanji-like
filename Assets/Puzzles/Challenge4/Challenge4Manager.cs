@@ -168,6 +168,7 @@ private bool CheckAnyWheelMatches()
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_CompletePhase1()
     {
+        Debug.Log("[Challenge4] Victoria Solo — Fase 1 completada.");
         IsPhase1Done = true;
 
         gateA?.OpenDoor();
@@ -191,6 +192,7 @@ private bool CheckAnyWheelMatches()
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_CompletePhase2()
     {
+        Debug.Log("[Challenge4] Victoria Final — Puzzle completamente resuelto.");
         gateB?.OpenDoor();
 
         wheel0?.TriggerSuccessFeedback();
