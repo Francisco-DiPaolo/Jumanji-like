@@ -169,9 +169,9 @@ AudioSource:
   Priority: 94
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 12.14659
+  MaxDistance: 14
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0

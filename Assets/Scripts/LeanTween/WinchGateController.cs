@@ -31,6 +31,8 @@ using Fusion;
 /// </summary>
 public class WinchGateController : NetworkBehaviour
 {
+    public enum RotationAxis { X, Y, Z }
+
     // ─────────────────────────────────────────────────────────────────────────
     // INSPECTOR
     // ─────────────────────────────────────────────────────────────────────────
@@ -63,7 +65,13 @@ public class WinchGateController : NetworkBehaviour
     [SerializeField] private float delayBeforeFall = 0f;
 
     [Header("Rotación de la Rueda")]
-    [Tooltip("Velocidad de rotación del Winch_Rotation en grados/segundo sobre su eje Z local.")]
+    [Tooltip("Si es verdadero, la rueda gira desde su centro geométrico (Mesh bounds). Si es falso, gira desde su Pivot original.")]
+    [SerializeField] private bool rotateFromCenter = true;
+
+    [Tooltip("El eje local sobre el cual rotará la rueda.")]
+    [SerializeField] private RotationAxis rotationAxis = RotationAxis.Y;
+
+    [Tooltip("Velocidad de rotación del Winch_Rotation en grados/segundo sobre su eje local.")]
     [SerializeField] private float wheelRotationSpeed = 180f;
 
     [Header("Rotación de la Rueda – Tope")]
@@ -184,8 +192,15 @@ public class WinchGateController : NetworkBehaviour
 
             if (degreesThisFrame > 0f)
             {
-                Vector3 worldCenter = winchRotation.TransformPoint(winchLocalCenterOffset);
-                winchRotation.RotateAround(worldCenter, winchRotation.up, degreesThisFrame);
+                Vector3 rotationPoint = rotateFromCenter 
+                    ? winchRotation.TransformPoint(winchLocalCenterOffset) 
+                    : winchRotation.position;
+
+                Vector3 axis = winchRotation.up;
+                if (rotationAxis == RotationAxis.X) axis = winchRotation.right;
+                else if (rotationAxis == RotationAxis.Z) axis = winchRotation.forward;
+
+                winchRotation.RotateAround(rotationPoint, axis, degreesThisFrame);
                 rotationAccumulated += degreesThisFrame;
             }
         }

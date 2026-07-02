@@ -2546,7 +2546,7 @@ MonoBehaviour:
   Environment:
     serializedVersion: 2
     m_Bits: 0
-  volume: 0.012
+  volume: 0.014
   priority: 94
   Animator: {fileID: 8925748940849128339}
 --- !u!4 &673758258196407451 stripped
