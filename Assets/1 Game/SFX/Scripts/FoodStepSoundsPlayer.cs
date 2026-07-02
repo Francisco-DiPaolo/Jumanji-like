@@ -10,6 +10,9 @@ public class FoodStepSoundsPlayer : MonoBehaviour
     [Range(0f, 1f)]
     public float volume = 1f;
 
+    [Range(0, 256)]
+    public int priority = 128;
+
     public Animator Animator;
     private float _lastFootstep;
 
@@ -27,7 +30,16 @@ public class FoodStepSoundsPlayer : MonoBehaviour
         {
             var clips = GetClipsForSurface();
             var randomClip = clips[Random.Range(0, clips.Length - 1)];
-            AudioSource.PlayClipAtPoint(randomClip, transform.position, volume);
+            
+            GameObject audioObj = new GameObject("FootstepAudio");
+            audioObj.transform.position = transform.position;
+            AudioSource source = audioObj.AddComponent<AudioSource>();
+            source.clip = randomClip;
+            source.spatialBlend = 1f;
+            source.volume = volume;
+            source.priority = priority;
+            source.Play();
+            Destroy(audioObj, randomClip.length);
         }
 
         _lastFootstep = footstep;
