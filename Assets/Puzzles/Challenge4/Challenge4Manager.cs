@@ -93,6 +93,11 @@ public class Challenge4Manager : NetworkBehaviour
 
         if (soloWheel == null) return;
 
+        Debug.Log($"[Challenge4] Chequeando rueda solo — " +
+                  $"Slot0: '{soloWheel.SelectedSymbolId0}' (target: '{soloWheelTargetId0}') | " +
+                  $"Slot1: '{soloWheel.SelectedSymbolId1}' (target: '{soloWheelTargetId1}') | " +
+                  $"Slot2: '{soloWheel.SelectedSymbolId2}' (target: '{soloWheelTargetId2}')");
+
         bool correct = soloWheel.SelectedSymbolId0 == soloWheelTargetId0
                     && soloWheel.SelectedSymbolId1 == soloWheelTargetId1
                     && soloWheel.SelectedSymbolId2 == soloWheelTargetId2;
@@ -149,6 +154,11 @@ public class Challenge4Manager : NetworkBehaviour
     bool w0ok = wheel0.TryGetMatchingSymbolId(centralClock, out string id0);
     bool w1ok = wheel1.TryGetMatchingSymbolId(centralClock, out string id1);
     bool w2ok = wheel2.TryGetMatchingSymbolId(centralClock, out string id2);
+
+    Debug.Log($"[Challenge4] Chequeando ruedas coop — " +
+              $"Wheel0: '{id0}' ({(w0ok ? "OK" : "FAIL")}) | " +
+              $"Wheel1: '{id1}' ({(w1ok ? "OK" : "FAIL")}) | " +
+              $"Wheel2: '{id2}' ({(w2ok ? "OK" : "FAIL")})");
 
     return w0ok && w1ok && w2ok
            && id0 != id1 && id0 != id2 && id1 != id2;
