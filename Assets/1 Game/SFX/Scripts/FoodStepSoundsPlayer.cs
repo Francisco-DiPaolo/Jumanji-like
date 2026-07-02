@@ -7,6 +7,9 @@ public class FoodStepSoundsPlayer : MonoBehaviour
 
     public LayerMask Environment;
 
+    [Range(0f, 1f)]
+    public float volume = 1f;
+
     public Animator Animator;
     private float _lastFootstep;
 
@@ -24,7 +27,7 @@ public class FoodStepSoundsPlayer : MonoBehaviour
         {
             var clips = GetClipsForSurface();
             var randomClip = clips[Random.Range(0, clips.Length - 1)];
-            AudioSource.PlayClipAtPoint(randomClip, transform.position);
+            AudioSource.PlayClipAtPoint(randomClip, transform.position, volume);
         }
 
         _lastFootstep = footstep;

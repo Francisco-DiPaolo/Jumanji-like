@@ -229,6 +229,8 @@ MonoBehaviour:
   anguloApertura: 121.607
   tiempoApertura: 1.5
   tipoCurva: 2
+  audioSource: {fileID: 0}
+  openSound: {fileID: 0}
 --- !u!1 &7433063231592319288
 GameObject:
   m_ObjectHideFlags: 0
@@ -239,7 +241,7 @@ GameObject:
   m_Component:
   - component: {fileID: 370498952680089151}
   m_Layer: 0
-  m_Name: Wall_Door_Open
+  m_Name: Door_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

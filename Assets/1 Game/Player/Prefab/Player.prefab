@@ -356,6 +356,8 @@ MonoBehaviour:
   _CurrentStamina: 0
   _IsReadyAtBoard:
     _value: 0
+  _HasFishBowl:
+    _value: 0
 --- !u!114 &7519530970816820350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2515,15 +2517,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodStepSoundsPlayer
   WoodClips:
-  - {fileID: 8300000, guid: 10b25964cef7de547b2c20d9287583cb, type: 3}
-  - {fileID: 8300000, guid: f38360424f19fe5449142df830a4726c, type: 3}
-  - {fileID: 8300000, guid: 4bc1a017d53091a40a775f0901d7fa4d, type: 3}
-  - {fileID: 8300000, guid: f90b783352db2d14f8bd2334c34fe543, type: 3}
-  - {fileID: 8300000, guid: 131863fcf0538144d98ae35f74e10aae, type: 3}
-  - {fileID: 8300000, guid: 08b2c8871649b6045a8f1175070aa59c, type: 3}
-  - {fileID: 8300000, guid: a6985cf7a70f42c43a385a2fdda1c1c4, type: 3}
-  - {fileID: 8300000, guid: 75849450919b422478408c5bd37736a0, type: 3}
-  - {fileID: 8300000, guid: 9985bff6e2ec2b244ae54f85e6750907, type: 3}
   - {fileID: 8300000, guid: 90f0b7d5ab9dbd740bb699741ad9a196, type: 3}
   - {fileID: 8300000, guid: 3bcdc348309112f48b4c4d28d6ebcc96, type: 3}
   - {fileID: 8300000, guid: ebbb1f623bb8b8641a56ebe06ee83dd6, type: 3}
@@ -2534,7 +2527,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: dee385c9733865f428ce493277176d5e, type: 3}
   - {fileID: 8300000, guid: 5505596bc60a3d842bd3a5b6f377d40a, type: 3}
   - {fileID: 8300000, guid: 83edee09fdda6424fafafe4fc3dcd7d2, type: 3}
-  - {fileID: 8300000, guid: c8d476bb0e6d125469f453ea8b1ffa76, type: 3}
   ConcreteClips:
   - {fileID: 8300000, guid: 3bf0ac32786d3fc4f9a11c04f08259d0, type: 3}
   - {fileID: 8300000, guid: 9bdac8a69fb18604f945e0899053be08, type: 3}
@@ -2554,6 +2546,7 @@ MonoBehaviour:
   Environment:
     serializedVersion: 2
     m_Bits: 0
+  volume: 0.22
   Animator: {fileID: 8925748940849128339}
 --- !u!4 &673758258196407451 stripped
 Transform:
@@ -2632,6 +2625,10 @@ PrefabInstance:
     - target: {fileID: 9005220659476430821, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
       propertyPath: orthographic size
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 9005220659476430821, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
+      propertyPath: m_OcclusionCulling
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9005220659476430823, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
       propertyPath: m_Name
