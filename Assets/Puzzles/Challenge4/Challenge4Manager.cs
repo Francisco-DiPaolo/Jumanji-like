@@ -6,9 +6,6 @@ public class Challenge4Manager : NetworkBehaviour
 {
     [Header("Fase 1 — Rueda Individual")]
     [SerializeField] private SoloWheelController soloWheel;
-    [SerializeField] private string soloWheelTargetId0 = "sun";
-    [SerializeField] private string soloWheelTargetId1 = "moon";
-    [SerializeField] private string soloWheelTargetId2 = "star";
 
     [Header("Fase 2 — Reloj + 3 Ruedas Cooperativas")]
     [SerializeField] private CentralClockManager centralClock;
@@ -93,14 +90,20 @@ public class Challenge4Manager : NetworkBehaviour
 
         if (soloWheel == null) return;
 
-        Debug.Log($"[Challenge4] Chequeando rueda solo — " +
-                  $"Slot0: '{soloWheel.SelectedSymbolId0}' (target: '{soloWheelTargetId0}') | " +
-                  $"Slot1: '{soloWheel.SelectedSymbolId1}' (target: '{soloWheelTargetId1}') | " +
-                  $"Slot2: '{soloWheel.SelectedSymbolId2}' (target: '{soloWheelTargetId2}')");
+        var selected = new System.Collections.Generic.HashSet<string>
+        {
+            soloWheel.SelectedSymbolId0,
+            soloWheel.SelectedSymbolId1,
+            soloWheel.SelectedSymbolId2
+        };
 
-        bool correct = soloWheel.SelectedSymbolId0 == soloWheelTargetId0
-                    && soloWheel.SelectedSymbolId1 == soloWheelTargetId1
-                    && soloWheel.SelectedSymbolId2 == soloWheelTargetId2;
+        Debug.Log($"[Challenge4] Chequeando rueda solo (sin orden) — " +
+                  $"Seleccionados: [{soloWheel.SelectedSymbolId0}, {soloWheel.SelectedSymbolId1}, {soloWheel.SelectedSymbolId2}] | " +
+                  $"Targets: [{centralClock.ActiveSymbolId0}, {centralClock.ActiveSymbolId1}, {centralClock.ActiveSymbolId2}]");
+
+        bool correct = selected.Contains(centralClock.ActiveSymbolId0)
+                    && selected.Contains(centralClock.ActiveSymbolId1)
+                    && selected.Contains(centralClock.ActiveSymbolId2);
 
         if (correct)
         {
@@ -155,13 +158,21 @@ public class Challenge4Manager : NetworkBehaviour
     bool w1ok = wheel1.TryGetMatchingSymbolId(centralClock, out string id1);
     bool w2ok = wheel2.TryGetMatchingSymbolId(centralClock, out string id2);
 
-    Debug.Log($"[Challenge4] Chequeando ruedas coop — " +
+    var resolvedIds = new System.Collections.Generic.HashSet<string> { id0, id1, id2 };
+    var clockIds = new System.Collections.Generic.HashSet<string>
+    {
+        centralClock.ActiveSymbolId0,
+        centralClock.ActiveSymbolId1,
+        centralClock.ActiveSymbolId2
+    };
+
+    Debug.Log($"[Challenge4] Chequeando ruedas coop (sin orden) — " +
               $"Wheel0: '{id0}' ({(w0ok ? "OK" : "FAIL")}) | " +
               $"Wheel1: '{id1}' ({(w1ok ? "OK" : "FAIL")}) | " +
-              $"Wheel2: '{id2}' ({(w2ok ? "OK" : "FAIL")})");
+              $"Wheel2: '{id2}' ({(w2ok ? "OK" : "FAIL")}) | " +
+              $"Clock targets: [{centralClock.ActiveSymbolId0}, {centralClock.ActiveSymbolId1}, {centralClock.ActiveSymbolId2}]");
 
-    return w0ok && w1ok && w2ok
-           && id0 != id1 && id0 != id2 && id1 != id2;
+    return w0ok && w1ok && w2ok && resolvedIds.SetEquals(clockIds);
 }
 
 private bool CheckAnyWheelMatches()
