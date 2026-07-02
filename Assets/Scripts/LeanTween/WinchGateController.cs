@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using Fusion;
 
 /// <summary>
 /// Controla una puerta de rejas (gate) mediante una rueda/winch interactuable.
@@ -8,6 +9,7 @@ using UnityEngine.Events;
 ///  SETUP EN UNITY (pasos obligatorios):
 /// ══════════════════════════════════════════════════════════════
 ///  1. Agregar ESTE script al GameObject raíz del Winch (Winch_Wooden).
+///     IMPORTANTE: Debe tener un componente NetworkObject para sincronizar en red.
 ///
 ///  2. Agregar un componente BasicInteraction al GameObject que tenga
 ///     el COLLIDER del winch (puede ser un hijo del FBX).
@@ -27,7 +29,7 @@ using UnityEngine.Events;
 ///  mientras que este script debe estar en el padre. Separar los dos
 ///  componentes es la única forma de integrarse correctamente.
 /// </summary>
-public class WinchGateController : MonoBehaviour
+public class WinchGateController : NetworkBehaviour
 {
     // ─────────────────────────────────────────────────────────────────────────
     // INSPECTOR
@@ -101,6 +103,7 @@ public class WinchGateController : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────────
 
     private bool  isBeingHeld         = false;
+    private bool  isLocalHolder       = false; // Solo el cliente que presionó puede soltar
     private int   activeTweenId       = -1;
     private bool  winchAtLimit        = false;   // La rueda ya llegó a su tope de rotación
     private float rotationAccumulated = 0f;      // Grados girados desde el último press
@@ -188,12 +191,13 @@ public class WinchGateController : MonoBehaviour
         }
 
         // ── Detección de release ──────────────────────────────────────────────
-        // No necesitamos saber si el raycast apunta al winch: si el jugador ya
-        // estaba interactuando (isBeingHeld) y suelta el botón, es suficiente.
-        if (!isBeingHeld) return;
+        // Solo el cliente que inició la interacción puede soltar la rueda.
+        if (!isLocalHolder) return;
 
         if (Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.E))
+        {
             OnUnPressed();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -206,6 +210,28 @@ public class WinchGateController : MonoBehaviour
     /// Conectar desde: BasicInteraction (del collider) → onSelect → este método.
     /// </summary>
     public void OnPressed()
+    {
+        if (gate == null || isBeingHeld) return;
+        
+        isLocalHolder = true;
+
+        if (Object != null && Object.IsValid)
+        {
+            Rpc_OnPressed();
+        }
+        else
+        {
+            DoOnPressed();
+        }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void Rpc_OnPressed()
+    {
+        DoOnPressed();
+    }
+
+    private void DoOnPressed()
     {
         if (gate == null || isBeingHeld) return;
 
@@ -252,6 +278,28 @@ public class WinchGateController : MonoBehaviour
     /// pero también puede ser invocado manualmente desde otros sistemas.
     /// </summary>
     public void OnUnPressed()
+    {
+        if (gate == null || !isBeingHeld) return;
+        
+        isLocalHolder = false;
+
+        if (Object != null && Object.IsValid)
+        {
+            Rpc_OnUnPressed();
+        }
+        else
+        {
+            DoOnUnPressed();
+        }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void Rpc_OnUnPressed()
+    {
+        DoOnUnPressed();
+    }
+
+    private void DoOnUnPressed()
     {
         if (gate == null || !isBeingHeld) return;
 
