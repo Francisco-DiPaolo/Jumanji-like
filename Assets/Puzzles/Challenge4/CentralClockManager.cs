@@ -2,11 +2,21 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
 
+[System.Serializable]
+public class SymbolTrio
+{
+    public string Id0;
+    public string Id1;
+    public string Id2;
+}
+
 public class CentralClockManager : NetworkBehaviour
 {
     [Header("Clock Settings")]
     [SerializeField] private float cycleDuration = 15f;
-    [SerializeField] private int activeSymbolCount = 3;
+
+    [Header("Symbol Combinations")]
+    [SerializeField] private SymbolTrio[] symbolCombinations;
 
     [Header("Materials")]
     [SerializeField] private Renderer[] clockSymbolRenderers;
@@ -107,18 +117,20 @@ public class CentralClockManager : NetworkBehaviour
 
     private void PickNewSymbols()
     {
-        int total = clockSymbolRenderers.Length;
-
-        var pickedPositions = new System.Collections.Generic.HashSet<int>();
-        while (pickedPositions.Count < activeSymbolCount)
-            pickedPositions.Add(UnityEngine.Random.Range(0, total));
-
-        int i = 0;
-        foreach (int position in pickedPositions)
+        if (symbolCombinations == null || symbolCombinations.Length == 0)
         {
-            ActiveSymbolIdsNetworked.Set(i, _symbolIds[position]);
-            i++;
+            Debug.LogWarning("[CentralClock] No hay combinaciones de símbolos definidas.", this);
+            return;
         }
+
+        int index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+        SymbolTrio trio = symbolCombinations[index];
+
+        ActiveSymbolIdsNetworked.Set(0, trio.Id0);
+        ActiveSymbolIdsNetworked.Set(1, trio.Id1);
+        ActiveSymbolIdsNetworked.Set(2, trio.Id2);
+
+        Debug.Log($"[CentralClock] Nueva combinación [{index}]: '{trio.Id0}', '{trio.Id1}', '{trio.Id2}'");
     }
 
     public override void Render()
