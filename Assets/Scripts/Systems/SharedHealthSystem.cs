@@ -54,7 +54,8 @@ public class SharedHealthSystem : NetworkBehaviour
 
     private void Update()
     {
-        // Update debug value so it can be seen in the Inspector
+        if (Object == null || !Object.IsValid) return;
+
         debugCurrentHealth = CurrentHealth;
 
         if (IsPoisoned)
