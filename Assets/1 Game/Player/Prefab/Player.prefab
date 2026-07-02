@@ -2546,7 +2546,7 @@ MonoBehaviour:
   Environment:
     serializedVersion: 2
     m_Bits: 0
-  volume: 0.017
+  volume: 0.012
   priority: 94
   Animator: {fileID: 8925748940849128339}
 --- !u!4 &673758258196407451 stripped
@@ -2662,6 +2662,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9005220659476430823, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7561472839038002616}
+    - targetCorrespondingSourceObject: {fileID: 9005220659476430823, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7120862119351414833}
   m_SourcePrefab: {fileID: 100100000, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
 --- !u!1 &7566087966211056320 stripped
 GameObject:
@@ -2730,6 +2733,32 @@ MonoBehaviour:
   currentObjectReference: {fileID: 0}
   SelectEnabled: 1
   outlineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &7120862119351414833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566087966211056320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33077ef47b7078846837660b1a3b37b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraBreathing
+  playerMovement: {fileID: 2595770815282596302}
+  idleBreathSpeed: 0.27
+  idleBreathAmountY: 0.015
+  idleBreathRollAmount: 0.01
+  idleBreathAmountX: 0.01
+  walkBobSpeed: 1.8
+  runBobSpeed: 2.8
+  walkBobAmountY: 0.018
+  runBobAmountY: 0.025
+  walkBobAmountX: 0.006
+  runBobAmountX: 0.012
+  bobRollAmount: 0.25
+  transitionSpeed: 3
+  smoothSpeed: 12
 --- !u!20 &7566087966211056322 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 9005220659476430821, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
