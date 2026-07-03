@@ -89,6 +89,24 @@ public class BoardGameSequence : NetworkBehaviour
             return;
 
         _alreadyStartedLocal = true;
+        
+        // --- RESTAURANDO LÓGICA DEL CASCO ---
+        // Si nadie tiene el casco todavía, este jugador (el primero en llegar) se lo pone
+        bool anyoneHasHelmet = false;
+        PlayerMovement localPlayer = null;
+        
+        foreach (var p in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
+        {
+            if (p.HasFishBowl) anyoneHasHelmet = true;
+            if (p.HasInputAuthority) localPlayer = p;
+        }
+
+        if (!anyoneHasHelmet && localPlayer != null)
+        {
+            localPlayer.Rpc_SetHasFishBowl(true);
+        }
+        // ------------------------------------
+
         StartCoroutine(ShowWaitingAndNotifyReady());
     }
 

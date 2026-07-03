@@ -8,13 +8,13 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
 {
     public enum VoiceMode
     {
-        Normal = 1,
-        Squirrel = 2,
-        Robot = 3,
-        Deep = 4,
-        Echo = 5,
-        Muted = 6,
-        Underwater = 7
+        Normal = 0,
+        Squirrel = 1,
+        Robot = 2,
+        Deep = 3,
+        Echo = 4,
+        Muted = 5,
+        Underwater = 6
     }
 
     [Networked]
@@ -40,13 +40,16 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     private const int ResampleBufferSize = 96000;
 
     // --- Underwater effect parameters ---
-    private float underwaterLpStateF;       // Low-pass filter state (float)
-    private float underwaterLpStateS;       // Low-pass filter state (short path, stored as float)
-    private float underwaterWobblePhase;    // Phase for subtle amplitude wobble
-    private const float UnderwaterCutoff = 900f;   // Low-pass cutoff Hz (keeps speech intelligible)
-    private const float UnderwaterWobbleFreq = 2.5f; // Slow wobble frequency Hz
-    private const float UnderwaterWobbleDepth = 0.12f; // Subtle wobble depth (0-1)
-    private const float UnderwaterPitch = 0.85f;   // Slight pitch down (less extreme than Deep's 0.7)
+    private float uwLpStateF;       // Low-pass filter state (float)
+    private float uwLpStateS;       // Low-pass filter state (short)
+    private float bubblePhase1;
+    private float bubblePhase2;
+    private const float BubbleFreq1 = 6.0f;      // Frecuencia para el gurgle/burbujeo
+    private const float BubbleFreq2 = 9.5f;      // Segunda frecuencia para hacerlo irregular
+    private const float BaseCutoff = 350f;       // Sonido base muy ahogado
+    private const float CutoffMod = 600f;        // Modulación para el efecto "wah" rápido de burbuja
+    private const float BubbleAmpDepth = 0.4f;   // Caída de volumen en cada burbuja
+    private const float UnderwaterPitch = 0.85f; // Tono base levemente más grave
 
     // Separate resample state for Underwater so it doesn't conflict with Squirrel/Deep
     private float[] uwResampleBufferF;
@@ -59,7 +62,18 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
         if (HasInputAuthority)
         {
             recorder = GetComponent<Recorder>();
-            Debug.Log($"[VoiceEffect] Spawned. Has Recorder: {recorder != null}");
+            if (recorder != null)
+            {
+                // Forzar opciones para eliminar ruido de fondo, teclado y respiración
+                recorder.VoiceDetection = true;
+                recorder.VoiceDetectionThreshold = 0.015f; // Ajustar si se corta mucho (más bajo = más sensible)
+                
+                // Activar WebRTC DSP para limpieza de audio profesional
+                // En tu versión de Photon Voice, debes añadir el componente "WebRtcAudioDsp" manualmente 
+                // al GameObject del Recorder desde el Inspector para cancelar el ruido de teclado.
+                
+                Debug.Log($"[VoiceEffect] Spawned. Recorder configured for VAD.");
+            }
         }
     }
 
@@ -268,7 +282,7 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
 
     private unsafe float[] ProcessUnderwaterF(float[] data)
     {
-        // Step 1: Pitch-down resampling (using separate buffers to not conflict with Squirrel/Deep)
+        // Step 1: Pitch-down resampling
         if (uwResampleBufferF == null) uwResampleBufferF = new float[ResampleBufferSize];
         fixed (float* pData = data, pBuf = uwResampleBufferF)
         {
@@ -291,23 +305,36 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
                 uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
         }
 
-        // Step 2: One-pole low-pass filter + amplitude wobble
+        // Step 2: Dynamic Low-pass filter + amplitude wobble for Bubble/Gurgle effect
         float dt = 1.0f / sampleRate;
-        float rc = 1.0f / (2.0f * (float)Math.PI * UnderwaterCutoff);
-        float alpha = dt / (rc + dt);
-        float wobbleStep = 2.0f * (float)Math.PI * UnderwaterWobbleFreq / sampleRate;
+        float step1 = 2.0f * (float)Math.PI * BubbleFreq1 / sampleRate;
+        float step2 = 2.0f * (float)Math.PI * BubbleFreq2 / sampleRate;
 
         fixed (float* pData = data)
         {
             for (int i = 0; i < data.Length; i++)
             {
-                // Low-pass filter
-                underwaterLpStateF += alpha * (pData[i] - underwaterLpStateF);
-                // Subtle amplitude wobble (1.0 ± depth)
-                float wobble = 1.0f - UnderwaterWobbleDepth + UnderwaterWobbleDepth * (float)Math.Sin(underwaterWobblePhase);
-                pData[i] = underwaterLpStateF * wobble;
-                underwaterWobblePhase += wobbleStep;
-                if (underwaterWobblePhase > 2.0f * (float)Math.PI) underwaterWobblePhase -= 2.0f * (float)Math.PI;
+                // Generar oscilación irregular combinando dos senos
+                float bubbleOsc = (float)(Math.Sin(bubblePhase1) * Math.Sin(bubblePhase2));
+                float normalizedOsc = (bubbleOsc + 1f) * 0.5f; // Rango 0 a 1
+
+                // 1. Modulación dinámica del filtro (efecto wah rápido/gárgara)
+                float currentCutoff = BaseCutoff + (CutoffMod * normalizedOsc);
+                float rc = 1.0f / (2.0f * (float)Math.PI * currentCutoff);
+                float alpha = dt / (rc + dt);
+                
+                uwLpStateF += alpha * (pData[i] - uwLpStateF);
+
+                // 2. Modulación de amplitud (temblor de volumen)
+                float wobble = 1.0f - BubbleAmpDepth + (BubbleAmpDepth * normalizedOsc);
+                
+                pData[i] = uwLpStateF * wobble;
+
+                // Avanzar fases
+                bubblePhase1 += step1;
+                if (bubblePhase1 > 2.0f * (float)Math.PI) bubblePhase1 -= 2.0f * (float)Math.PI;
+                bubblePhase2 += step2;
+                if (bubblePhase2 > 2.0f * (float)Math.PI) bubblePhase2 -= 2.0f * (float)Math.PI;
             }
         }
         return data;
@@ -338,23 +365,32 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
                 uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
         }
 
-        // Step 2: One-pole low-pass filter + amplitude wobble
+        // Step 2: Dynamic Low-pass filter + amplitude wobble for Bubble/Gurgle effect
         float dt = 1.0f / sampleRate;
-        float rc = 1.0f / (2.0f * (float)Math.PI * UnderwaterCutoff);
-        float alpha = dt / (rc + dt);
-        float wobbleStep = 2.0f * (float)Math.PI * UnderwaterWobbleFreq / sampleRate;
+        float step1 = 2.0f * (float)Math.PI * BubbleFreq1 / sampleRate;
+        float step2 = 2.0f * (float)Math.PI * BubbleFreq2 / sampleRate;
 
         fixed (short* pData = data)
         {
             for (int i = 0; i < data.Length; i++)
             {
-                // Low-pass filter (work in float precision)
-                underwaterLpStateS += alpha * (pData[i] - underwaterLpStateS);
-                // Subtle amplitude wobble
-                float wobble = 1.0f - UnderwaterWobbleDepth + UnderwaterWobbleDepth * (float)Math.Sin(underwaterWobblePhase);
-                pData[i] = (short)(underwaterLpStateS * wobble);
-                underwaterWobblePhase += wobbleStep;
-                if (underwaterWobblePhase > 2.0f * (float)Math.PI) underwaterWobblePhase -= 2.0f * (float)Math.PI;
+                float bubbleOsc = (float)(Math.Sin(bubblePhase1) * Math.Sin(bubblePhase2));
+                float normalizedOsc = (bubbleOsc + 1f) * 0.5f;
+
+                float currentCutoff = BaseCutoff + (CutoffMod * normalizedOsc);
+                float rc = 1.0f / (2.0f * (float)Math.PI * currentCutoff);
+                float alpha = dt / (rc + dt);
+                
+                uwLpStateS += alpha * (pData[i] - uwLpStateS);
+
+                float wobble = 1.0f - BubbleAmpDepth + (BubbleAmpDepth * normalizedOsc);
+                
+                pData[i] = (short)(uwLpStateS * wobble);
+
+                bubblePhase1 += step1;
+                if (bubblePhase1 > 2.0f * (float)Math.PI) bubblePhase1 -= 2.0f * (float)Math.PI;
+                bubblePhase2 += step2;
+                if (bubblePhase2 > 2.0f * (float)Math.PI) bubblePhase2 -= 2.0f * (float)Math.PI;
             }
         }
         return data;

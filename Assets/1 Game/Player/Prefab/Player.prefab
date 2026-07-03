@@ -196,6 +196,7 @@ GameObject:
   - component: {fileID: 5500000000000000002}
   - component: {fileID: 5989695226466159440}
   - component: {fileID: -6962561565382774457}
+  - component: {fileID: 4715506338492157670}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -353,7 +354,6 @@ MonoBehaviour:
   hurtSound: {fileID: 8300000, guid: e9847bb45a575804db7ea5d9f9d4841f, type: 3}
   hurtSoundVolume: 0.009
   hurtSoundCooldown: 2.3
-  _CurrentStamina: 0
   _IsReadyAtBoard:
     _value: 0
   _HasFishBowl:
@@ -384,7 +384,7 @@ AudioSource:
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 0.052
-  m_Pitch: 1.14
+  m_Pitch: 1
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -568,7 +568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28f2bfc956bc3914691abf3aebcbd990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoiceEffectController
-  _CurrentMode: 1
+  _CurrentMode: 0
 --- !u!114 &-6962561565382774457
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -589,6 +589,27 @@ MonoBehaviour:
   occlusionVolumeFactor: 0
   occlusionCheckInterval: 0.1
   smoothingSpeed: 5
+--- !u!114 &4715506338492157670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446421614054784240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ddec46cf6a4c4addbf21b6be8442124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.WebRtcAudioDsp
+  aec: 1
+  aecHighPass: 1
+  agc: 1
+  agcCompressionGain: 9
+  agcTargetLevel: 3
+  vad: 1
+  highPass: 0
+  noiseSuppression: 1
+  reverseStreamDelayMs: 120
 --- !u!1 &1517768843869494070
 GameObject:
   m_ObjectHideFlags: 0
