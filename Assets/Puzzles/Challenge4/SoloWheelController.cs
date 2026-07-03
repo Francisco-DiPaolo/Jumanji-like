@@ -30,6 +30,13 @@ public class SoloWheelController : NetworkBehaviour
     [SerializeField] private float shakeStrength = 0.08f;
     [SerializeField] private float shakeDuration = 0.35f;
 
+    [Header("Door to Open on Resolve")]
+    [Tooltip("La puerta que se abrirá automáticamente al resolver el puzzle")]
+    public LeanTweenDoor targetDoor;
+    
+    [Tooltip("Objeto opcional que se apagará al completarse el puzzle")]
+    public GameObject objectToDisableOnResolve;
+
     [Header("Events")]
     public UnityEvent OnSelectionChanged;
     public UnityEvent OnResolved;
@@ -88,6 +95,11 @@ public class SoloWheelController : NetworkBehaviour
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+        if (IsResolved)
+        {
+            if (targetDoor != null) targetDoor.OpenDoor();
+            if (objectToDisableOnResolve != null) objectToDisableOnResolve.SetActive(false);
+        }
     }
 
     public override void Render()
@@ -100,7 +112,13 @@ public class SoloWheelController : NetworkBehaviour
             else if (change == nameof(Ring1Steps)) ApplyRotation(ring1, Ring1Steps);
             else if (change == nameof(Ring2Steps)) ApplyRotation(ring2, Ring2Steps);
 
-            if (change == nameof(IsResolved) && IsResolved) OnResolved?.Invoke();
+            if (change == nameof(IsResolved) && IsResolved) 
+            {
+                TriggerSuccessFeedback();
+                OnResolved?.Invoke();
+                if (targetDoor != null) targetDoor.OpenDoor();
+                if (objectToDisableOnResolve != null) objectToDisableOnResolve.SetActive(false);
+            }
         }
 
         if (!anyChange) return;
@@ -176,12 +194,17 @@ public class SoloWheelController : NetworkBehaviour
         if (MatchesClock(clock))
         {
             MarkResolved();
-            TriggerSuccessFeedback();
         }
         else
         {
-            TriggerErrorFeedback();
+            Rpc_TriggerErrorFeedback();
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_TriggerErrorFeedback()
+    {
+        TriggerErrorFeedback();
     }
 
     private void ApplyRotation(Transform ringTransform, int steps)

@@ -64,6 +64,13 @@ public class DoubleDoorInteraction : NetworkBasicInteraction
         IsOpenNet = !IsOpenNet;
     }
 
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_RequestOpenDoor()
+    {
+        if (IsOpenNet) return;
+        IsOpenNet = true;
+    }
+
     private void ToggleDoorVisuals(bool open)
     {
         isAnimating = true;
