@@ -45,7 +45,7 @@ public class PlayerMovement : NetworkBehaviour
     [Tooltip("Tiempo mínimo en segundos entre sonidos de daño.")]
     [SerializeField] private float hurtSoundCooldown = 1.5f;
 
-    [Networked] public float CurrentStamina { get; set; }
+    public float CurrentStamina { get; set; }
     public System.Action<float, float> OnStaminaChanged; // actual, max
 
     [Networked] float VerticalLook { get; set; }
@@ -148,6 +148,9 @@ public class PlayerMovement : NetworkBehaviour
 
     private void HandleStamina(PlayerInputData data)
     {
+        // Al no ser [Networked], evitamos que la resimulación modifique la estamina múltiples veces
+        if (!Runner.IsForward) return;
+
         bool isSprinting = data.buttons.IsSet(InputButton.Sprint);
         
         if (isSprinting && data.move.sqrMagnitude > 0.01f && CurrentStamina > 0)

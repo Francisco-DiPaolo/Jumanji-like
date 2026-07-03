@@ -99,7 +99,7 @@ public class GameUIManager : MonoBehaviour
         PlayerMovement[] players = FindObjectsOfType<PlayerMovement>();
         foreach (var p in players)
         {
-            if (p.HasInputAuthority || p.HasStateAuthority) // local player depending on setup
+            if (p.HasInputAuthority) // Local player always has input authority in this setup
             {
                 localPlayerMovement = p;
                 SubscribeToStamina(p);
