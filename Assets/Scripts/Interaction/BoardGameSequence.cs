@@ -57,6 +57,12 @@ public class BoardGameSequence : NetworkBehaviour
     public override void Spawned()
     {
         _lastState = State;
+        
+        // Si entramos tarde y la secuencia ya había avanzado, sincronizamos visualmente
+        if (State != BoardSequenceState.Idle)
+        {
+            HandleStateChanged(State);
+        }
     }
 
     public override void Render()

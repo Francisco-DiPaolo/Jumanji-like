@@ -1,6 +1,7 @@
 using UnityEngine;
+using Fusion;
 
-public class DoubleDoorInteraction : BasicInteraction
+public class DoubleDoorInteraction : NetworkBasicInteraction
 {
     [Header("Door References")]
     [Tooltip("The left door child object (e.g., Door_medieval_Cut)")]
@@ -19,28 +20,58 @@ public class DoubleDoorInteraction : BasicInteraction
     [Tooltip("Curva de animación al cerrar.")]
     public LeanTweenType closeEase = LeanTweenType.easeOutCubic;
 
-    private bool isOpen = false;
+    [Networked]
+    public NetworkBool IsOpenNet { get; set; }
+
+    private bool _lastIsOpen = false;
     private bool isAnimating = false;
+
+    public override void Spawned()
+    {
+        _lastIsOpen = IsOpenNet;
+        
+        // Si alguien se une tarde y la puerta ya está abierta, la ponemos en la posición correcta.
+        if (IsOpenNet)
+        {
+            if (leftDoor != null) leftDoor.localRotation = Quaternion.Euler(0, openAngle, 0);
+            if (rightDoor != null) rightDoor.localRotation = Quaternion.Euler(0, -openAngle, 0);
+        }
+    }
+
+    public override void Render()
+    {
+        // Sincronizar el estado de la puerta con la variable en red
+        if (IsOpenNet != _lastIsOpen)
+        {
+            _lastIsOpen = IsOpenNet;
+            ToggleDoorVisuals(IsOpenNet);
+        }
+    }
 
     public override void Select()
     {
         base.Select();
         
         if (isAnimating) return;
-        ToggleDoor();
+        Rpc_RequestToggleDoor();
     }
 
-    private void ToggleDoor()
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_RequestToggleDoor()
+    {
+        // Solo el Host ejecuta la lógica real de cambio de estado
+        if (isAnimating) return;
+        IsOpenNet = !IsOpenNet;
+    }
+
+    private void ToggleDoorVisuals(bool open)
     {
         isAnimating = true;
-        isOpen = !isOpen;
 
-        // One door opens in positive angle, the other in negative angle. 
-        // Depending on the exact pivot orientation, we might need to adjust this.
-        float targetAngleLeft = isOpen ? openAngle : 0f;
-        float targetAngleRight = isOpen ? -openAngle : 0f;
+        float targetAngleLeft = open ? openAngle : 0f;
+        float targetAngleRight = open ? -openAngle : 0f;
 
-        LeanTweenType currentEase = isOpen ? openEase : closeEase;
+        LeanTweenType currentEase = open ? openEase : closeEase;
 
         if (leftDoor != null)
         {
