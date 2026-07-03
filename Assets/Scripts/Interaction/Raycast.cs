@@ -85,9 +85,12 @@ public class Raycast : MonoBehaviour
             }
             currentInteractable = interactable;
 
-            currentOutline = currentObjectReference.GetComponent<OutlineFxParent>();
-            if (currentOutline == null) currentOutline = currentObjectReference.AddComponent<OutlineFxParent>();
-            currentOutline.SetOutlineColor(outlineColor);
+            if (currentObjectReference.GetComponent<DisableOutline>() == null)
+            {
+                currentOutline = currentObjectReference.GetComponent<OutlineFxParent>();
+                if (currentOutline == null) currentOutline = currentObjectReference.AddComponent<OutlineFxParent>();
+                currentOutline.SetOutlineColor(outlineColor);
+            }
 
             onHover?.Invoke(currentObjectReference);
         }

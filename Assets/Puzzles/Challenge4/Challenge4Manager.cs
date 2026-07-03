@@ -13,9 +13,12 @@ public class Challenge4Manager : NetworkBehaviour
     [SerializeField] private WheelRingController wheel1;
     [SerializeField] private WheelRingController wheel2;
 
-    [Header("Puertas")]
+    [Header("Puertas y Altar (Fase 2)")]
     [SerializeField] private LeanTweenDoor gateA;
-    [SerializeField] private LeanTweenDoor gateB;
+    [SerializeField] private AltarBoardInteraction altarBoard;
+    
+    [Tooltip("Objeto opcional que se apagará al completarse el puzzle final (Fase 2)")]
+    public GameObject objectToDisableOnPhase2;
 
     [Header("Audio")]
     [SerializeField] private AudioSource puzzleAudioSource;
@@ -47,6 +50,11 @@ public class Challenge4Manager : NetworkBehaviour
         {
             IsPhase1Done = false;
             IsPuzzleSolved = false;
+        }
+        
+        if (IsPuzzleSolved && objectToDisableOnPhase2 != null)
+        {
+            objectToDisableOnPhase2.SetActive(false);
         }
 
         soloWheel?.OnSelectionChanged.AddListener(EvaluateSoloWheel);
@@ -214,7 +222,11 @@ private bool CheckAnyWheelMatches()
     private void Rpc_CompletePhase2()
     {
         Debug.Log("[Challenge4] Victoria Final — Puzzle completamente resuelto.");
-        gateB?.OpenDoor();
+        
+        if (altarBoard != null)
+        {
+            altarBoard.Rpc_ActivateBoard();
+        }
 
         wheel0?.TriggerSuccessFeedback();
         wheel1?.TriggerSuccessFeedback();
@@ -259,6 +271,8 @@ private bool CheckAnyWheelMatches()
                 wheel0?.TriggerSuccessFeedback();
                 wheel1?.TriggerSuccessFeedback();
                 wheel2?.TriggerSuccessFeedback();
+                
+                if (objectToDisableOnPhase2 != null) objectToDisableOnPhase2.SetActive(false);
             }
         }
     }

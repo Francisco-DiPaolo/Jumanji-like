@@ -30,10 +30,6 @@ public class SoloWheelController : NetworkBehaviour
     [SerializeField] private float shakeStrength = 0.08f;
     [SerializeField] private float shakeDuration = 0.35f;
 
-    [Header("Door to Open on Resolve")]
-    [Tooltip("La puerta que se abrirá automáticamente al resolver el puzzle")]
-    public LeanTweenDoor targetDoor;
-    
     [Tooltip("Objeto opcional que se apagará al completarse el puzzle")]
     public GameObject objectToDisableOnResolve;
 
@@ -97,7 +93,6 @@ public class SoloWheelController : NetworkBehaviour
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         if (IsResolved)
         {
-            if (targetDoor != null) targetDoor.OpenDoor();
             if (objectToDisableOnResolve != null) objectToDisableOnResolve.SetActive(false);
         }
     }
@@ -116,7 +111,6 @@ public class SoloWheelController : NetworkBehaviour
             {
                 TriggerSuccessFeedback();
                 OnResolved?.Invoke();
-                if (targetDoor != null) targetDoor.OpenDoor();
                 if (objectToDisableOnResolve != null) objectToDisableOnResolve.SetActive(false);
             }
         }

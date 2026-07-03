@@ -20,6 +20,10 @@ public class DoubleDoorInteraction : NetworkBasicInteraction
     [Tooltip("Curva de animación al cerrar.")]
     public LeanTweenType closeEase = LeanTweenType.easeOutCubic;
 
+    [Header("Interaction Settings")]
+    [Tooltip("Si es false, no se podrá abrir/cerrar clickeándola con la mano directamente.")]
+    public bool canInteractByHand = true;
+
     [Networked]
     public NetworkBool IsOpenNet { get; set; }
 
@@ -50,6 +54,8 @@ public class DoubleDoorInteraction : NetworkBasicInteraction
 
     public override void Select()
     {
+        if (!canInteractByHand) return; // Salir si la interacción manual está desactivada
+        
         base.Select();
         
         if (isAnimating) return;

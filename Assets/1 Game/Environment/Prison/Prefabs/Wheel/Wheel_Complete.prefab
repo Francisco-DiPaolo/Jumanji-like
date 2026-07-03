@@ -756,6 +756,7 @@ MonoBehaviour:
   errorClip: {fileID: 8300000, guid: f89e3897813778b4390f121653c9071c, type: 3}
   shakeStrength: 0.08
   shakeDuration: 0.35
+  objectToDisableOnResolve: {fileID: 0}
   OnSelectionChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -777,14 +778,14 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.035
+  m_Volume: 0.062
   m_Pitch: 1
   Loop: 0
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 94
-  DopplerLevel: 1
+  DopplerLevel: 0
   MinDistance: 1
   MaxDistance: 8
   Pan2D: 0
