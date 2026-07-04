@@ -328,7 +328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   walkSpeed: 2
-  sprintSpeed: 5
+  sprintSpeed: 2
   acceleration: 15
   deceleration: 20
   jumpHeight: 1.2
