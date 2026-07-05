@@ -19,6 +19,9 @@ public class Challenge4Manager : NetworkBehaviour
     
     [Tooltip("Objeto opcional que se apagará al completarse el puzzle final (Fase 2)")]
     public GameObject objectToDisableOnPhase2;
+    
+    [Tooltip("Collider que se activará al completarse el puzzle final (Fase 2), ej: lock_prisons")]
+    public Collider colliderToEnableOnPhase2;
 
     [Header("Audio")]
     [SerializeField] private AudioSource puzzleAudioSource;
@@ -55,6 +58,11 @@ public class Challenge4Manager : NetworkBehaviour
         if (IsPuzzleSolved && objectToDisableOnPhase2 != null)
         {
             objectToDisableOnPhase2.SetActive(false);
+        }
+        
+        if (IsPuzzleSolved && colliderToEnableOnPhase2 != null)
+        {
+            colliderToEnableOnPhase2.enabled = true;
         }
 
         soloWheel?.OnSelectionChanged.AddListener(EvaluateSoloWheel);
@@ -273,6 +281,7 @@ private bool CheckAnyWheelMatches()
                 wheel2?.TriggerSuccessFeedback();
                 
                 if (objectToDisableOnPhase2 != null) objectToDisableOnPhase2.SetActive(false);
+                if (colliderToEnableOnPhase2 != null) colliderToEnableOnPhase2.enabled = true;
             }
         }
     }
