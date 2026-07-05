@@ -94,12 +94,11 @@ public class PlayerMovement : NetworkBehaviour
         // que el primer frame de física lo ponga en el estado de salto
         if (animator != null)
         {
-            animator.SetBool("IsGrounded", true);
+            animator.SetBool("isGrounded", true);
             animator.SetFloat("Speed", 0f);
             animator.SetFloat("PositionX", 0f);
             animator.SetFloat("PositionY", 0f);
             // Limpiar triggers que pudieran haber quedado sucios del frame anterior
-            animator.ResetTrigger("Jump");
             animator.ResetTrigger("Weave");
             animator.ResetTrigger("Interact");
         }
@@ -347,11 +346,7 @@ public class PlayerMovement : NetworkBehaviour
         animator.SetFloat("PositionY", lastMoveInput.y);
 
         // IsGrounded (bool local, sin lag de red) — actualizar siempre
-        animator.SetBool("IsGrounded", localIsGrounded);
-
-        // Jump Trigger — solo dispara en el rising edge (primer frame del press)
-        if (lastJumpPressed && localIsGrounded)
-            animator.SetTrigger("Jump");
+        animator.SetBool("isGrounded", localIsGrounded);
 
         // Weave Trigger — G key
         if (lastWeavePressed)
