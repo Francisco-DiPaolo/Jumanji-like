@@ -40,6 +40,7 @@ Material:
     - _NoiseStrength: 0.073
     - _OutlineSoftness: 0.255
     - _OutlineWidth: 0.052
+    - _ScaleRatioA: 0.9
     - _ScrapAnisotropy: 1.29
     - _ScrapStrength: 0.361
     - _SrcBlend: 5

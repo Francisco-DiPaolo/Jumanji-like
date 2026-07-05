@@ -44,6 +44,12 @@ Shader "Custom/CarvedStone_TMP_v2"
         [HideInInspector] _ScaleY           ("Scale Y",          Float) = 1
         [HideInInspector] _PerspectiveFilter("Perspective Corr", Range(0,1)) = 0.875
         [HideInInspector] _Sharpness        ("Sharpness",        Range(-1,1)) = 0
+        // --- Propiedades requeridas por TMP ShaderUtilities.UpdateShaderRatios() ---
+        [HideInInspector] _WeightNormal     ("Weight Normal",    Float) = 0
+        [HideInInspector] _WeightBold       ("Weight Bold",      Float) = 0.5
+        [HideInInspector] _ScaleRatioA      ("Scale Ratio A",    Float) = 1
+        [HideInInspector] _ScaleRatioB      ("Scale Ratio B",    Float) = 1
+        [HideInInspector] _ScaleRatioC      ("Scale Ratio C",    Float) = 1
     }
 
     SubShader
