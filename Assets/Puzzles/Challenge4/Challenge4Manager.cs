@@ -17,11 +17,14 @@ public class Challenge4Manager : NetworkBehaviour
     [SerializeField] private LeanTweenDoor gateA;
     [SerializeField] private AltarBoardInteraction altarBoard;
     
-    [Tooltip("Objeto opcional que se apagará al completarse el puzzle final (Fase 2)")]
-    public GameObject objectToDisableOnPhase2;
+    [Tooltip("Objetos que se apagarán al completarse el puzzle final (Fase 2)")]
+    public GameObject[] objectsToDisableOnPhase2;
     
-    [Tooltip("Collider que se activará al completarse el puzzle final (Fase 2), ej: lock_prisons")]
-    public Collider colliderToEnableOnPhase2;
+    [Tooltip("Objetos que se encenderán al completarse el puzzle final (Fase 2)")]
+    public GameObject[] objectsToEnableOnPhase2;
+    
+    [Tooltip("Colliders que se activarán al completarse el puzzle final (Fase 2), ej: lock_prisons")]
+    public Collider[] collidersToEnableOnPhase2;
 
     [Header("Audio")]
     [SerializeField] private AudioSource puzzleAudioSource;
@@ -55,14 +58,11 @@ public class Challenge4Manager : NetworkBehaviour
             IsPuzzleSolved = false;
         }
         
-        if (IsPuzzleSolved && objectToDisableOnPhase2 != null)
+        if (IsPuzzleSolved)
         {
-            objectToDisableOnPhase2.SetActive(false);
-        }
-        
-        if (IsPuzzleSolved && colliderToEnableOnPhase2 != null)
-        {
-            colliderToEnableOnPhase2.enabled = true;
+            foreach (var obj in objectsToDisableOnPhase2) if (obj != null) obj.SetActive(false);
+            foreach (var obj in objectsToEnableOnPhase2) if (obj != null) obj.SetActive(true);
+            foreach (var col in collidersToEnableOnPhase2) if (col != null) col.enabled = true;
         }
 
         soloWheel?.OnSelectionChanged.AddListener(EvaluateSoloWheel);
@@ -280,8 +280,9 @@ private bool CheckAnyWheelMatches()
                 wheel1?.TriggerSuccessFeedback();
                 wheel2?.TriggerSuccessFeedback();
                 
-                if (objectToDisableOnPhase2 != null) objectToDisableOnPhase2.SetActive(false);
-                if (colliderToEnableOnPhase2 != null) colliderToEnableOnPhase2.enabled = true;
+                foreach (var obj in objectsToDisableOnPhase2) if (obj != null) obj.SetActive(false);
+                foreach (var obj in objectsToEnableOnPhase2) if (obj != null) obj.SetActive(true);
+                foreach (var col in collidersToEnableOnPhase2) if (col != null) col.enabled = true;
             }
         }
     }
