@@ -45,7 +45,8 @@ public class PlayerMovement : NetworkBehaviour
     [Tooltip("Tiempo mínimo en segundos entre sonidos de daño.")]
     [SerializeField] private float hurtSoundCooldown = 1.5f;
 
-    public float CurrentStamina { get; set; }
+    // Stamina completamente local — no entra en FixedUpdateNetwork ni en la red
+    public float CurrentStamina { get; private set; }
     public System.Action<float, float> OnStaminaChanged; // actual, max
 
     [Networked] float VerticalLook { get; set; }
@@ -77,11 +78,14 @@ public class PlayerMovement : NetworkBehaviour
     bool localIsGrounded;         // Copia local de IsGrounded para el Animator (sin lag de red)
     GameObject fishBowlObject;    // Referencia al casco Fish_Bowl_2 en el rig
     bool lastFishBowlState;       // Estado anterior de HasFishBowl para evitar llamadas redundantes
+    // Flag local que HandleMovement lee para decidir la velocidad, escrito desde Update()
+    bool _localIsSprinting;
 
     public override void Spawned()
     {
         CurrentStamina = maxStamina;
         unityController = GetComponent<CharacterController>();
+        _localIsSprinting = false;
 
         // Busca el Animator en el hijo llamado Character_Model
         Transform model = transform.Find("Character_Model");
@@ -135,41 +139,47 @@ public class PlayerMovement : NetworkBehaviour
         return null;
     }
 
+    private void Update()
+    {
+        // La stamina se corre 100% local, solo para el jugador local, fuera de la simulación de red
+        if (HasInputAuthority)
+        {
+            UpdateStaminaLocal();
+        }
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (!GetInput(out PlayerInputData data))
             return;
 
-        HandleStamina(data);
         HandleCamera(data);
         HandleMovement(data);
     }
 
-    private void HandleStamina(PlayerInputData data)
+    private void UpdateStaminaLocal()
     {
-        // Al no ser [Networked], evitamos que la resimulación modifique la estamina múltiples veces
-        if (!Runner.IsForward) return;
+        // Lee el input directo de Unity — completamente local, sin red
+        bool sprintKey = Input.GetKey(KeyCode.LeftShift); // mismo botón que InputButton.Sprint
+        bool isMoving = lastMoveInput.sqrMagnitude > 0.01f;
 
-        bool isSprinting = data.buttons.IsSet(InputButton.Sprint);
-        
-        if (isSprinting && data.move.sqrMagnitude > 0.01f && CurrentStamina > 0)
+        if (sprintKey && isMoving && CurrentStamina > 0)
         {
-            CurrentStamina -= staminaDrainRate * Runner.DeltaTime;
+            _localIsSprinting = true;
+            CurrentStamina -= staminaDrainRate * Time.deltaTime;
             if (CurrentStamina < 0) CurrentStamina = 0;
         }
         else
         {
+            _localIsSprinting = false;
             if (CurrentStamina < maxStamina)
             {
-                CurrentStamina += staminaRegenRate * Runner.DeltaTime;
+                CurrentStamina += staminaRegenRate * Time.deltaTime;
                 if (CurrentStamina > maxStamina) CurrentStamina = maxStamina;
             }
         }
 
-        if (HasInputAuthority)
-        {
-            OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
-        }
+        OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
     }
 
     private void HandleCamera(PlayerInputData data)
@@ -238,7 +248,9 @@ public class PlayerMovement : NetworkBehaviour
         localIsGrounded = IsGrounded; // Copia local sin lag de red para el Animator
 
         // 2. Sprint & Speed logic
-        bool isSprinting = data.buttons.IsSet(InputButton.Sprint) && CurrentStamina > 0;
+        // Para el jugador local: usa _localIsSprinting (actualizado en Update sin red).
+        // Para jugadores remotos en el host: no pueden tener isSprinting porque es un flag local.
+        bool isSprinting = HasInputAuthority ? _localIsSprinting : data.buttons.IsSet(InputButton.Sprint);
         float targetSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         Vector3 moveDirection = (transform.forward * data.move.y + transform.right * data.move.x).normalized;
