@@ -341,8 +341,8 @@ MonoBehaviour:
     m_Bits: 1
   groundCheckRadius: 0.3
   cameraPivot: {fileID: 7566087966211056325}
-  mouseSensitivityX: 1
-  mouseSensitivityY: 1
+  mouseSensitivityX: 0.52
+  mouseSensitivityY: 0.52
   invertY: 0
   topClamp: 90
   bottomClamp: -90
@@ -350,7 +350,7 @@ MonoBehaviour:
   animatorDampTime: 0.1
   maxStamina: 100
   staminaDrainRate: 20
-  staminaRegenRate: 15
+  staminaRegenRate: 10
   audioSource: {fileID: 2370537476140238220}
   hurtSound: {fileID: 8300000, guid: e9847bb45a575804db7ea5d9f9d4841f, type: 3}
   hurtSoundVolume: 0.009

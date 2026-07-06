@@ -48,7 +48,13 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] public float CurrentStamina { get; set; }
     public System.Action<float, float> OnStaminaChanged;
 
-    [Networked] float VerticalLook { get; set; }
+    // Rotación de cámara: LOCAL al cliente dueño, nunca networked.
+    // Se lee en Update() y se aplica en LateUpdate() para máxima suavidad visual.
+    float localYaw;           // Rotación horizontal del cuerpo (grados acumulados)
+    float localPitch;         // Rotación vertical de la cámara (grados acumulados)
+    float accumulatedMouseX;  // Delta de mouse acumulado entre FixedUpdates
+    float accumulatedMouseY;  // Delta de mouse acumulado entre FixedUpdates
+
     [Networked] Vector3 CurrentVelocity { get; set; }
     [Networked] NetworkBool IsGrounded { get; set; }
     [Networked] public NetworkBool IsReadyAtBoard { get; set; }
@@ -84,6 +90,12 @@ public class PlayerMovement : NetworkBehaviour
             CurrentStamina = maxStamina;
         }
         unityController = GetComponent<CharacterController>();
+
+        // Inicializar Yaw y Pitch desde el transform actual
+        localYaw   = transform.eulerAngles.y;
+        localPitch = 0f;
+        accumulatedMouseX = 0f;
+        accumulatedMouseY = 0f;
 
         // Busca el Animator en el hijo llamado Character_Model
         Transform model = transform.Find("Character_Model");
@@ -137,40 +149,97 @@ public class PlayerMovement : NetworkBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Update se ejecuta cada frame de render.
+    /// SOLO se usa para acumular el delta del mouse del cliente local.
+    /// La rotación real se aplica en LateUpdate para sincronizarse con el render.
+    /// </summary>
+    private void Update()
+    {
+        if (!HasInputAuthority) return;
+        if (CameraOverrideActive)  return;
+
+        accumulatedMouseX += Input.GetAxisRaw("Mouse X") * mouseSensitivityX;
+        accumulatedMouseY += Input.GetAxisRaw("Mouse Y") * mouseSensitivityY;
+    }
+
     public override void FixedUpdateNetwork()
     {
         if (!GetInput(out PlayerInputData data))
             return;
 
-        HandleCamera(data);
+        // Nota: la cámara ya NO se maneja aquí.
+        // FixedUpdateNetwork solo controla el movimiento físico.
         HandleMovement(data);
     }
 
-    private void HandleCamera(PlayerInputData data)
+    /// <summary>
+    /// LateUpdate se ejecuta al final de cada frame de render, DESPUÉS de Update.
+    /// Es el lugar correcto para aplicar rotaciones de cámara: garantiza que la
+    /// física ya terminó y que no hay un frame de retraso visual.
+    /// </summary>
+    private void LateUpdate()
     {
-        if (CameraOverrideActive) return;
-        
-        float mouseX = data.look.x * mouseSensitivityX;
-        float mouseY = data.look.y * mouseSensitivityY;
-
-        transform.Rotate(Vector3.up * mouseX);
-
-        if (invertY)
+        if (HasInputAuthority && !CameraOverrideActive)
         {
-            VerticalLook += mouseY; 
-        }
-        else
-        {
-            VerticalLook -= mouseY; 
+            // Consumir el delta acumulado desde el último frame
+            localYaw   += accumulatedMouseX;
+            accumulatedMouseX = 0f;
+
+            if (invertY)
+                localPitch += accumulatedMouseY;
+            else
+                localPitch -= accumulatedMouseY;
+            accumulatedMouseY = 0f;
+
+            localPitch = Mathf.Clamp(localPitch, bottomClamp, topClamp);
+
+            // Aplicar rotación del cuerpo (yaw): eje Y global, sin influencia del pitch
+            transform.rotation = Quaternion.Euler(0f, localYaw, 0f);
         }
 
-        VerticalLook = Mathf.Clamp(VerticalLook, bottomClamp, topClamp);
+        // Pivot de cámara (pitch): solo para el cliente dueño con su cámara activa
+        if (HasInputAuthority && cameraPivot != null && !CameraOverrideActive)
+        {
+            cameraPivot.localRotation = Quaternion.Euler(localPitch, 0f, 0f);
+        }
+
+        HandleAnimator();
+
+        if (HasInputAuthority)
+        {
+            OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
+        }
+
+        // Sincronizar casco FishBowl
+        bool currentFishBowl = HasFishBowl;
+        if (fishBowlObject != null && lastFishBowlState != currentFishBowl)
+        {
+            fishBowlObject.SetActive(currentFishBowl);
+            lastFishBowlState = currentFishBowl;
+
+            if (currentFishBowl && HasInputAuthority)
+            {
+                VoiceEffectController voiceEffect = GetComponent<VoiceEffectController>();
+                if (voiceEffect != null)
+                    voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
+            }
+        }
     }
+
+
 
     private void HandleMovement(PlayerInputData data)
     {
+        // Fusion llama a CopyToEngine() antes de FixedUpdateNetwork, lo que resetea
+        // transform.rotation a la rotación guardada en red. Re-aplicamos localYaw aquí
+        // para que transform.forward/.right apunten en la dirección visual correcta.
+        if (HasInputAuthority)
+            transform.rotation = Quaternion.Euler(0f, localYaw, 0f);
+
         // Freeze movement if game is over or camera is overridden
         bool freezeMovement = CameraOverrideActive || (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver);
+
 
         if (freezeMovement)
         {
@@ -290,32 +359,11 @@ public class PlayerMovement : NetworkBehaviour
 
     public override void Render()
     {
-        if (!CameraOverrideActive && cameraPivot != null)
-            cameraPivot.localRotation = Quaternion.Euler(VerticalLook, 0, 0);
-
-        HandleAnimator();
-
-        if (HasInputAuthority)
-        {
-            OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
-        }
-
-        bool currentFishBowl = HasFishBowl;
-        if (fishBowlObject != null && lastFishBowlState != currentFishBowl)
-        {
-            fishBowlObject.SetActive(currentFishBowl);
-            lastFishBowlState = currentFishBowl;
-
-            if (currentFishBowl && HasInputAuthority)
-            {
-                VoiceEffectController voiceEffect = GetComponent<VoiceEffectController>();
-                if (voiceEffect != null)
-                {
-                    voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
-                }
-            }
-        }
+        // LateUpdate ya maneja la cámara y el animador para el cliente local.
+        // Render() de Fusion se usa para interpolación visual de clientes remotos.
+        // El pivot de la cámara y el animador son gestionados íntegramente por LateUpdate.
     }
+
 
     private void HandleAnimator()
     {

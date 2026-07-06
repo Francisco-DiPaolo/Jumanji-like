@@ -46,10 +46,8 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
             Input.GetAxisRaw("Vertical")
         );
 
-        data.look = new Vector2(
-            Input.GetAxisRaw("Mouse X"),
-            Input.GetAxisRaw("Mouse Y")
-        );
+        // data.look ya no se usa: la cámara lee Input.GetAxisRaw directamente en
+        // PlayerMovement.Update() / LateUpdate() para evitar el desincronismo de FixedUpdate.
 
         data.buttons.Set(InputButton.Jump, Input.GetKey(KeyCode.Space));
         data.buttons.Set(InputButton.Sprint, Input.GetKey(KeyCode.LeftShift));
