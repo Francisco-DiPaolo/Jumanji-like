@@ -45,9 +45,8 @@ public class PlayerMovement : NetworkBehaviour
     [Tooltip("Tiempo mínimo en segundos entre sonidos de daño.")]
     [SerializeField] private float hurtSoundCooldown = 1.5f;
 
-    // Stamina completamente local — no entra en FixedUpdateNetwork ni en la red
-    public float CurrentStamina { get; private set; }
-    public System.Action<float, float> OnStaminaChanged; // actual, max
+    [Networked] public float CurrentStamina { get; set; }
+    public System.Action<float, float> OnStaminaChanged;
 
     [Networked] float VerticalLook { get; set; }
     [Networked] Vector3 CurrentVelocity { get; set; }
@@ -75,17 +74,16 @@ public class PlayerMovement : NetworkBehaviour
     bool lastJumpPressed;         // Si se apretó Jump en el último FixedUpdate (rising edge únicamente)
     bool wasJumpHeld;             // Estado anterior del botón Jump para detectar rising edge
     bool lastWeavePressed;        // Si se apretó Weave en el último FixedUpdate
-    bool localIsGrounded;         // Copia local de IsGrounded para el Animator (sin lag de red)
     GameObject fishBowlObject;    // Referencia al casco Fish_Bowl_2 en el rig
     bool lastFishBowlState;       // Estado anterior de HasFishBowl para evitar llamadas redundantes
-    // Flag local que HandleMovement lee para decidir la velocidad, escrito desde Update()
-    bool _localIsSprinting;
 
     public override void Spawned()
     {
-        CurrentStamina = maxStamina;
+        if (HasStateAuthority)
+        {
+            CurrentStamina = maxStamina;
+        }
         unityController = GetComponent<CharacterController>();
-        _localIsSprinting = false;
 
         // Busca el Animator en el hijo llamado Character_Model
         Transform model = transform.Find("Character_Model");
@@ -139,15 +137,6 @@ public class PlayerMovement : NetworkBehaviour
         return null;
     }
 
-    private void Update()
-    {
-        // La stamina se corre 100% local, solo para el jugador local, fuera de la simulación de red
-        if (HasInputAuthority)
-        {
-            UpdateStaminaLocal();
-        }
-    }
-
     public override void FixedUpdateNetwork()
     {
         if (!GetInput(out PlayerInputData data))
@@ -155,31 +144,6 @@ public class PlayerMovement : NetworkBehaviour
 
         HandleCamera(data);
         HandleMovement(data);
-    }
-
-    private void UpdateStaminaLocal()
-    {
-        // Lee el input directo de Unity — completamente local, sin red
-        bool sprintKey = Input.GetKey(KeyCode.LeftShift); // mismo botón que InputButton.Sprint
-        bool isMoving = lastMoveInput.sqrMagnitude > 0.01f;
-
-        if (sprintKey && isMoving && CurrentStamina > 0)
-        {
-            _localIsSprinting = true;
-            CurrentStamina -= staminaDrainRate * Time.deltaTime;
-            if (CurrentStamina < 0) CurrentStamina = 0;
-        }
-        else
-        {
-            _localIsSprinting = false;
-            if (CurrentStamina < maxStamina)
-            {
-                CurrentStamina += staminaRegenRate * Time.deltaTime;
-                if (CurrentStamina > maxStamina) CurrentStamina = maxStamina;
-            }
-        }
-
-        OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
     }
 
     private void HandleCamera(PlayerInputData data)
@@ -244,13 +208,32 @@ public class PlayerMovement : NetworkBehaviour
                 break;
             }
         }
-        
-        localIsGrounded = IsGrounded; // Copia local sin lag de red para el Animator
 
-        // 2. Sprint & Speed logic
-        // Para el jugador local: usa _localIsSprinting (actualizado en Update sin red).
-        // Para jugadores remotos en el host: no pueden tener isSprinting porque es un flag local.
-        bool isSprinting = HasInputAuthority ? _localIsSprinting : data.buttons.IsSet(InputButton.Sprint);
+        bool sprintKey = data.buttons.IsSet(InputButton.Sprint);
+        bool isMoving = data.move.sqrMagnitude > 0.01f;
+        bool isSprinting = false;
+
+        if (sprintKey && isMoving && CurrentStamina > 0)
+        {
+            isSprinting = true;
+            CurrentStamina -= staminaDrainRate * Runner.DeltaTime;
+            if (CurrentStamina < 0)
+            {
+                CurrentStamina = 0;
+            }
+        }
+        else
+        {
+            if (CurrentStamina < maxStamina)
+            {
+                CurrentStamina += staminaRegenRate * Runner.DeltaTime;
+                if (CurrentStamina > maxStamina)
+                {
+                    CurrentStamina = maxStamina;
+                }
+            }
+        }
+
         float targetSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         Vector3 moveDirection = (transform.forward * data.move.y + transform.right * data.move.x).normalized;
@@ -312,14 +295,17 @@ public class PlayerMovement : NetworkBehaviour
 
         HandleAnimator();
 
-        // Activar/desactivar el casco Fish_Bowl_2 según el estado networked (solo cambia cuando hay diferencia)
+        if (HasInputAuthority)
+        {
+            OnStaminaChanged?.Invoke(CurrentStamina, maxStamina);
+        }
+
         bool currentFishBowl = HasFishBowl;
         if (fishBowlObject != null && lastFishBowlState != currentFishBowl)
         {
             fishBowlObject.SetActive(currentFishBowl);
             lastFishBowlState = currentFishBowl;
 
-            // Si este jugador se puso el casco y es el jugador local, forzar voz Underwater
             if (currentFishBowl && HasInputAuthority)
             {
                 VoiceEffectController voiceEffect = GetComponent<VoiceEffectController>();
@@ -335,17 +321,19 @@ public class PlayerMovement : NetworkBehaviour
     {
         if (animator == null) return;
 
-        bool isMoving = lastMoveInput.sqrMagnitude > 0.01f;
+        Vector3 horizontalVelocity = new Vector3(CurrentVelocity.x, 0, CurrentVelocity.z);
+        bool isMoving = horizontalVelocity.sqrMagnitude > 0.01f;
         bool isSprinting = isMoving && (CurrentVelocity.magnitude >= sprintSpeed * 0.8f);
 
-        // Speed: 0 = Idle, 1 = Walk, 2 = Run
         float targetAnimSpeed = 0f;
-        if (isMoving) targetAnimSpeed = isSprinting ? 2f : 1f;
+        if (isMoving)
+        {
+            targetAnimSpeed = isSprinting ? 2f : 1f;
+        }
 
         float currentSpeed = animator.GetFloat("Speed");
         float smoothedSpeed = Mathf.Lerp(currentSpeed, targetAnimSpeed, animatorDampTime / Time.deltaTime * Runner.DeltaTime);
         
-        // Filtro Deadzone para limpiar valores de notación científica extremadamente chicos
         if (smoothedSpeed < 0.01f)
         {
             smoothedSpeed = 0f;
@@ -353,16 +341,24 @@ public class PlayerMovement : NetworkBehaviour
         
         animator.SetFloat("Speed", smoothedSpeed);
 
-        // Dirección para los Blend Trees 2D anidados
-        animator.SetFloat("PositionX", lastMoveInput.x);
-        animator.SetFloat("PositionY", lastMoveInput.y);
+        float moveX = HasInputAuthority ? lastMoveInput.x : 0f;
+        float moveY = HasInputAuthority ? lastMoveInput.y : 0f;
+        if (!HasInputAuthority && isMoving)
+        {
+            Vector3 localVel = transform.InverseTransformDirection(CurrentVelocity).normalized;
+            moveX = localVel.x;
+            moveY = localVel.z;
+        }
 
-        // IsGrounded (bool local, sin lag de red) — actualizar siempre
-        animator.SetBool("isGrounded", localIsGrounded);
+        animator.SetFloat("PositionX", moveX);
+        animator.SetFloat("PositionY", moveY);
 
-        // Weave Trigger — G key
+        animator.SetBool("isGrounded", IsGrounded);
+
         if (lastWeavePressed)
+        {
             animator.SetTrigger("Weave");
+        }
     }
 
     /// <summary>
