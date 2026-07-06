@@ -14,6 +14,8 @@ public class CentralClockManager : NetworkBehaviour
 {
     [Header("Clock Settings")]
     [SerializeField] private float cycleDuration = 15f;
+    [Tooltip("Si es false, el reloj no arranca solo; espera a que se llame a StartClock() o Rpc_RequestStartClock()")]
+    [SerializeField] private bool autoStart = false;
 
     [Header("Symbol Combinations")]
     [SerializeField] private SymbolTrio[] symbolCombinations;
@@ -72,8 +74,11 @@ public class CentralClockManager : NetworkBehaviour
         if (HasStateAuthority)
         {
             CycleTimeRemaining = cycleDuration;
-            IsRunning = true;
-            PickNewSymbols();
+            if (autoStart)
+            {
+                IsRunning = true;
+                PickNewSymbols();
+            }
         }
 
         ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
@@ -98,6 +103,13 @@ public class CentralClockManager : NetworkBehaviour
         if (!HasStateAuthority) return;
         IsRunning = true;
         PickNewSymbols();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_RequestStartClock()
+    {
+        if (IsRunning) return;
+        StartClock();
     }
 
     public void SetActiveSymbols(string id0, string id1, string id2)
