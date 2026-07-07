@@ -18,7 +18,7 @@ public class BrickInteractable : NetworkBasicInteraction
     public override void FixedUpdateNetwork()
     {
         if (!isHovered) return;
-        if (!IsInteractable) return;
+        // El ladrillo siempre acepta hover/click — la validación la decide el PuzzleManager
         base.FixedUpdateNetwork();
     }
 
@@ -36,7 +36,7 @@ public class BrickInteractable : NetworkBasicInteraction
 
     public override void Select()
     {
-        // Bloquear si la animación del brick está en curso (independiente de todo)
+        // Bloquear si la animación del brick está en curso
         BrickSlide slide = GetComponentInChildren<BrickSlide>();
         if (slide != null && slide.IsMoving)
         {
@@ -44,35 +44,31 @@ public class BrickInteractable : NetworkBasicInteraction
             return;
         }
 
-        // La animación SIEMPRE se dispara al hacer click, sin importar si el puzzle está activo
+        // La animación se dispara siempre al hacer click
         slide?.StartSlide();
 
-        Debug.Log("[Brick] Select called — IsInteractable: " + IsInteractable);
-
-        // Solo registrar en el puzzle si el brick está habilitado (todas las antorchas prendidas)
-        if (!IsInteractable)
-        {
-            Debug.LogWarning("[Brick] Click registrado pero brick no habilitado (antorchas no completas)");
-            return;
-        }
-
         base.Select();
-        Debug.Log("[Brick] Firing RPC_RegisterInteract");
-        RPC_RegisterInteract(Runner.LocalPlayer);
+        Debug.Log("[Brick] Firing RPC_ValidateAnswer");
+        RPC_ValidateAnswer(Runner.LocalPlayer);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    void RPC_RegisterInteract(PlayerRef player)
+    void RPC_ValidateAnswer(PlayerRef player)
     {
-        // Siempre incrementamos el contador para que TODOS los clientes
-        // reproduzcan la animación (correcto o incorrecto)
+        // Incrementar contador para que todos los clientes reproduzcan la animación
         PressCount++;
 
         var manager = GetComponentInParent<GlobalPuzzleManager>();
         Debug.Log("[Brick] RPC received — manager found: " + (manager != null) + " | player: " + player);
         if (manager == null)
-            Debug.LogError("[Brick] RPC_RegisterInteract: GlobalPuzzleManager not found in parent!");
-        manager?.RegisterPlayerInteract(player);
+        {
+            Debug.LogError("[Brick] RPC_ValidateAnswer: GlobalPuzzleManager not found in parent!");
+            return;
+        }
+
+        // El manager decide: si todas las antorchas están en verde → correcto,
+        // si no → resetea la secuencia desde el principio.
+        manager.ValidateAnswer(player);
     }
 
     public override void Render()

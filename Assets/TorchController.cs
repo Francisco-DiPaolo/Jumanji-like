@@ -4,6 +4,7 @@ using UnityEngine;
 public class TorchController : NetworkBehaviour
 {
     [SerializeField] bool isGreenTorch;
+    public bool IsGreenTorch => isGreenTorch;
 
     [Header("Sonidos")]
     [SerializeField] AudioClip igniteClip;  // Sonido al encenderse (one-shot)

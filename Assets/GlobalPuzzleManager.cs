@@ -2,35 +2,56 @@ using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
+/// <summary>
+/// GlobalPuzzleManager — Controla la secuencia de encendido de antorchas del puzzle.
+/// El jugador presiona un botón para validar: si no todas las antorchas están en verde,
+/// la secuencia se resetea y vuelve a empezar desde el principio.
+/// </summary>
 public class GlobalPuzzleManager : NetworkBehaviour
 {
+    // ──────────────────────────────────────────────────────────────────────────
+    // Inspector Fields
+    // ──────────────────────────────────────────────────────────────────────────
+
     [SerializeField] List<TorchController> torches;
     [SerializeField] LeanTweenDoor tweenDoor;
-    [SerializeField] float timeBetweenTorches = 2f;
-    [SerializeField] float allLitDuration = 3f;
-    [SerializeField] float resetPauseDuration = 1f;
-    [SerializeField] float syncWindowDuration = 1.5f;
+
+    [Header("Temporización de la secuencia")]
+    [Tooltip("Tiempo en segundos que tarda en encenderse la siguiente antorcha de la secuencia.")]
+    [SerializeField] float torch_frequency = 2f;        // Frecuencia de encendido entre antorchas
+
+    [SerializeField] float allLitDuration     = 3f;     // Tiempo que permanecen todas encendidas
+    [SerializeField] float resetPauseDuration = 1f;     // Pausa breve tras apagar todas (ciclo normal)
+    [SerializeField] float syncWindowDuration = 1.5f;   // Ventana de sincronización multijugador
 
     [Header("Sonido de puerta al resolver")]
-    [SerializeField] AudioSource doorAudioSource; // Sonido de puerta de prisión al abrir
+    [SerializeField] AudioSource doorAudioSource;       // Sonido de puerta de prisión al abrir
 
     [Header("Puzzle Resuelto")]
-    [SerializeField] GameObject candado; // Objeto que se apaga al resolver el puzzle
+    [SerializeField] GameObject candado;                // Objeto que se apaga al resolver el puzzle
 
-    [Networked] public NetworkBool IsBrickEnabled { get; set; }
-    [Networked] public NetworkBool IsPuzzleSolved { get; set; }
-    [Networked] int CurrentTorchIndex { get; set; }
-    [Networked] float NextActionTime { get; set; }
-    [Networked] NetworkBool AllExtinguished { get; set; }
-    [Networked] float SyncWindowOpenTime { get; set; }
+    // ──────────────────────────────────────────────────────────────────────────
+    // Networked State
+    // ──────────────────────────────────────────────────────────────────────────
 
-    [Networked, Capacity(8)]
-    NetworkDictionary<PlayerRef, NetworkBool> PlayerInteracted => default;
+    [Networked] public NetworkBool IsBrickEnabled   { get; set; }
+    [Networked] public NetworkBool IsPuzzleSolved   { get; set; }
+    [Networked]        int         CurrentTorchIndex { get; set; }
+    [Networked]        float       NextActionTime    { get; set; }
+    [Networked]        NetworkBool AllExtinguished   { get; set; }
 
-    ChangeDetector _changeDetector;
+    // ──────────────────────────────────────────────────────────────────────────
+    // Private Fields
+    // ──────────────────────────────────────────────────────────────────────────
+
+    ChangeDetector    _changeDetector;
     BrickInteractable _brick;
 
     BrickInteractable Brick => _brick != null ? _brick : (_brick = GetComponentInChildren<BrickInteractable>());
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Lifecycle
+    // ──────────────────────────────────────────────────────────────────────────
 
     public override void Spawned()
     {
@@ -39,10 +60,14 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             CurrentTorchIndex = 0;
-            AllExtinguished = false;
-            NextActionTime = Runner.SimulationTime + timeBetweenTorches;
+            AllExtinguished   = false;
+            NextActionTime    = Runner.SimulationTime + torch_frequency;
         }
     }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Fixed Update (State Authority only)
+    // ──────────────────────────────────────────────────────────────────────────
 
     public override void FixedUpdateNetwork()
     {
@@ -50,13 +75,15 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (IsPuzzleSolved) return;
         if (Runner.SimulationTime < NextActionTime) return;
 
+        // ── Pausa breve tras apagarse todas (ciclo normal) ──
         if (AllExtinguished)
         {
             AllExtinguished = false;
-            NextActionTime = Runner.SimulationTime + timeBetweenTorches;
+            NextActionTime  = Runner.SimulationTime + torch_frequency;
             return;
         }
 
+        // ── Encender la siguiente antorcha de la secuencia ──
         if (CurrentTorchIndex < torches.Count)
         {
             torches[CurrentTorchIndex].Light();
@@ -64,88 +91,132 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
             if (CurrentTorchIndex >= torches.Count)
             {
+                // Todas encendidas: habilitar ladrillo interactivo
                 IsBrickEnabled = true;
                 if (Brick != null) Brick.IsInteractable = true;
                 NextActionTime = Runner.SimulationTime + allLitDuration;
             }
             else
             {
-                NextActionTime = Runner.SimulationTime + timeBetweenTorches;
+                // Esperar torch_frequency antes de encender la siguiente
+                NextActionTime = Runner.SimulationTime + torch_frequency;
             }
         }
         else
         {
+            // Secuencia completa sin resolver → apagar todo y reiniciar ciclo
             ExtinguishAll();
-        }
-
-        if (IsBrickEnabled && PlayerInteracted.Count > 0)
-        {
-            float elapsed = Runner.SimulationTime - SyncWindowOpenTime;
-            if (elapsed > syncWindowDuration)
-                ResetSyncWindow();
         }
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // Validación por botón
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Llamar cuando el jugador presiona el botón de validación.
+    /// Comprueba si TODAS las antorchas están en estado Verde (apagadas).
+    /// → Si están todas en verde: registra la interacción del jugador (posible resolución).
+    /// → Si alguna NO está en verde: resetea la secuencia desde el principio.
+    /// Solo el StateAuthority ejecuta la lógica; los clientes envían RPC al host.
+    /// </summary>
+    public void ValidateAnswer(PlayerRef player)
+    {
+        if (Object == null || !Object.HasStateAuthority)
+        {
+            Debug.LogWarning("[PuzzleManager] ValidateAnswer: sin StateAuthority.");
+            return;
+        }
+
+        if (IsPuzzleSolved) return;
+
+        if (IsGreenTorchLit())
+        {
+            // ✅ Respuesta correcta: resolver el puzzle directamente.
+            // No usamos TryResolveSync (que busca todos los managers en escena y puede
+            // encontrar instancias extra de Fusion/prefabs con PlayerInteracted vacío).
+            Debug.Log("[PuzzleManager] Validación CORRECTA — antorcha verde encendida.");
+            IsPuzzleSolved = true;
+        }
+        else
+        {
+            // ❌ Respuesta incorrecta: resetear la secuencia desde cero
+            Debug.Log("[PuzzleManager] Validación INCORRECTA — reseteando secuencia.");
+            ResetSequence();
+        }
+    }
+
+    /// <summary>
+    /// Devuelve true si la antorcha configurada como verde está actualmente encendida.
+    /// Si hay varias, deben estar todas encendidas.
+    /// </summary>
+    bool IsGreenTorchLit()
+    {
+        bool hasGreenTorch = false;
+        foreach (var torch in torches)
+        {
+            if (torch.IsGreenTorch)
+            {
+                hasGreenTorch = true;
+                if (!torch.IsLit) return false; // Falta encender la antorcha verde
+            }
+        }
+        
+        // Si por algún motivo no hay antorchas verdes, ganan cuando todas estén prendidas
+        if (!hasGreenTorch)
+        {
+            foreach (var torch in torches)
+                if (!torch.IsLit) return false;
+        }
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Apaga y resetea TODAS las antorchas al estado Verde y reinicia la secuencia
+    /// inmediatamente, sin la pausa de resetPauseDuration del ciclo normal.
+    /// </summary>
+    void ResetSequence()
+    {
+        // Apagar todas las antorchas → estado Verde
+        foreach (var torch in torches)
+            torch.Extinguish();
+
+        // Reiniciar estado de la secuencia
+        CurrentTorchIndex = 0;
+        AllExtinguished   = false;
+
+        // Deshabilitar el ladrillo interactivo
+        IsBrickEnabled = false;
+        if (Brick != null) Brick.IsInteractable = false;
+
+        // Reiniciar temporizador con la frecuencia configurada
+        NextActionTime = Runner.SimulationTime + torch_frequency;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Internal Helpers
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Apaga todas las antorchas al terminar el ciclo normal (sin que el jugador valide).
+    /// Incluye la pausa de reset estándar (resetPauseDuration) antes de reiniciar.
+    /// </summary>
     void ExtinguishAll()
     {
         foreach (var torch in torches)
             torch.Extinguish();
 
         CurrentTorchIndex = 0;
-        IsBrickEnabled = false;
+        IsBrickEnabled    = false;
         if (Brick != null) Brick.IsInteractable = false;
-        ResetSyncWindow();
         AllExtinguished = true;
-        NextActionTime = Runner.SimulationTime + resetPauseDuration;
+        NextActionTime  = Runner.SimulationTime + resetPauseDuration;
     }
 
-    public void RegisterPlayerInteract(PlayerRef player)
-    {
-        Debug.Log("[PuzzleManager] RegisterPlayerInteract — player: " + player + " | HasStateAuthority: " + Object.HasStateAuthority + " | IsBrickEnabled: " + IsBrickEnabled + " | IsPuzzleSolved: " + IsPuzzleSolved);
-        if (Object == null || !Object.HasStateAuthority) { Debug.LogWarning("[PuzzleManager] Blocked: no StateAuthority"); return; }
-        if (!IsBrickEnabled || IsPuzzleSolved) { Debug.LogWarning("[PuzzleManager] Blocked: IsBrickEnabled=" + IsBrickEnabled + " IsPuzzleSolved=" + IsPuzzleSolved); return; }
-
-        bool isFirstInteract = PlayerInteracted.Count == 0;
-        PlayerInteracted.Set(player, true);
-        Debug.Log("[PuzzleManager] PlayerInteracted count after set: " + PlayerInteracted.Count);
-
-        if (isFirstInteract)
-            SyncWindowOpenTime = Runner.SimulationTime;
-
-        TryResolveSync();
-    }
-
-    void TryResolveSync()
-    {
-        var managers = FindObjectsByType<GlobalPuzzleManager>(FindObjectsSortMode.None);
-        Debug.Log("[PuzzleManager] TryResolveSync — total managers in scene: " + managers.Length);
-
-        bool allSolved = true;
-        foreach (var manager in managers)
-        {
-            Debug.Log("[PuzzleManager] Manager: " + manager.name + " | PlayerInteracted.Count: " + manager.PlayerInteracted.Count);
-            if (manager.PlayerInteracted.Count == 0)
-            {
-                allSolved = false;
-                break;
-            }
-        }
-
-        Debug.Log("[PuzzleManager] allSolved: " + allSolved);
-        if (allSolved)
-        {
-            foreach (var manager in managers)
-            {
-                manager.IsPuzzleSolved = true;
-            }
-        }
-    }
-
-    void ResetSyncWindow()
-    {
-        PlayerInteracted.Clear();
-        SyncWindowOpenTime = 0f;
-    }
+    // ──────────────────────────────────────────────────────────────────────────
+    // Render (Change Detection)
+    // ──────────────────────────────────────────────────────────────────────────
 
     public override void Render()
     {
