@@ -43,6 +43,9 @@ public class BoardGameSequence : NetworkBehaviour
     [TextArea] [SerializeField] private string  textMessage;
     [SerializeField] private AudioSource        audioSource;
     [SerializeField] private AudioClip          textAppearSound;
+    [SerializeField] private AudioClip          diceRollSound;
+    [Tooltip("Tiempo de espera desde que saltan hasta que se reproduce el sonido (para coincidir con la caída)")]
+    [SerializeField] private float              diceSoundDelay = 0.5f;
 
     // -----------------------------------------------------------------------
     // Estado networked
@@ -218,6 +221,21 @@ public class BoardGameSequence : NetworkBehaviour
                     Random.Range(-1f, 1f)).normalized;
                 rb.AddTorque(randomTorque * diceTorqueForce, ForceMode.Impulse);
             }
+        }
+        
+        // Reproducir sonido de los dados cayendo
+        if (audioSource != null && diceRollSound != null)
+        {
+            // Esperamos el tiempo necesario para que caigan (aprox 0.5s por física)
+            yield return new WaitForSeconds(diceSoundDelay);
+            audioSource.PlayOneShot(diceRollSound);
+            
+            // Si esperamos, restamos ese tiempo de la duración total para no desfasar la secuencia
+            yield return new WaitForSeconds(Mathf.Max(0, diceJumpDuration + 1.0f - diceSoundDelay - 0.1f));
+        }
+        else
+        {
+            yield return new WaitForSeconds(diceJumpDuration + 1.0f - 0.1f);
         }
     }
 
