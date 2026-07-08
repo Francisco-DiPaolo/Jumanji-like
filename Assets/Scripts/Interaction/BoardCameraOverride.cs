@@ -66,9 +66,7 @@ public class BoardCameraOverride : MonoBehaviour
                 camPivot.rotation = Quaternion.Slerp(startRot, targetRot, t);
             });
 
-        // Unlock cursor
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // (Cursor remains locked so player doesn't lose mouse control)
     }
 
     public void DeactivateView()
