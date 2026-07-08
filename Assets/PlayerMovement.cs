@@ -59,6 +59,7 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] Vector3 CurrentVelocity { get; set; }
     [Networked] NetworkBool IsGrounded { get; set; }
     [Networked] TickTimer jumpCooldownTimer { get; set; }
+    [Networked] NetworkBool WasJumpHeld { get; set; }
     [Networked] public NetworkBool IsReadyAtBoard { get; set; }
 
     /// <summary>True cuando este jugador es el primero que interactuó con el tablero y debe llevar el casco Fish_Bowl_2.</summary>
@@ -79,8 +80,6 @@ public class PlayerMovement : NetworkBehaviour
     CharacterController unityController;
     Animator animator;
     Vector2 lastMoveInput;        // Input de dirección para Render()
-    bool lastJumpPressed;         // Si se apretó Jump en el último FixedUpdate (rising edge únicamente)
-    bool wasJumpHeld;             // Estado anterior del botón Jump para detectar rising edge
     bool lastWeavePressed;        // Si se apretó Weave en el último FixedUpdate
     GameObject fishBowlObject;    // Referencia al casco Fish_Bowl_2 en el rig
     bool lastFishBowlState;       // Estado anterior de HasFishBowl para evitar llamadas redundantes
@@ -259,8 +258,8 @@ public class PlayerMovement : NetworkBehaviour
         
         // Rising edge del Jump: solo true en el frame que se APRIETA, no mientras se sostiene
         bool jumpHeld = data.buttons.IsSet(InputButton.Jump);
-        lastJumpPressed = jumpHeld && !wasJumpHeld;
-        wasJumpHeld = jumpHeld;
+        bool jumpPressed = jumpHeld && !WasJumpHeld;
+        WasJumpHeld = jumpHeld;
         
         lastWeavePressed = data.buttons.IsSet(InputButton.Weave);
 
@@ -332,7 +331,7 @@ public class PlayerMovement : NetworkBehaviour
                 verticalVel = -groundSnapForce; 
             }
 
-            if (data.buttons.IsSet(InputButton.Jump) && jumpCooldownTimer.ExpiredOrNotRunning(Runner))
+            if (jumpPressed && jumpCooldownTimer.ExpiredOrNotRunning(Runner))
             {
                 // Cálculo físico exacto de impulso basado en gravedad
                 verticalVel = Mathf.Sqrt(jumpHeight * -2f * gravity);

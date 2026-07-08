@@ -620,7 +620,8 @@ MonoBehaviour:
   - {fileID: 489747686918763969}
   - {fileID: 3103142664309459366}
   tweenDoor: {fileID: 0}
-  timeBetweenTorches: 2
+  resolutionMode: 0
+  torch_frequency: 2
   allLitDuration: 3
   resetPauseDuration: 1
   syncWindowDuration: 3
@@ -974,7 +975,7 @@ PrefabInstance:
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: extinguishClip
       value: 
@@ -1147,7 +1148,7 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
@@ -1502,7 +1503,7 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
