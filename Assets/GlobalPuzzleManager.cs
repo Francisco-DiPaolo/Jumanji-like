@@ -16,6 +16,16 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [SerializeField] List<TorchController> torches;
     [SerializeField] LeanTweenDoor tweenDoor;
 
+    public enum PuzzleResolutionMode
+    {
+        PressButtonWhenGreen,
+        SyncGreenTorchesAutomatically
+    }
+
+    [Header("Modo de Resolución")]
+    [Tooltip("PressButtonWhenGreen: Apretar botón cuando está en verde.\nSyncGreenTorchesAutomatically: Alinear los tiempos para que las verdes coincidan solas, el botón solo resetea.")]
+    [SerializeField] PuzzleResolutionMode resolutionMode = PuzzleResolutionMode.PressButtonWhenGreen;
+
     [Header("Temporización de la secuencia")]
     [Tooltip("Tiempo en segundos que tarda en encenderse la siguiente antorcha de la secuencia.")]
     [SerializeField] float torch_frequency = 2f;        // Frecuencia de encendido entre antorchas
@@ -48,6 +58,8 @@ public class GlobalPuzzleManager : NetworkBehaviour
     // Private Fields
     // ──────────────────────────────────────────────────────────────────────────
 
+    static List<GlobalPuzzleManager> _activeManagers = new List<GlobalPuzzleManager>();
+
     ChangeDetector    _changeDetector;
     BrickInteractable _brick;
 
@@ -61,12 +73,21 @@ public class GlobalPuzzleManager : NetworkBehaviour
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
+        if (!_activeManagers.Contains(this))
+            _activeManagers.Add(this);
+
         if (Object.HasStateAuthority)
         {
             CurrentTorchIndex = 0;
             AllExtinguished   = false;
             NextActionTime    = Runner.SimulationTime + torch_frequency;
         }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (_activeManagers.Contains(this))
+            _activeManagers.Remove(this);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -112,14 +133,26 @@ public class GlobalPuzzleManager : NetworkBehaviour
             ExtinguishAll();
         }
 
-        // ── Comprobación de ventana de sincronización ──
-        if (PlayerInteracted.Count > 0)
+        // ── Comprobación de modos ──
+        if (resolutionMode == PuzzleResolutionMode.PressButtonWhenGreen)
         {
-            float elapsed = Runner.SimulationTime - SyncWindowOpenTime;
-            if (elapsed > syncWindowDuration)
+            // En modo manual, comprobamos si la ventana de sincronización expiró
+            if (PlayerInteracted.Count > 0)
             {
-                Debug.Log("[PuzzleManager] Sync window expiró. Reseteando interacción.");
-                ResetSyncWindow();
+                float elapsed = Runner.SimulationTime - SyncWindowOpenTime;
+                if (elapsed > syncWindowDuration)
+                {
+                    Debug.Log("[PuzzleManager] Sync window expiró. Reseteando interacción.");
+                    ResetSyncWindow();
+                }
+            }
+        }
+        else if (resolutionMode == PuzzleResolutionMode.SyncGreenTorchesAutomatically)
+        {
+            // En modo automático, comprobamos continuamente si las verdes coinciden
+            if (IsGreenTorchLit())
+            {
+                TryResolveAutoSync();
             }
         }
     }
@@ -145,6 +178,14 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (IsPuzzleSolved) return;
 
+        if (resolutionMode == PuzzleResolutionMode.SyncGreenTorchesAutomatically)
+        {
+            // En este modo, el botón es puramente para resetear y desfasar la secuencia
+            Debug.Log("[PuzzleManager] Botón presionado en modo Auto-Sync. Reseteando secuencia.");
+            ResetSequence();
+            return;
+        }
+
         if (IsGreenTorchLit())
         {
             // ✅ Respuesta correcta local. Registramos que este jugador apretó a tiempo.
@@ -168,14 +209,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     void TryResolveSync()
     {
-        // Buscamos todos los managers activos en la escena
-        var managers = FindObjectsByType<GlobalPuzzleManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        
-        // Filtramos para asegurarnos de que solo evaluamos los que están instanciados en red correctamente
         var validManagers = new List<GlobalPuzzleManager>();
-        foreach (var m in managers)
+        foreach (var m in _activeManagers)
         {
-            if (m.Object != null && m.Object.IsValid)
+            if (m != null && m.Object != null && m.Object.IsValid)
                 validManagers.Add(m);
         }
 
@@ -191,7 +228,36 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (allSolved && validManagers.Count > 0)
         {
-            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON! Abriendo {validManagers.Count} puertas.");
+            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON (Botón)! Abriendo {validManagers.Count} puertas.");
+            foreach (var manager in validManagers)
+            {
+                manager.IsPuzzleSolved = true;
+            }
+        }
+    }
+
+    void TryResolveAutoSync()
+    {
+        var validManagers = new List<GlobalPuzzleManager>();
+        foreach (var m in _activeManagers)
+        {
+            if (m != null && m.Object != null && m.Object.IsValid)
+                validManagers.Add(m);
+        }
+
+        bool allGreen = true;
+        foreach (var manager in validManagers)
+        {
+            if (!manager.IsGreenTorchLit())
+            {
+                allGreen = false;
+                break;
+            }
+        }
+
+        if (allGreen && validManagers.Count > 0)
+        {
+            Debug.Log($"[PuzzleManager] ¡TODAS LAS ANTORCHAS VERDES SINCRONIZADAS! Abriendo {validManagers.Count} puertas.");
             foreach (var manager in validManagers)
             {
                 manager.IsPuzzleSolved = true;
