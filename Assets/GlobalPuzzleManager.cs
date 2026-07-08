@@ -39,6 +39,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [Networked]        int         CurrentTorchIndex { get; set; }
     [Networked]        float       NextActionTime    { get; set; }
     [Networked]        NetworkBool AllExtinguished   { get; set; }
+    [Networked]        float       SyncWindowOpenTime { get; set; }
+
+    [Networked, Capacity(8)]
+    NetworkDictionary<PlayerRef, NetworkBool> PlayerInteracted => default;
 
     // ──────────────────────────────────────────────────────────────────────────
     // Private Fields
@@ -107,6 +111,17 @@ public class GlobalPuzzleManager : NetworkBehaviour
             // Secuencia completa sin resolver → apagar todo y reiniciar ciclo
             ExtinguishAll();
         }
+
+        // ── Comprobación de ventana de sincronización ──
+        if (PlayerInteracted.Count > 0)
+        {
+            float elapsed = Runner.SimulationTime - SyncWindowOpenTime;
+            if (elapsed > syncWindowDuration)
+            {
+                Debug.Log("[PuzzleManager] Sync window expiró. Reseteando interacción.");
+                ResetSyncWindow();
+            }
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -132,18 +147,62 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (IsGreenTorchLit())
         {
-            // ✅ Respuesta correcta: resolver el puzzle directamente.
-            // No usamos TryResolveSync (que busca todos los managers en escena y puede
-            // encontrar instancias extra de Fusion/prefabs con PlayerInteracted vacío).
-            Debug.Log("[PuzzleManager] Validación CORRECTA — antorcha verde encendida.");
-            IsPuzzleSolved = true;
+            // ✅ Respuesta correcta local. Registramos que este jugador apretó a tiempo.
+            Debug.Log($"[PuzzleManager] Validación CORRECTA local. Esperando a otros... (Player {player})");
+            
+            bool isFirstInteract = PlayerInteracted.Count == 0;
+            PlayerInteracted.Set(player, true);
+
+            if (isFirstInteract)
+                SyncWindowOpenTime = Runner.SimulationTime;
+
+            TryResolveSync();
         }
         else
         {
-            // ❌ Respuesta incorrecta: resetear la secuencia desde cero
+            // ❌ Respuesta incorrecta: resetear la secuencia de esta celda
             Debug.Log("[PuzzleManager] Validación INCORRECTA — reseteando secuencia.");
             ResetSequence();
         }
+    }
+
+    void TryResolveSync()
+    {
+        // Buscamos todos los managers activos en la escena
+        var managers = FindObjectsByType<GlobalPuzzleManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        
+        // Filtramos para asegurarnos de que solo evaluamos los que están instanciados en red correctamente
+        var validManagers = new List<GlobalPuzzleManager>();
+        foreach (var m in managers)
+        {
+            if (m.Object != null && m.Object.IsValid)
+                validManagers.Add(m);
+        }
+
+        bool allSolved = true;
+        foreach (var manager in validManagers)
+        {
+            if (manager.PlayerInteracted.Count == 0)
+            {
+                allSolved = false;
+                break;
+            }
+        }
+
+        if (allSolved && validManagers.Count > 0)
+        {
+            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON! Abriendo {validManagers.Count} puertas.");
+            foreach (var manager in validManagers)
+            {
+                manager.IsPuzzleSolved = true;
+            }
+        }
+    }
+
+    void ResetSyncWindow()
+    {
+        PlayerInteracted.Clear();
+        SyncWindowOpenTime = 0f;
     }
 
     /// <summary>
@@ -190,6 +249,9 @@ public class GlobalPuzzleManager : NetworkBehaviour
         IsBrickEnabled = false;
         if (Brick != null) Brick.IsInteractable = false;
 
+        // Limpiar ventana de sincronización
+        ResetSyncWindow();
+
         // Reiniciar temporizador con la frecuencia configurada
         NextActionTime = Runner.SimulationTime + torch_frequency;
     }
@@ -210,6 +272,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
         CurrentTorchIndex = 0;
         IsBrickEnabled    = false;
         if (Brick != null) Brick.IsInteractable = false;
+        ResetSyncWindow();
         AllExtinguished = true;
         NextActionTime  = Runner.SimulationTime + resetPauseDuration;
     }
