@@ -44,14 +44,14 @@ public class TorchController : NetworkBehaviour
         }
 
         _loopSource.playOnAwake = false;
-        _loopSource.spatialBlend = 0.9f; // Fuerte presencia 3D pero audible
+        _loopSource.spatialBlend = 1f; // Completamente 3D para que no se escuche en todo el mapa
         _loopSource.rolloffMode = AudioRolloffMode.Linear;
         _loopSource.minDistance = 3f;
         _loopSource.maxDistance = 20f;
         _loopSource.priority = 128; // Prioridad normal
         
         _sfxSource.playOnAwake = false;
-        _sfxSource.spatialBlend = 0.9f;
+        _sfxSource.spatialBlend = 1f;
         _sfxSource.rolloffMode = AudioRolloffMode.Linear;
         _sfxSource.minDistance = 3f;
         _sfxSource.maxDistance = 20f;
