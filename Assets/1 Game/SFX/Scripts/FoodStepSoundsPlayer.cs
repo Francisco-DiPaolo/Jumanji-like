@@ -4,6 +4,7 @@ public class FoodStepSoundsPlayer : MonoBehaviour
 {
     public AudioClip[] WoodClips;
     public AudioClip[] ConcreteClips;
+    public AudioClip[] WaterClips;
 
     public LayerMask Environment;
 
@@ -56,6 +57,7 @@ public class FoodStepSoundsPlayer : MonoBehaviour
             {
                 if (surface.SurfaceType == SurfaceType.Concrete) return ConcreteClips;
                 if (surface.SurfaceType == SurfaceType.Wood) return WoodClips;
+                if (surface.SurfaceType == SurfaceType.Wood) return WaterClips;
             }
         }
 

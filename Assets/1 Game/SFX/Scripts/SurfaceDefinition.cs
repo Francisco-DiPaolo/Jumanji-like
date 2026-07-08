@@ -8,5 +8,6 @@ public class SurfaceDefinition : MonoBehaviour
 public enum SurfaceType
 {
     Concrete,
-    Wood
+    Wood,
+    Water
 }

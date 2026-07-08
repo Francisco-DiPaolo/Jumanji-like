@@ -2570,6 +2570,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 17d4773fa5daa704082a66c8e3ec73bb, type: 3}
   - {fileID: 8300000, guid: a65652cd77694794da86871bf93cc40d, type: 3}
   - {fileID: 8300000, guid: 93dc0eb410c39fd4f8a2949156a8069d, type: 3}
+  WaterClips:
+  - {fileID: 8300000, guid: 8fdbc5b9ae1d7f047bc7f88ed445dbbb, type: 3}
+  - {fileID: 8300000, guid: ab08aebc2742d444ab1196f35e5b4d24, type: 3}
   Environment:
     serializedVersion: 2
     m_Bits: 0
