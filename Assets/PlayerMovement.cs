@@ -12,6 +12,7 @@ public class PlayerMovement : NetworkBehaviour
 
     [Header("Jump & Gravity")]
     [SerializeField] float jumpHeight = 1.2f;
+    [SerializeField] float jumpCooldown = 0.25f;
     [SerializeField] float gravity = -15.0f;
     [SerializeField] float groundSnapForce = 10.0f; // Evita salir volando en rampas
     [SerializeField, Range(0f, 1f)] float airControl = 0.3f; // Control de dirección en el aire
@@ -57,6 +58,7 @@ public class PlayerMovement : NetworkBehaviour
 
     [Networked] Vector3 CurrentVelocity { get; set; }
     [Networked] NetworkBool IsGrounded { get; set; }
+    [Networked] TickTimer jumpCooldownTimer { get; set; }
     [Networked] public NetworkBool IsReadyAtBoard { get; set; }
 
     /// <summary>True cuando este jugador es el primero que interactuó con el tablero y debe llevar el casco Fish_Bowl_2.</summary>
@@ -330,10 +332,11 @@ public class PlayerMovement : NetworkBehaviour
                 verticalVel = -groundSnapForce; 
             }
 
-            if (data.buttons.IsSet(InputButton.Jump))
+            if (data.buttons.IsSet(InputButton.Jump) && jumpCooldownTimer.ExpiredOrNotRunning(Runner))
             {
                 // Cálculo físico exacto de impulso basado en gravedad
                 verticalVel = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                jumpCooldownTimer = TickTimer.CreateFromSeconds(Runner, jumpCooldown);
             }
         }
         else

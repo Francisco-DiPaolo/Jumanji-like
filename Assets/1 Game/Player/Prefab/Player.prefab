@@ -328,11 +328,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 989c7df7b21b42c45b8463d02d64367b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  walkSpeed: 2
-  sprintSpeed: 4
+  walkSpeed: 2.2
+  sprintSpeed: 4.8
   acceleration: 15
   deceleration: 20
   jumpHeight: 1.2
+  jumpCooldown: 0.25
   gravity: -15
   groundSnapForce: 10
   airControl: 0.3
@@ -349,8 +350,8 @@ MonoBehaviour:
   CameraOverrideActive: 0
   animatorDampTime: 0.1
   maxStamina: 100
-  staminaDrainRate: 20
-  staminaRegenRate: 10
+  staminaDrainRate: 18
+  staminaRegenRate: 12
   audioSource: {fileID: 2370537476140238220}
   hurtSound: {fileID: 8300000, guid: e9847bb45a575804db7ea5d9f9d4841f, type: 3}
   hurtSoundVolume: 0.009
