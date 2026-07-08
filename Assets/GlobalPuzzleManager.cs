@@ -46,6 +46,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     [Networked] public NetworkBool IsBrickEnabled   { get; set; }
     [Networked] public NetworkBool IsPuzzleSolved   { get; set; }
+    [Networked] public NetworkBool IsStarted        { get; set; }
     [Networked]        int         CurrentTorchIndex { get; set; }
     [Networked]        float       NextActionTime    { get; set; }
     [Networked]        NetworkBool AllExtinguished   { get; set; }
@@ -79,8 +80,9 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             CurrentTorchIndex = 0;
-            AllExtinguished   = false;
-            NextActionTime    = Runner.SimulationTime + torch_frequency;
+            AllExtinguished   = true;
+            IsStarted         = false;
+            // No seteamos NextActionTime hasta que el jugador apriete el botón
         }
     }
 
@@ -97,7 +99,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         if (!Object.HasStateAuthority) return;
-        if (IsPuzzleSolved) return;
+        if (IsPuzzleSolved || !IsStarted) return;
         if (Runner.SimulationTime < NextActionTime) return;
 
         // ── Pausa breve tras apagarse todas (ciclo normal) ──
@@ -177,6 +179,15 @@ public class GlobalPuzzleManager : NetworkBehaviour
         }
 
         if (IsPuzzleSolved) return;
+
+        if (!IsStarted)
+        {
+            // Arrancar el puzzle por primera vez
+            Debug.Log("[PuzzleManager] Arrancando el puzzle (primer click).");
+            IsStarted = true;
+            ResetSequence();
+            return;
+        }
 
         if (resolutionMode == PuzzleResolutionMode.SyncGreenTorchesAutomatically)
         {

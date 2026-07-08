@@ -631,6 +631,8 @@ MonoBehaviour:
     _value: 0
   _IsPuzzleSolved:
     _value: 0
+  _IsStarted:
+    _value: 0
 --- !u!1 &8480652754116896326
 GameObject:
   m_ObjectHideFlags: 0
@@ -975,11 +977,19 @@ PrefabInstance:
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
+      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: igniteVolume
+      value: 0.514
+      objectReference: {fileID: 0}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
+      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: extinguishVolume
+      value: 0.31
+      objectReference: {fileID: 0}
     - target: {fileID: 3614378434925007151, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: m_Name
       value: Torch_3_Green
@@ -1148,11 +1158,19 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
+      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: igniteVolume
+      value: 0.514
+      objectReference: {fileID: 0}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
+      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: extinguishVolume
+      value: 0.31
+      objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
       value: 3303675584
@@ -1503,11 +1521,19 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
+      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: igniteVolume
+      value: 0.514
+      objectReference: {fileID: 0}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
+      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: extinguishVolume
+      value: 0.31
+      objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
       value: 501921045

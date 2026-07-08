@@ -8,27 +8,59 @@ public class TorchController : NetworkBehaviour
 
     [Header("Sonidos")]
     [SerializeField] AudioClip igniteClip;  // Sonido al encenderse (one-shot)
+    [Range(0f, 1f)] [SerializeField] float igniteVolume = 0.6f;
     [SerializeField] AudioClip loopClip;    // Sonido mientras está prendida (loop)
     [SerializeField] AudioClip extinguishClip; // Sonido al apagarse (one-shot)
+    [Range(0f, 1f)] [SerializeField] float extinguishVolume = 0.6f;
 
     [Networked] public NetworkBool IsLit { get; set; }
 
     ChangeDetector _changeDetector;
     GameObject _fireVfx;
-    AudioSource _audioSource;
+    AudioSource _loopSource;
+    AudioSource _sfxSource;
 
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         _fireVfx = transform.Find("FireVFX")?.gameObject;
 
-        // Obtenemos o creamos el AudioSource en este mismo GameObject
-        _audioSource = GetComponent<AudioSource>();
-        if (_audioSource == null)
-            _audioSource = gameObject.AddComponent<AudioSource>();
+        // Buscamos o creamos los AudioSources necesarios
+        AudioSource[] sources = GetComponents<AudioSource>();
+        if (sources.Length == 0)
+        {
+            _loopSource = gameObject.AddComponent<AudioSource>();
+            _sfxSource = gameObject.AddComponent<AudioSource>();
+        }
+        else if (sources.Length == 1)
+        {
+            _loopSource = sources[0];
+            _sfxSource = gameObject.AddComponent<AudioSource>();
+        }
+        else
+        {
+            _loopSource = sources[0];
+            _sfxSource = sources[1];
+        }
 
-        _audioSource.playOnAwake = false;
-        _audioSource.spatialBlend = 1f; // 3D sound
+        _loopSource.playOnAwake = false;
+        _loopSource.spatialBlend = 0.9f; // Fuerte presencia 3D pero audible
+        _loopSource.rolloffMode = AudioRolloffMode.Linear;
+        _loopSource.minDistance = 3f;
+        _loopSource.maxDistance = 20f;
+        _loopSource.priority = 128; // Prioridad normal
+        
+        _sfxSource.playOnAwake = false;
+        _sfxSource.spatialBlend = 0.9f;
+        _sfxSource.rolloffMode = AudioRolloffMode.Linear;
+        _sfxSource.minDistance = 3f;
+        _sfxSource.maxDistance = 20f;
+        _sfxSource.priority = 94; // Prioridad más alta para que no se corten
+
+        if (Object.HasStateAuthority)
+        {
+            IsLit = false; // Asegurar que el estado inicial en red sea estrictamente false
+        }
 
         ApplyVisuals(false); // Falso para no reproducir sonidos al iniciar
     }
@@ -59,34 +91,35 @@ public class TorchController : NetworkBehaviour
         if (_fireVfx != null)
             _fireVfx.SetActive(IsLit);
 
-        if (_audioSource == null) return;
+        if (_loopSource == null || _sfxSource == null) return;
 
         if (IsLit)
         {
             if (playSounds)
             {
-                // One-shot del encendido
+                // One-shot del encendido (SFX dedicado)
                 if (igniteClip != null)
-                    _audioSource.PlayOneShot(igniteClip);
+                    _sfxSource.PlayOneShot(igniteClip, igniteVolume);
 
                 // Loop de la llama mientras está prendida
                 if (loopClip != null)
                 {
-                    _audioSource.clip = loopClip;
-                    _audioSource.loop = true;
-                    _audioSource.Play();
+                    _loopSource.clip = loopClip;
+                    _loopSource.loop = true;
+                    _loopSource.Play();
                 }
             }
         }
         else
         {
             // Apagamos el loop cuando se extingue
-            _audioSource.Stop();
-            _audioSource.loop = false;
+            _loopSource.Stop();
+            _loopSource.loop = false;
             
             if (playSounds && extinguishClip != null)
             {
-                _audioSource.PlayOneShot(extinguishClip);
+                // PlayOneShot en la pista de SFX (no se corta al hacer Stop en el loop)
+                _sfxSource.PlayOneShot(extinguishClip, extinguishVolume);
             }
         }
     }
