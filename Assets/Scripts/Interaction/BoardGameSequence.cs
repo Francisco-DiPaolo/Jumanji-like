@@ -44,18 +44,38 @@ public class BoardGameSequence : NetworkBehaviour
     [SerializeField] private AudioSource        audioSource;
     [SerializeField] private AudioClip          textAppearSound;
     [SerializeField] private AudioClip          diceRollSound;
-    [Tooltip("Tiempo de espera desde que saltan hasta que se reproduce el sonido (para coincidir con la caída)")]
+    [Tooltip("Tiempo de espera desde que saltan hasta que se reproduce el sonido (para coincidir con la ca\u00edda)")]
     [SerializeField] private float              diceSoundDelay = 0.5f;
+
+    [Header("Condena Message")]
+    [SerializeField] private TextMeshProUGUI uiCondenaText;
+    [Tooltip("Color del nombre del jugador en el mensaje de condena.")]
+    [SerializeField] private Color           nameColor = new Color(1f, 0.843f, 0f); // Amarillo dorado por defecto
+    [Tooltip("Mensaje de condena. Usa {nombre} como placeholder del jugador con el casco.\nEj: {nombre}: Tu condena es el océano, respirá bajo el agua.")]
+    [TextArea] [SerializeField] private string condenaTemplate = "{nombre}: Tu condena es el océano, respirá bajo el agua.";
+
+    [Header("Visual Effects & Particles")]
+    [Tooltip("Objetos que se activarán al empezar el texto (ej: sistemas de partículas).")]
+    [SerializeField] private GameObject[] objectsToActivate;
+    [Tooltip("Objetos que se desactivarán al empezar el texto. NOTA: No desactives el objeto que tiene este script.")]
+    [SerializeField] private GameObject[] objectsToDeactivate;
+    [Tooltip("Mallas/Renderers del tablero que se ocultarán sin desactivar el GameObject completo.")]
+    [SerializeField] private Renderer[] boardRenderersToHide;
+    [Tooltip("Colliders del tablero que se desactivarán para evitar interacciones accidentales una vez oculto.")]
+    [SerializeField] private Collider[] boardCollidersToDisable;
 
     // -----------------------------------------------------------------------
     // Estado networked
     // -----------------------------------------------------------------------
     [Networked] public BoardSequenceState State    { get; set; }
     [Networked] public int               ReadyCount { get; set; }
+    /// <summary>Nombre del jugador que interactu\u00f3 primero con el tablero (el que lleva el casco).</summary>
+    [Networked] public NetworkString<_32> HelmetPlayerName { get; set; }
 
     private BoardSequenceState _lastState = BoardSequenceState.Idle;
     private bool _hostCoroutineRunning = false;
-    private bool _alreadyStartedLocal = false; // Evita doble-interacción local
+    private bool _alreadyStartedLocal = false;
+    private GameObject _lifeCanvas; // StatusBar del jugador local, encontrado en runtime
 
     public override void Spawned()
     {
@@ -107,6 +127,16 @@ public class BoardGameSequence : NetworkBehaviour
         if (!anyoneHasHelmet && localPlayer != null)
         {
             localPlayer.Rpc_SetHasFishBowl(true);
+            
+            // Guardar el nombre del jugador en red para que todos puedan leerlo al mostrar el texto
+            string nickname = SessionLauncher.LocalNickname;
+            if (string.IsNullOrEmpty(nickname)) nickname = localPlayer.gameObject.name;
+            Rpc_SetHelmetPlayerName(nickname);
+
+            // Aplicar el efecto de voz directamente al jugador local
+            VoiceEffectController voiceEffect = localPlayer.GetComponent<VoiceEffectController>();
+            if (voiceEffect != null)
+                voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
         }
         // ------------------------------------
 
@@ -116,6 +146,23 @@ public class BoardGameSequence : NetworkBehaviour
     private IEnumerator ShowWaitingAndNotifyReady()
     {
         yield return new WaitForSeconds(initialDelay);
+
+        // Buscar el StatusBar del jugador local en runtime (es hijo del prefab del jugador)
+        if (_lifeCanvas == null)
+        {
+            foreach (var p in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
+            {
+                if (!p.HasInputAuthority) continue;
+                Transform statusBar = p.transform.Find("StatusBar");
+                // Buscar recursivo por si está más adentro en la jerarquía
+                if (statusBar == null) statusBar = FindInChildren(p.transform, "StatusBar");
+                if (statusBar != null) _lifeCanvas = statusBar.gameObject;
+                break;
+            }
+        }
+
+        // Ocultar el canvas de vida mientras dure la secuencia
+        if (_lifeCanvas != null) _lifeCanvas.SetActive(false);
 
         if (canvasNarrator != null)
             canvasNarrator.SetActive(true);
@@ -129,6 +176,12 @@ public class BoardGameSequence : NetworkBehaviour
     // -----------------------------------------------------------------------
     // RPC para la StateMachine en el Host
     // -----------------------------------------------------------------------
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_SetHelmetPlayerName(string playerName)
+    {
+        HelmetPlayerName = playerName;
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void Rpc_PlayerReady()
     {
@@ -247,8 +300,63 @@ public class BoardGameSequence : NetworkBehaviour
 
     private IEnumerator TextDisplayRoutine()
     {
+        // Activar partículas y desactivar el tablero visual (ahora soporta varios GameObjects)
+        if (objectsToActivate != null)
+        {
+            foreach (var obj in objectsToActivate)
+            {
+                if (obj != null) obj.SetActive(true);
+            }
+        }
+
+        if (objectsToDeactivate != null)
+        {
+            foreach (var obj in objectsToDeactivate)
+            {
+                if (obj != null) obj.SetActive(false);
+            }
+        }
+
+        // Desactivar mallas visuales si se asignaron directamente
+        if (boardRenderersToHide != null)
+        {
+            foreach (var r in boardRenderersToHide)
+            {
+                if (r != null) r.enabled = false;
+            }
+        }
+
+        // Desactivar colliders
+        if (boardCollidersToDisable != null)
+        {
+            foreach (var col in boardCollidersToDisable)
+            {
+                if (col != null) col.enabled = false;
+            }
+        }
+
         if (canvasNarrator != null) canvasNarrator.SetActive(true);
+
+        // Ocultar el texto de condena al inicio por si estaba visible de antes
+        if (uiCondenaText != null) uiCondenaText.gameObject.SetActive(false);
+
+        // 1. Primero el typewriter del mensaje principal
         if (uiText != null) yield return StartCoroutine(TypeTextRoutine(textMessage, typewriterSpeed));
+
+        // 2. Pequena pausa dramatica
+        yield return new WaitForSeconds(0.8f);
+
+        // 3. Luego aparece el texto de condena con el nombre del jugador
+        if (uiCondenaText != null)
+        {
+            string playerName = HelmetPlayerName.ToString();
+            if (string.IsNullOrEmpty(playerName)) playerName = "???";
+            // Convertir el color del inspector a hex para el tag de TMP rich text
+            string hex = ColorUtility.ToHtmlStringRGB(nameColor);
+            string coloredName = $"<color=#{hex}>{playerName}</color>";
+            uiCondenaText.text = condenaTemplate.Replace("{nombre}", coloredName);
+            uiCondenaText.gameObject.SetActive(true);
+        }
     }
 
     private IEnumerator DoneRoutine()
@@ -256,6 +364,20 @@ public class BoardGameSequence : NetworkBehaviour
         if (door != null) door.OpenDoor();
         yield return new WaitForSeconds(finalDelayAfterCameraReturns);
         if (canvasNarrator != null) canvasNarrator.SetActive(false);
+        // Restaurar el StatusBar del jugador local
+        if (_lifeCanvas != null) _lifeCanvas.SetActive(true);
+    }
+
+    /// <summary>Búsqueda recursiva de un Transform por nombre en la jerarquía.</summary>
+    private Transform FindInChildren(Transform parent, string childName)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == childName) return child;
+            Transform found = FindInChildren(child, childName);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private IEnumerator TypeTextRoutine(string text, float speed)

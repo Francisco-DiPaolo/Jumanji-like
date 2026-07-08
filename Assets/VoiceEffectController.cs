@@ -39,23 +39,34 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     private int resampleWriteIndex;
     private const int ResampleBufferSize = 96000;
 
-    // --- Underwater effect parameters ---
-    private float uwLpStateF;       // Low-pass filter state (float)
-    private float uwLpStateS;       // Low-pass filter state (short)
-    private float bubblePhase1;
-    private float bubblePhase2;
-    private const float BubbleFreq1 = 6.0f;      // Frecuencia para el gurgle/burbujeo
-    private const float BubbleFreq2 = 9.5f;      // Segunda frecuencia para hacerlo irregular
-    private const float BaseCutoff = 350f;       // Sonido base muy ahogado
-    private const float CutoffMod = 600f;        // Modulación para el efecto "wah" rápido de burbuja
-    private const float BubbleAmpDepth = 0.4f;   // Caída de volumen en cada burbuja
-    private const float UnderwaterPitch = 0.85f; // Tono base levemente más grave
+    // ==================== Underwater Effect State ====================
+    // Referencia acústica: bajo el agua el sonido pierde frecuencias altas bruscamente
+    // (el agua absorbe >1kHz), rebota creando un eco corto denso, y las olas
+    // modulan suavemente el volumen a ~2-3 Hz.
+    //
+    // Cadena de procesado:
+    //   1. Low-pass AGRESIVO a ~500 Hz   → quita los altos, suena "tapado"
+    //   2. Comb filter (delay ~40ms)      → rebote del agua, efecto "cámara"
+    //   3. Tremolo lento 2.5 Hz           → movimiento del agua sobre el oído
 
-    // Separate resample state for Underwater so it doesn't conflict with Squirrel/Deep
-    private float[] uwResampleBufferF;
-    private short[] uwResampleBufferS;
-    private float uwResampleReadIndex;
-    private int uwResampleWriteIndex;
+    // Low-pass state (un estado por canal de audio, float y short path)
+    private float uwLp1F, uwLp2F; // dos polos encadenados para pendiente más pronunciada
+    private float uwLp1S, uwLp2S;
+
+    // Comb filter (eco corto ~40 ms)
+    private float[] uwCombF;
+    private short[] uwCombS;
+    private int    uwCombIdx;
+    private const float UwCombDelaySec = 0.04f;   // 40 ms
+    private const float UwCombFeedback = 0.45f;   // fuerza del rebote (0-1)
+
+    // Tremolo lento
+    private float uwTremoloPhase;
+    private const float UwTremoloFreq  = 2.5f;    // Hz
+    private const float UwTremoloDepth = 0.18f;   // profundidad (0 = sin efecto, 1 = corta el audio)
+
+    // Parámetros del filtro LP (dos polos en serie = -40 dB/oct, ~500 Hz cutoff)
+    private const float UwLpCutoff = 500f;         // Hz
 
     public override void Spawned()
     {
@@ -277,64 +288,55 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     }
 
     // ==================== Underwater Effect ====================
-    // Combines: pitch-down resampling → one-pole low-pass filter → subtle amplitude wobble.
-    // The result sounds muffled like speaking inside a fishbowl/underwater, but remains intelligible.
+
+    private float[] GetOrCreateUwCombF()
+    {
+        if (uwCombF == null) uwCombF = new float[(int)(sampleRate * UwCombDelaySec)];
+        return uwCombF;
+    }
+
+    private short[] GetOrCreateUwCombS()
+    {
+        if (uwCombS == null) uwCombS = new short[(int)(sampleRate * UwCombDelaySec)];
+        return uwCombS;
+    }
 
     private unsafe float[] ProcessUnderwaterF(float[] data)
     {
-        // Step 1: Pitch-down resampling
-        if (uwResampleBufferF == null) uwResampleBufferF = new float[ResampleBufferSize];
-        fixed (float* pData = data, pBuf = uwResampleBufferF)
+        float[] comb = GetOrCreateUwCombF();
+        int combLen = comb.Length;
+
+        // Pre-calcula coeficiente LP (dos polos en serie)
+        float dt    = 1.0f / sampleRate;
+        float rc    = 1.0f / (2.0f * (float)Math.PI * UwLpCutoff);
+        float alpha = dt / (rc + dt);
+
+        // Paso del tremolo por sample
+        float tremStep = 2.0f * (float)Math.PI * UwTremoloFreq / sampleRate;
+
+        fixed (float* pData = data, pComb = comb)
         {
             for (int i = 0; i < data.Length; i++)
             {
-                pBuf[uwResampleWriteIndex] = pData[i];
-                uwResampleWriteIndex = (uwResampleWriteIndex + 1) % ResampleBufferSize;
-            }
-            for (int i = 0; i < data.Length; i++)
-            {
-                int i1 = (int)uwResampleReadIndex;
-                int i2 = (i1 + 1) % ResampleBufferSize;
-                float t = uwResampleReadIndex - i1;
-                pData[i] = pBuf[i1] * (1.0f - t) + pBuf[i2] * t;
-                uwResampleReadIndex += UnderwaterPitch;
-                if (uwResampleReadIndex >= ResampleBufferSize) uwResampleReadIndex -= ResampleBufferSize;
-            }
-            float dist = (uwResampleWriteIndex - uwResampleReadIndex + ResampleBufferSize) % ResampleBufferSize;
-            if (dist < data.Length || dist > ResampleBufferSize - data.Length)
-                uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
-        }
+                float x = pData[i];
 
-        // Step 2: Dynamic Low-pass filter + amplitude wobble for Bubble/Gurgle effect
-        float dt = 1.0f / sampleRate;
-        float step1 = 2.0f * (float)Math.PI * BubbleFreq1 / sampleRate;
-        float step2 = 2.0f * (float)Math.PI * BubbleFreq2 / sampleRate;
+                // 1. Filtro LP de dos polos (doble pasada = mayor pendiente)
+                uwLp1F += alpha * (x      - uwLp1F);
+                uwLp2F += alpha * (uwLp1F - uwLp2F);
+                float filtered = uwLp2F;
 
-        fixed (float* pData = data)
-        {
-            for (int i = 0; i < data.Length; i++)
-            {
-                // Generar oscilación irregular combinando dos senos
-                float bubbleOsc = (float)(Math.Sin(bubblePhase1) * Math.Sin(bubblePhase2));
-                float normalizedOsc = (bubbleOsc + 1f) * 0.5f; // Rango 0 a 1
+                // 2. Comb filter (realimentación corta para efecto cámara de agua)
+                float delayed   = pComb[uwCombIdx];
+                float combOut   = filtered + delayed * UwCombFeedback;
+                pComb[uwCombIdx] = combOut;
+                uwCombIdx = (uwCombIdx + 1) % combLen;
 
-                // 1. Modulación dinámica del filtro (efecto wah rápido/gárgara)
-                float currentCutoff = BaseCutoff + (CutoffMod * normalizedOsc);
-                float rc = 1.0f / (2.0f * (float)Math.PI * currentCutoff);
-                float alpha = dt / (rc + dt);
-                
-                uwLpStateF += alpha * (pData[i] - uwLpStateF);
+                // 3. Tremolo lento (movimiento del agua)
+                float tremolo = 1.0f - UwTremoloDepth + UwTremoloDepth * (float)Math.Sin(uwTremoloPhase);
+                uwTremoloPhase += tremStep;
+                if (uwTremoloPhase > 2.0f * (float)Math.PI) uwTremoloPhase -= 2.0f * (float)Math.PI;
 
-                // 2. Modulación de amplitud (temblor de volumen)
-                float wobble = 1.0f - BubbleAmpDepth + (BubbleAmpDepth * normalizedOsc);
-                
-                pData[i] = uwLpStateF * wobble;
-
-                // Avanzar fases
-                bubblePhase1 += step1;
-                if (bubblePhase1 > 2.0f * (float)Math.PI) bubblePhase1 -= 2.0f * (float)Math.PI;
-                bubblePhase2 += step2;
-                if (bubblePhase2 > 2.0f * (float)Math.PI) bubblePhase2 -= 2.0f * (float)Math.PI;
+                pData[i] = combOut * tremolo;
             }
         }
         return data;
@@ -342,55 +344,37 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
 
     private unsafe short[] ProcessUnderwaterS(short[] data)
     {
-        // Step 1: Pitch-down resampling
-        if (uwResampleBufferS == null) uwResampleBufferS = new short[ResampleBufferSize];
-        fixed (short* pData = data, pBuf = uwResampleBufferS)
+        short[] comb = GetOrCreateUwCombS();
+        int combLen = comb.Length;
+
+        float dt    = 1.0f / sampleRate;
+        float rc    = 1.0f / (2.0f * (float)Math.PI * UwLpCutoff);
+        float alpha = dt / (rc + dt);
+        float tremStep = 2.0f * (float)Math.PI * UwTremoloFreq / sampleRate;
+
+        fixed (short* pData = data, pComb = comb)
         {
             for (int i = 0; i < data.Length; i++)
             {
-                pBuf[uwResampleWriteIndex] = pData[i];
-                uwResampleWriteIndex = (uwResampleWriteIndex + 1) % ResampleBufferSize;
-            }
-            for (int i = 0; i < data.Length; i++)
-            {
-                int i1 = (int)uwResampleReadIndex;
-                int i2 = (i1 + 1) % ResampleBufferSize;
-                float t = uwResampleReadIndex - i1;
-                pData[i] = (short)(pBuf[i1] * (1.0f - t) + pBuf[i2] * t);
-                uwResampleReadIndex += UnderwaterPitch;
-                if (uwResampleReadIndex >= ResampleBufferSize) uwResampleReadIndex -= ResampleBufferSize;
-            }
-            float dist = (uwResampleWriteIndex - uwResampleReadIndex + ResampleBufferSize) % ResampleBufferSize;
-            if (dist < data.Length || dist > ResampleBufferSize - data.Length)
-                uwResampleReadIndex = (uwResampleWriteIndex - data.Length * 2 + ResampleBufferSize) % ResampleBufferSize;
-        }
+                float x = pData[i];
 
-        // Step 2: Dynamic Low-pass filter + amplitude wobble for Bubble/Gurgle effect
-        float dt = 1.0f / sampleRate;
-        float step1 = 2.0f * (float)Math.PI * BubbleFreq1 / sampleRate;
-        float step2 = 2.0f * (float)Math.PI * BubbleFreq2 / sampleRate;
+                // 1. Filtro LP de dos polos
+                uwLp1S += alpha * (x      - uwLp1S);
+                uwLp2S += alpha * (uwLp1S - uwLp2S);
+                float filtered = uwLp2S;
 
-        fixed (short* pData = data)
-        {
-            for (int i = 0; i < data.Length; i++)
-            {
-                float bubbleOsc = (float)(Math.Sin(bubblePhase1) * Math.Sin(bubblePhase2));
-                float normalizedOsc = (bubbleOsc + 1f) * 0.5f;
+                // 2. Comb filter
+                float delayed   = pComb[uwCombIdx];
+                float combOut   = filtered + delayed * UwCombFeedback;
+                pComb[uwCombIdx] = (short)Mathf.Clamp(combOut, short.MinValue, short.MaxValue);
+                uwCombIdx = (uwCombIdx + 1) % combLen;
 
-                float currentCutoff = BaseCutoff + (CutoffMod * normalizedOsc);
-                float rc = 1.0f / (2.0f * (float)Math.PI * currentCutoff);
-                float alpha = dt / (rc + dt);
-                
-                uwLpStateS += alpha * (pData[i] - uwLpStateS);
+                // 3. Tremolo
+                float tremolo = 1.0f - UwTremoloDepth + UwTremoloDepth * (float)Math.Sin(uwTremoloPhase);
+                uwTremoloPhase += tremStep;
+                if (uwTremoloPhase > 2.0f * (float)Math.PI) uwTremoloPhase -= 2.0f * (float)Math.PI;
 
-                float wobble = 1.0f - BubbleAmpDepth + (BubbleAmpDepth * normalizedOsc);
-                
-                pData[i] = (short)(uwLpStateS * wobble);
-
-                bubblePhase1 += step1;
-                if (bubblePhase1 > 2.0f * (float)Math.PI) bubblePhase1 -= 2.0f * (float)Math.PI;
-                bubblePhase2 += step2;
-                if (bubblePhase2 > 2.0f * (float)Math.PI) bubblePhase2 -= 2.0f * (float)Math.PI;
+                pData[i] = (short)Mathf.Clamp(combOut * tremolo, short.MinValue, short.MaxValue);
             }
         }
         return data;
