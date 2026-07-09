@@ -1495,6 +1495,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleButton
   Id: 
+  pressDelay: 0.1
   OnPressedStarted:
     m_PersistentCalls:
       m_Calls:

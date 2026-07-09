@@ -16,10 +16,10 @@ public class CameraShake : MonoBehaviour
     [SerializeField] private float shakeDuration = 2.5f;
 
     [Tooltip("Intensidad máxima del desplazamiento de posición (unidades de mundo).")]
-    [SerializeField] private float shakePositionStrength = 0.15f;
+    [SerializeField] private float shakePositionStrength = 0.08f;
 
     [Tooltip("Intensidad máxima del roll de rotación (grados).")]
-    [SerializeField] private float shakeRotationStrength = 3.5f;
+    [SerializeField] private float shakeRotationStrength = 2.0f;
 
     [Tooltip("Frecuencia del ruido Perlin (más alto = más caótico).")]
     [SerializeField] private float shakeFrequency = 30f;

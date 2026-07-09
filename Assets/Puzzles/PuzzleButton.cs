@@ -13,6 +13,8 @@ public class PuzzleButton : MonoBehaviour
 
     [Header("Puzzle Settings")]
     public string Id;
+    [Tooltip("Tiempo de espera antes de activar el botón (0 para inmediato)")]
+    public float pressDelay = 0f;
     public bool IsPressed => isPressed;
 
     public event Action<PuzzleButton, bool> OnPressedStateChanged;
@@ -86,12 +88,15 @@ public class PuzzleButton : MonoBehaviour
         // 1. Dispara el evento de inicio (Aquí vas a colgar el sonido de deslice)
         OnPressedStarted?.Invoke();
 
-        // 2. Espera el segundo de gracia
-        yield return new WaitForSeconds(0.5f);
+        // 2. Espera el tiempo configurado si es mayor a cero
+        if (pressDelay > 0f)
+        {
+            yield return new WaitForSeconds(pressDelay);
+        }
 
         // 3. Confirma la presión para el sistema
         isPressed = true;
-        Debug.Log("[puzle]: Botón " + Id + " PRESIONADO por el jugador tras 1s.");
+        Debug.Log($"[puzle]: Botón {Id} PRESIONADO por el jugador tras {pressDelay}s.");
         OnPressedStateChanged?.Invoke(this, true);
         
         pressRoutine = null;
