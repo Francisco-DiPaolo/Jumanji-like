@@ -32,6 +32,16 @@ public class Challenge4Manager : NetworkBehaviour
     [SerializeField] private AudioClip phase2SuccessClip;
     [SerializeField] private AudioClip wrongCombinationClip;
 
+    [Header("Derrumbe (Fase 2)")]
+    [Tooltip("Activar para que cada cambio de ciclo del reloj cause daño y suene el temblor")]
+    public bool enableCaveIn = false;
+    [Tooltip("Daño que se aplica a los jugadores en cada derrumbe")]
+    public float caveInDamage = 10f;
+    [Tooltip("AudioSource que reproducirá el sonido del temblor/derrumbe")]
+    public AudioSource caveInAudioSource;
+    [Tooltip("Sonido del temblor/derrumbe")]
+    public AudioClip caveInClip;
+
     [Header("Events")]
     public UnityEvent OnPhase1Completed;
     public UnityEvent OnPuzzleFullyCompleted;
@@ -44,6 +54,7 @@ public class Challenge4Manager : NetworkBehaviour
     private float _validationCooldown;
     private float _wrongFeedbackCooldown;
     private bool _needsCoopEvaluation;
+    private bool _firstCaveInSkipped = false;
 
     private const float ValidationCooldownSeconds = 2f;
     private const float WrongFeedbackCooldownSeconds = 1.5f;
@@ -70,6 +81,7 @@ public class Challenge4Manager : NetworkBehaviour
         wheel0?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
         wheel1?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
         wheel2?.OnSelectionChanged.AddListener(MarkNeedsCoopEvaluation);
+        centralClock?.OnCycleChanged.AddListener(OnClockCycleChanged);
         centralClock?.OnCycleChanged.AddListener(MarkNeedsCoopEvaluation);
     }
 
@@ -80,6 +92,7 @@ public class Challenge4Manager : NetworkBehaviour
         wheel0?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
         wheel1?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
         wheel2?.OnSelectionChanged.RemoveListener(MarkNeedsCoopEvaluation);
+        centralClock?.OnCycleChanged.RemoveListener(OnClockCycleChanged);
         centralClock?.OnCycleChanged.RemoveListener(MarkNeedsCoopEvaluation);
     }
 
@@ -137,6 +150,23 @@ public class Challenge4Manager : NetworkBehaviour
     private void MarkNeedsCoopEvaluation()
     {
         _needsCoopEvaluation = true;
+    }
+
+    /// <summary>Cada vez que el reloj cambia de ciclo durante la Fase 2, aplica el derrumbe.</summary>
+    private void OnClockCycleChanged()
+    {
+        // Solo durante la Fase 2 (Fase 1 ya completada, puzzle aún no resuelto)
+        if (!IsPhase1Done || IsPuzzleSolved) return;
+        if (!enableCaveIn) return;
+        if (!HasStateAuthority) return;
+
+        if (!_firstCaveInSkipped)
+        {
+            _firstCaveInSkipped = true;
+            return; // Saltamos el daño inicial apenas cambia de fase
+        }
+
+        Rpc_TriggerCaveIn();
     }
 
     private void EvaluateCoopWheels()
@@ -268,6 +298,21 @@ private bool CheckAnyWheelMatches()
             puzzleAudioSource.PlayOneShot(wrongCombinationClip);
 
         OnWrongCombinationAttempt?.Invoke();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_TriggerCaveIn()
+    {
+        // Sonido del temblor (se escucha en todos los clientes)
+        if (caveInAudioSource != null && caveInClip != null)
+            caveInAudioSource.PlayOneShot(caveInClip);
+
+        // Daño compartido (solo el que tiene autoridad lo aplica para no duplicarlo)
+        if (HasStateAuthority && SharedHealthSystem.Instance != null)
+            SharedHealthSystem.Instance.TakeDamage(caveInDamage);
+
+        // Temblor de cámara local en cada cliente (puramente visual, no necesita red)
+        Camera.main?.GetComponent<CameraShake>()?.TriggerShake();
     }
 
     public override void Render()
