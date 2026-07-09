@@ -39,4 +39,10 @@ public class LeanTweenDoor : MonoBehaviour
                 transform.localEulerAngles = new Vector3(initialLocalAngles.x, initialLocalAngles.y + val, initialLocalAngles.z);
             });
     }
+
+    public void OpenDoorInstant()
+    {
+        isOpen = true;
+        transform.localEulerAngles = new Vector3(initialLocalAngles.x, initialLocalAngles.y + anguloApertura, initialLocalAngles.z);
+    }
 }

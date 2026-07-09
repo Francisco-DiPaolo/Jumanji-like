@@ -81,7 +81,13 @@ public class BoardGameSequence : NetworkBehaviour
     {
         _lastState = State;
         
-        // Si entramos tarde y la secuencia ya había avanzado, sincronizamos visualmente
+        // Si la secuencia ya terminó (ej: late join o reload), abrir la puerta al instante sin animación
+        if (State == BoardSequenceState.Done && door != null)
+        {
+            door.OpenDoorInstant();
+        }
+        
+        // Sincronizar el resto de efectos visuales
         if (State != BoardSequenceState.Idle)
         {
             HandleStateChanged(State);
