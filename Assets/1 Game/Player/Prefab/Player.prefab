@@ -2822,8 +2822,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraShake
   shakeDuration: 2.5
-  shakePositionStrength: 0.15
-  shakeRotationStrength: 3.5
+  shakePositionStrength: 0.05
+  shakeRotationStrength: 1.5
   shakeFrequency: 30
   decayCurve:
     serializedVersion: 2

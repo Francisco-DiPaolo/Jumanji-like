@@ -307,9 +307,18 @@ private bool CheckAnyWheelMatches()
         if (caveInAudioSource != null && caveInClip != null)
             caveInAudioSource.PlayOneShot(caveInClip);
 
-        // Daño compartido (solo el que tiene autoridad lo aplica para no duplicarlo)
-        if (HasStateAuthority && SharedHealthSystem.Instance != null)
-            SharedHealthSystem.Instance.TakeDamage(caveInDamage);
+        if (HasStateAuthority)
+        {
+            // Daño compartido (solo el que tiene autoridad lo aplica para no duplicarlo)
+            if (SharedHealthSystem.Instance != null)
+                SharedHealthSystem.Instance.TakeDamage(caveInDamage);
+                
+            // Hacer que los personajes emitan su sonido de dolor
+            foreach (var pm in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
+            {
+                pm.Rpc_PlayHurtSound();
+            }
+        }
 
         // Temblor de cámara local en cada cliente (puramente visual, no necesita red)
         Camera.main?.GetComponent<CameraShake>()?.TriggerShake();

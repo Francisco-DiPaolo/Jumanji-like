@@ -31,11 +31,13 @@ public class CentralClockManager : NetworkBehaviour
 
     [Networked] public float CycleTimeRemaining { get; private set; }
     [Networked] public NetworkBool IsRunning { get; set; }
+    [Networked] public int CycleCount { get; set; }
 
     [Networked, Capacity(3)]
     private NetworkArray<NetworkString<_32>> ActiveSymbolIdsNetworked => default;
 
     private ChangeDetector _changeDetector;
+    private int _lastCombinationIndex = -1;
     private string[] _symbolIds; // id de SymbolIdentity por cada posición del array de renderers
 
     public string ActiveSymbolId0 => ActiveSymbolIdsNetworked[0].ToString();
@@ -136,11 +138,24 @@ public class CentralClockManager : NetworkBehaviour
         }
 
         int index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+        
+        // Evitar repetir la misma combinación dos veces seguidas si hay más de una opción
+        if (symbolCombinations.Length > 1)
+        {
+            while (index == _lastCombinationIndex)
+            {
+                index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+            }
+        }
+        _lastCombinationIndex = index;
+
         SymbolTrio trio = symbolCombinations[index];
 
         ActiveSymbolIdsNetworked.Set(0, trio.Id0);
         ActiveSymbolIdsNetworked.Set(1, trio.Id1);
         ActiveSymbolIdsNetworked.Set(2, trio.Id2);
+        
+        CycleCount++;
 
         Debug.Log($"[CentralClock] Nueva combinación [{index}]: '{trio.Id0}', '{trio.Id1}', '{trio.Id2}'");
     }
@@ -149,7 +164,7 @@ public class CentralClockManager : NetworkBehaviour
     {
         foreach (var change in _changeDetector.DetectChanges(this))
         {
-            if (change == nameof(ActiveSymbolIdsNetworked))
+            if (change == nameof(CycleCount))
             {
                 ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
                 OnCycleChanged?.Invoke();
