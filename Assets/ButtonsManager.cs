@@ -10,6 +10,8 @@ public class ButtonsManager : NetworkBehaviour
     [Header("Floor Settings")]
     public GameObject leftFloor;
     public GameObject rightFloor;
+    public Collider leftFloorCollider;
+    public Collider rightFloorCollider;
     [Tooltip("El desplazamiento que tendra el piso izquierdo al abrirse")]
     public Vector3 leftFloorOffset;
     [Tooltip("El desplazamiento que tendra el piso derecho al abrirse")]
@@ -92,6 +94,9 @@ public class ButtonsManager : NetworkBehaviour
         if (isAnimating) return;
         isAnimating = true;
 
+        if (leftFloorCollider != null) leftFloorCollider.enabled = false;
+        if (rightFloorCollider != null) rightFloorCollider.enabled = false;
+
         if (audioSource != null && openSound != null)
         {
             audioSource.PlayOneShot(openSound);
@@ -145,6 +150,9 @@ public class ButtonsManager : NetworkBehaviour
 
     private void CloseFloor()
     {
+        if (leftFloorCollider != null) leftFloorCollider.enabled = true;
+        if (rightFloorCollider != null) rightFloorCollider.enabled = true;
+
         if (audioSource != null && closeSound != null)
         {
             audioSource.PlayOneShot(closeSound);
