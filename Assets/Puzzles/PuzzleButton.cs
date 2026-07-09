@@ -32,7 +32,8 @@ public class PuzzleButton : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent<PlayerMovement>(out _))
+        Debug.Log($"[puzle]: Botón {Id} - OnTriggerEnter con: {other.gameObject.name} (tag: {other.tag})");
+        if (other.GetComponentInParent<PlayerMovement>() != null)
         {
             playersInside++;
             UpdateState();
@@ -41,7 +42,7 @@ public class PuzzleButton : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent<PlayerMovement>(out _))
+        if (other.GetComponentInParent<PlayerMovement>() != null)
         {
             playersInside--;
             if (playersInside < 0) playersInside = 0;
@@ -63,7 +64,14 @@ public class PuzzleButton : MonoBehaviour
         {
             if (pressRoutine == null && !isPressed)
             {
-                pressRoutine = StartCoroutine(PressSequenceRoutine());
+                if (pressDelay > 0f)
+                {
+                    pressRoutine = StartCoroutine(PressSequenceRoutine());
+                }
+                else
+                {
+                    ExecutePress();
+                }
             }
         }
         else
@@ -83,16 +91,24 @@ public class PuzzleButton : MonoBehaviour
         }
     }
 
-    private IEnumerator PressSequenceRoutine()
+    private void ExecutePress()
     {
         // 1. Dispara el evento de inicio (Aquí vas a colgar el sonido de deslice)
         OnPressedStarted?.Invoke();
 
-        // 2. Espera el tiempo configurado si es mayor a cero
-        if (pressDelay > 0f)
-        {
-            yield return new WaitForSeconds(pressDelay);
-        }
+        // 2. Confirma la presión para el sistema
+        isPressed = true;
+        Debug.Log($"[puzle]: Botón {Id} PRESIONADO por el jugador.");
+        OnPressedStateChanged?.Invoke(this, true);
+    }
+
+    private IEnumerator PressSequenceRoutine()
+    {
+        // 1. Dispara el evento de inicio
+        OnPressedStarted?.Invoke();
+
+        // 2. Espera el tiempo configurado
+        yield return new WaitForSeconds(pressDelay);
 
         // 3. Confirma la presión para el sistema
         isPressed = true;
