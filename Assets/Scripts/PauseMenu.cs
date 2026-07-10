@@ -66,8 +66,8 @@ public class PauseMenu : MonoBehaviour
 
     private void Update()
     {
-        // Detectar si se presiona la tecla 0 (el cero en el teclado superior o en el numpad)
-        if (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0))
+        // Detectar si se presiona la tecla F12
+        if (Input.GetKeyDown(KeyCode.F12))
         {
             if (isPaused)
             {

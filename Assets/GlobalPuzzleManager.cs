@@ -93,6 +93,45 @@ public class GlobalPuzzleManager : NetworkBehaviour
     }
 
     // ──────────────────────────────────────────────────────────────────────────
+    // Input / Debug (F9 para resolver)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    void Update()
+    {
+        // Solo verificamos el input en la primera instancia para no enviar múltiples RPCs a la vez
+        if (_activeManagers.Count > 0 && _activeManagers[0] == this)
+        {
+            if (Input.GetKeyDown(KeyCode.F9))
+            {
+                if (Object.HasStateAuthority)
+                {
+                    ForceSolveAll();
+                }
+                else
+                {
+                    RPC_ForceSolvePuzzle();
+                }
+            }
+        }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_ForceSolvePuzzle()
+    {
+        ForceSolveAll();
+    }
+
+    void ForceSolveAll()
+    {
+        Debug.Log("[PuzzleManager] Forzando resolución del puzzle (F9)...");
+        foreach (var m in _activeManagers)
+        {
+            if (m != null && m.Object != null && m.Object.IsValid)
+                m.IsPuzzleSolved = true;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // Fixed Update (State Authority only)
     // ──────────────────────────────────────────────────────────────────────────
 
