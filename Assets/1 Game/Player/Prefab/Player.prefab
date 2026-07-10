@@ -554,8 +554,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoiceEffectController
   _CurrentMode: 0
-  UnderwaterCyclePeriod: 0
-  UnderwaterOnDuration: 5
+  UnderwaterCyclePeriod: 300
+  UnderwaterOnDuration: 10
 --- !u!114 &-6962561565382774457
 MonoBehaviour:
   m_ObjectHideFlags: 0
