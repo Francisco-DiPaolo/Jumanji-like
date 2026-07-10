@@ -14,6 +14,9 @@ public class PauseMenu : MonoBehaviour
     [Tooltip("El slider que controla el volumen de la voz (Voice).")]
     public Slider voiceSlider;
 
+    [Tooltip("El slider que controla la sensibilidad del ratón.")]
+    public Slider sensitivitySlider;
+
     [Header("Audio Settings")]
     [Tooltip("El AudioMixer principal que contiene los grupos de audio.")]
     public AudioMixer mainAudioMixer;
@@ -28,6 +31,7 @@ public class PauseMenu : MonoBehaviour
     private bool isPaused = false;
     private const string MasterVolumePrefKey = "MasterVolumePref";
     private const string VoiceVolumePrefKey = "VoiceVolumePref";
+    private const string SensitivityPrefKey = "MouseSensitivityPref";
 
     private void Start()
     {
@@ -37,9 +41,10 @@ public class PauseMenu : MonoBehaviour
             pausePanel.SetActive(false);
         }
 
-        // Cargar los volúmenes guardados o establecer un valor por defecto
+        // Cargar los volúmenes y ajustes guardados o establecer un valor por defecto
         float savedMasterVolume = PlayerPrefs.GetFloat(MasterVolumePrefKey, 0.75f);
         float savedVoiceVolume = PlayerPrefs.GetFloat(VoiceVolumePrefKey, 0.75f);
+        float savedSensitivity = PlayerPrefs.GetFloat(SensitivityPrefKey, 1.0f);
 
         // Inicializar Slider Master
         if (volumeSlider != null)
@@ -59,9 +64,19 @@ public class PauseMenu : MonoBehaviour
             voiceSlider.onValueChanged.AddListener(SetVoiceVolume);
         }
 
-        // Aplicar los volúmenes iniciales
+        // Inicializar Slider Sensibilidad
+        if (sensitivitySlider != null)
+        {
+            sensitivitySlider.minValue = 0.1f;
+            sensitivitySlider.maxValue = 5f; // Un rango de 0.1 a 5 veces la sensibilidad base
+            sensitivitySlider.value = savedSensitivity;
+            sensitivitySlider.onValueChanged.AddListener(SetSensitivity);
+        }
+
+        // Aplicar los ajustes iniciales
         SetMasterVolume(savedMasterVolume);
         SetVoiceVolume(savedVoiceVolume);
+        SetSensitivity(savedSensitivity);
     }
 
     private void Update()
@@ -137,6 +152,20 @@ public class PauseMenu : MonoBehaviour
         }
 
         PlayerPrefs.SetFloat(VoiceVolumePrefKey, sliderValue);
+        PlayerPrefs.Save();
+    }
+
+    public void SetSensitivity(float sliderValue)
+    {
+        // Aplicarlo directamente al jugador local si existe
+        if (PlayerMovement.Local != null)
+        {
+            PlayerMovement.Local.mouseSensitivityX = sliderValue;
+            PlayerMovement.Local.mouseSensitivityY = sliderValue;
+        }
+
+        // Guardarlo para futuras partidas o cuando el jugador respawnee
+        PlayerPrefs.SetFloat(SensitivityPrefKey, sliderValue);
         PlayerPrefs.Save();
     }
 }

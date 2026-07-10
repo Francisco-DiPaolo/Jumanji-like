@@ -112,6 +112,11 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
         if (HasInputAuthority)
         {
             Local = this;
+            
+            // Cargar la sensibilidad guardada en las opciones
+            float savedSensitivity = PlayerPrefs.GetFloat("MouseSensitivityPref", 1.0f);
+            mouseSensitivityX = savedSensitivity;
+            mouseSensitivityY = savedSensitivity;
         }
 
         // Inicializar Yaw y Pitch desde el transform actual

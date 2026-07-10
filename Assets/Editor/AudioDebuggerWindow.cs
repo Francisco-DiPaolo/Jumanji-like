@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 public class AudioDebuggerWindow : EditorWindow
 {
@@ -18,34 +19,32 @@ public class AudioDebuggerWindow : EditorWindow
         GUILayout.Label("Depurador de Audio Avanzado", EditorStyles.boldLabel);
 
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button(isMuted ? "DESMUTEAR JUEGO" : "MUTEAR TODO EL JUEGO", GUILayout.Height(30)))
+        if (GUILayout.Button(isMuted ? "DESMUTEAR JUEGO (AudioListener)" : "MUTEAR TODO EL JUEGO (AudioListener)", GUILayout.Height(30)))
         {
             isMuted = !isMuted;
             AudioListener.volume = isMuted ? 0f : 1f;
         }
         GUILayout.EndHorizontal();
 
-        if (isMuted)
+        // Chequear si hay múltiples listeners
+        AudioListener[] listeners = Object.FindObjectsOfType<AudioListener>(true);
+        AudioListener activeListener = null;
+        foreach(var l in listeners)
         {
-            GUI.color = Color.red;
-            GUILayout.Label("EL AUDIO DEL JUEGO ESTÁ MUTEADO. Si sigues escuchando fuego, NO viene del juego.");
-            GUI.color = Color.white;
+            if (l.isActiveAndEnabled) {
+                if (activeListener == null) activeListener = l;
+                else GUILayout.Label("⚠️ ADVERTENCIA: Hay múltiples AudioListeners activos en la escena.", EditorStyles.boldLabel);
+            }
         }
 
         GUILayout.Space(10);
-        showOnlyAudible = GUILayout.Toggle(showOnlyAudible, "Mostrar SÓLO lo que el jugador puede escuchar");
+        showOnlyAudible = GUILayout.Toggle(showOnlyAudible, "Mostrar SÓLO lo que el jugador puede escuchar (¡DESMARCA ESTO PARA VER TODOS!)");
 
         if (Application.isPlaying)
         {
-            AudioListener listener = Object.FindAnyObjectByType<AudioListener>();
-            Vector3 listenerPos = listener != null ? listener.transform.position : Vector3.zero;
+            Vector3 listenerPos = activeListener != null ? activeListener.transform.position : Vector3.zero;
             
-            if (listener == null)
-            {
-                GUILayout.Label("ATENCIÓN: No hay AudioListener activo.", EditorStyles.boldLabel);
-            }
-
-            // Usamos Resources para encontrar TODO, incluso lo que esté oculto o instanciado temporalmente
+            // Buscar todos los AudioSource en memoria
             AudioSource[] sources = Resources.FindObjectsOfTypeAll<AudioSource>();
             
             GUILayout.Space(10);
@@ -54,7 +53,7 @@ public class AudioDebuggerWindow : EditorWindow
             
             foreach (var src in sources)
             {
-                // Ignorar prefabs o assets que no están en la escena
+                // Ignorar assets puros, a menos que sean un objeto DontDestroyOnLoad/Temporal
                 if (src.gameObject.scene.rootCount == 0 && src.gameObject.hideFlags != HideFlags.HideAndDontSave)
                     continue;
 
@@ -62,33 +61,33 @@ public class AudioDebuggerWindow : EditorWindow
                 {
                     float perceivedVolume = 1f;
                     
-                    if (listener != null)
+                    if (activeListener != null)
                     {
                         perceivedVolume = CalculatePerceivedVolume(src, listenerPos);
+                        
+                        // Si está marcado, ocultar los inaudibles. 
+                        // Pero si el cálculo falló por una curva custom, podríamos estar ocultando el real.
                         if (showOnlyAudible && perceivedVolume <= 0.001f)
                             continue;
                     }
 
                     count++;
+                    GUILayout.BeginVertical("box");
                     GUILayout.BeginHorizontal();
                     
-                    EditorGUILayout.ObjectField(src.gameObject, typeof(GameObject), true, GUILayout.Width(200));
+                    EditorGUILayout.ObjectField(src.gameObject, typeof(GameObject), true, GUILayout.Width(180));
                     
                     string clipName = src.clip != null ? src.clip.name : "Sin Clip";
-                    GUILayout.Label(clipName, GUILayout.Width(150));
+                    GUILayout.Label(clipName, GUILayout.Width(120));
                     
-                    if (listener != null)
+                    if (activeListener != null)
                     {
                         GUI.color = perceivedVolume > 0.05f ? Color.green : Color.yellow;
-                        GUILayout.Label("Volumen real: " + (perceivedVolume * 100f).ToString("F1") + "%", GUILayout.Width(130));
+                        GUILayout.Label("Vol. Calculado: " + (perceivedVolume * 100f).ToString("F1") + "%", GUILayout.Width(130));
                         GUI.color = Color.white;
 
                         float dist = Vector3.Distance(src.transform.position, listenerPos);
                         GUILayout.Label("Dist: " + dist.ToString("F1") + "m", GUILayout.Width(80));
-                    }
-                    else
-                    {
-                        GUILayout.Label("Volumen: " + src.volume, GUILayout.Width(130));
                     }
 
                     if (GUILayout.Button("MUTEAR", GUILayout.Width(80)))
@@ -103,12 +102,16 @@ public class AudioDebuggerWindow : EditorWindow
                         EditorGUIUtility.PingObject(src.gameObject);
                     }
                     GUILayout.EndHorizontal();
+                    
+                    // Mostrar info de Rolloff
+                    GUILayout.Label($"Rolloff: {src.rolloffMode} | SpatialBlend: {src.spatialBlend:F2} | Min/Max Dist: {src.minDistance:F1}/{src.maxDistance:F1}", EditorStyles.miniLabel);
+                    GUILayout.EndVertical();
                 }
             }
             
             if (count == 0)
             {
-                GUILayout.Label("Ningún AudioSource está reproduciéndose en este momento.");
+                GUILayout.Label("Ningún AudioSource en reproducción coincide con los filtros.");
             }
             
             EditorGUILayout.EndScrollView();
@@ -140,6 +143,10 @@ public class AudioDebuggerWindow : EditorWindow
             }
             volume3D = baseVol * src.spatialBlend * attenuation;
         }
+        
+        // Si tiene curva custom, Unity ignora la maxDistance a veces, devolvemos un valor para no filtrarlo sin querer
+        if (src.rolloffMode == AudioRolloffMode.Custom)
+            return baseVol;
 
         return volume2D + volume3D;
     }
