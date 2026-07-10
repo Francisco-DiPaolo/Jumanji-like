@@ -48,6 +48,8 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
     [SerializeField, Range(0f, 1f)] private float hurtSoundVolume = 1.0f;
     [Tooltip("Tiempo mínimo en segundos entre sonidos de daño.")]
     [SerializeField] private float hurtSoundCooldown = 1.5f;
+    [Tooltip("Grupo SFX del AudioMixer para asignarlo por código")]
+    [SerializeField] private UnityEngine.Audio.AudioMixerGroup sfxMixerGroup;
 
     [Networked] public float CurrentStamina { get; set; }
     public System.Action<float, float> OnStaminaChanged;
@@ -100,6 +102,12 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
             CurrentStamina = maxStamina;
         }
         unityController = GetComponent<CharacterController>();
+
+        // Asignar el grupo SFX al AudioSource por código si están configurados
+        if (audioSource != null && sfxMixerGroup != null)
+        {
+            audioSource.outputAudioMixerGroup = sfxMixerGroup;
+        }
 
         if (HasInputAuthority)
         {
