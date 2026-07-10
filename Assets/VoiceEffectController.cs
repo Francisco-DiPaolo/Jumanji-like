@@ -40,33 +40,51 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     private const int ResampleBufferSize = 96000;
 
     // ==================== Underwater Effect State ====================
-    // Referencia acústica: bajo el agua el sonido pierde frecuencias altas bruscamente
-    // (el agua absorbe >1kHz), rebota creando un eco corto denso, y las olas
-    // modulan suavemente el volumen a ~2-3 Hz.
+    // Referencia acústica: el agua absorbe frecuencias altas a partir de ~1-2 kHz.
+    // El efecto apunta a sonar "tapado" pero INTELIGIBLE: las consonantes (s,f,t)
+    // deben seguir distinguiéndose. El comb filter es solo textura sutil, no eco.
     //
-    // Cadena de procesado:
-    //   1. Low-pass AGRESIVO a ~500 Hz   → quita los altos, suena "tapado"
-    //   2. Comb filter (delay ~40ms)      → rebote del agua, efecto "cámara"
-    //   3. Tremolo lento 2.5 Hz           → movimiento del agua sobre el oído
+    // Cadena de procesado (calibrada):
+    //   1. Low-pass a 1600 Hz   → quita brillo sin perder inteligibilidad (mín: 1000 Hz)
+    //   2. Comb filter 40ms, feedback 0.12 → textura leve de "gárgara"
+    //   3. Tremolo 2.5 Hz, depth 0.08  → ondulación muy suave del agua
+    //
+    // PROBLEMAS DEL SETUP ANTERIOR (500 Hz + comb 0.45 + tremolo 0.18):
+    //   - 500 Hz eliminaba todas las consonantes fricativas → voz ininteligible
+    //   - Comb feedback 0.45 → eco metálico perceptible y "cámara de eco"
+    //   - Tremolo 0.18 → vibrato de amplitud artificial demasiado notorio
+
+    // ---- Ciclo automático Underwater (variable pública para el Inspector) ----
+    [Header("Underwater Auto-Cycle")]
+    [Tooltip("Si > 0, activa Underwater durante UnderwaterOnDuration segundos, luego vuelve a Normal, en loop.")]
+    public float UnderwaterCyclePeriod   = 0f;   // segundos entre ciclos (0 = desactivado)
+    [Tooltip("Tiempo que permanece en modo Underwater por ciclo (seg).")]
+    public float UnderwaterOnDuration    = 5f;
+
+    private Coroutine _autoCycleCoroutine;
 
     // Low-pass state (un estado por canal de audio, float y short path)
     private float uwLp1F, uwLp2F; // dos polos encadenados para pendiente más pronunciada
     private float uwLp1S, uwLp2S;
 
-    // Comb filter (eco corto ~40 ms)
+    // Cutoff actual del LP (interpolado en tiempo real para transición suave)
+    private float _uwCutoffCurrent  = 20000f;  // arranca en "sin filtro" (paso total)
+    private float _uwCutoffTarget   = 20000f;
+    private const float UwCutoffNormal    = 20000f; // Hz — sin filtro en modo Normal
+    private const float UwCutoffUnderwater = 1600f; // Hz — cutoff objetivo underwater
+    private const float UwCutoffTransitionSec = 0.6f; // segundos de transición
+
+    // Comb filter (eco corto ~40 ms) — feedback reducido para textura, no eco
     private float[] uwCombF;
     private short[] uwCombS;
     private int    uwCombIdx;
     private const float UwCombDelaySec = 0.04f;   // 40 ms
-    private const float UwCombFeedback = 0.45f;   // fuerza del rebote (0-1)
+    private const float UwCombFeedback = 0.12f;   // textura sutil (era 0.45 → eco agresivo)
 
-    // Tremolo lento
+    // Tremolo lento — depth reducido para que sea solo "movimiento de agua"
     private float uwTremoloPhase;
     private const float UwTremoloFreq  = 2.5f;    // Hz
-    private const float UwTremoloDepth = 0.18f;   // profundidad (0 = sin efecto, 1 = corta el audio)
-
-    // Parámetros del filtro LP (dos polos en serie = -40 dB/oct, ~500 Hz cutoff)
-    private const float UwLpCutoff = 500f;         // Hz
+    private const float UwTremoloDepth = 0.08f;   // muy suave (era 0.18 → vibrato artificial)
 
     public override void Spawned()
     {
@@ -85,6 +103,38 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
                 
                 Debug.Log($"[VoiceEffect] Spawned. Recorder configured for VAD.");
             }
+
+            // Iniciar ciclo automático si está configurado
+            if (UnderwaterCyclePeriod > 0f)
+            {
+                _autoCycleCoroutine = StartCoroutine(AutoUnderwaterCycle());
+            }
+        }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (_autoCycleCoroutine != null) StopCoroutine(_autoCycleCoroutine);
+    }
+
+    // Ciclo automático: activa Underwater durante UnderwaterOnDuration seg,
+    // luego vuelve a Normal, espera (UnderwaterCyclePeriod - UnderwaterOnDuration) seg, repite.
+    private System.Collections.IEnumerator AutoUnderwaterCycle()
+    {
+        while (true)
+        {
+            // Activar underwater
+            if (HasStateAuthority) CurrentMode = VoiceMode.Underwater;
+            else RPC_SetVoiceMode(VoiceMode.Underwater);
+
+            yield return new WaitForSeconds(UnderwaterOnDuration);
+
+            // Volver a normal
+            if (HasStateAuthority) CurrentMode = VoiceMode.Normal;
+            else RPC_SetVoiceMode(VoiceMode.Normal);
+
+            float waitTime = Mathf.Max(0.1f, UnderwaterCyclePeriod - UnderwaterOnDuration);
+            yield return new WaitForSeconds(waitTime);
         }
     }
 
@@ -147,6 +197,18 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
     public override void FixedUpdateNetwork()
     {
         cachedMode = CurrentMode;
+    }
+
+    // Interpola el cutoff del LP en Update para una transición suave entre estados.
+    // Esto evita el corte abrupto de parámetros al activar/desactivar el efecto.
+    private void Update()
+    {
+        float targetCutoff = (cachedMode == VoiceMode.Underwater) ? UwCutoffUnderwater : UwCutoffNormal;
+        if (!Mathf.Approximately(_uwCutoffTarget, targetCutoff))
+            _uwCutoffTarget = targetCutoff;
+
+        float speed = Mathf.Abs(UwCutoffNormal - UwCutoffUnderwater) / UwCutoffTransitionSec;
+        _uwCutoffCurrent = Mathf.MoveTowards(_uwCutoffCurrent, _uwCutoffTarget, speed * Time.deltaTime);
     }
 
     public float[] Process(float[] data)
@@ -306,12 +368,12 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
         float[] comb = GetOrCreateUwCombF();
         int combLen = comb.Length;
 
-        // Pre-calcula coeficiente LP (dos polos en serie)
+        // Usa _uwCutoffCurrent (interpolado en Update) para transición suave
+        float cutoff = Mathf.Clamp(_uwCutoffCurrent, 1000f, 20000f);
         float dt    = 1.0f / sampleRate;
-        float rc    = 1.0f / (2.0f * (float)Math.PI * UwLpCutoff);
+        float rc    = 1.0f / (2.0f * (float)Math.PI * cutoff);
         float alpha = dt / (rc + dt);
 
-        // Paso del tremolo por sample
         float tremStep = 2.0f * (float)Math.PI * UwTremoloFreq / sampleRate;
 
         fixed (float* pData = data, pComb = comb)
@@ -320,18 +382,18 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
             {
                 float x = pData[i];
 
-                // 1. Filtro LP de dos polos (doble pasada = mayor pendiente)
+                // 1. LP dos polos — cutoff 1600 Hz preserva consonantes (s, f, t)
                 uwLp1F += alpha * (x      - uwLp1F);
                 uwLp2F += alpha * (uwLp1F - uwLp2F);
                 float filtered = uwLp2F;
 
-                // 2. Comb filter (realimentación corta para efecto cámara de agua)
+                // 2. Comb filter — solo textura, feedback bajo (0.12) para no crear eco
                 float delayed   = pComb[uwCombIdx];
                 float combOut   = filtered + delayed * UwCombFeedback;
                 pComb[uwCombIdx] = combOut;
                 uwCombIdx = (uwCombIdx + 1) % combLen;
 
-                // 3. Tremolo lento (movimiento del agua)
+                // 3. Tremolo muy suave — depth 0.08, apenas ondulación de agua
                 float tremolo = 1.0f - UwTremoloDepth + UwTremoloDepth * (float)Math.Sin(uwTremoloPhase);
                 uwTremoloPhase += tremStep;
                 if (uwTremoloPhase > 2.0f * (float)Math.PI) uwTremoloPhase -= 2.0f * (float)Math.PI;
@@ -347,8 +409,9 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
         short[] comb = GetOrCreateUwCombS();
         int combLen = comb.Length;
 
+        float cutoff = Mathf.Clamp(_uwCutoffCurrent, 1000f, 20000f);
         float dt    = 1.0f / sampleRate;
-        float rc    = 1.0f / (2.0f * (float)Math.PI * UwLpCutoff);
+        float rc    = 1.0f / (2.0f * (float)Math.PI * cutoff);
         float alpha = dt / (rc + dt);
         float tremStep = 2.0f * (float)Math.PI * UwTremoloFreq / sampleRate;
 
@@ -358,18 +421,18 @@ public class VoiceEffectController : NetworkBehaviour, IProcessor<float>, IProce
             {
                 float x = pData[i];
 
-                // 1. Filtro LP de dos polos
+                // 1. LP dos polos — cutoff 1600 Hz
                 uwLp1S += alpha * (x      - uwLp1S);
                 uwLp2S += alpha * (uwLp1S - uwLp2S);
                 float filtered = uwLp2S;
 
-                // 2. Comb filter
+                // 2. Comb filter — textura sutil, no eco
                 float delayed   = pComb[uwCombIdx];
                 float combOut   = filtered + delayed * UwCombFeedback;
                 pComb[uwCombIdx] = (short)Mathf.Clamp(combOut, short.MinValue, short.MaxValue);
                 uwCombIdx = (uwCombIdx + 1) % combLen;
 
-                // 3. Tremolo
+                // 3. Tremolo suave
                 float tremolo = 1.0f - UwTremoloDepth + UwTremoloDepth * (float)Math.Sin(uwTremoloPhase);
                 uwTremoloPhase += tremStep;
                 if (uwTremoloPhase > 2.0f * (float)Math.PI) uwTremoloPhase -= 2.0f * (float)Math.PI;
