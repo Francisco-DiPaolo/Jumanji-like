@@ -2550,9 +2550,10 @@ MonoBehaviour:
   Environment:
     serializedVersion: 2
     m_Bits: 17
-  woodVolume: 0.01
-  concreteVolume: 0.01
-  waterVolume: 0.056
+  sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
+  woodVolume: 0.26
+  concreteVolume: 0.26
+  waterVolume: 0.306
   waterStepFrequency: 2
   priority: 94
   Animator: {fileID: 8925748940849128339}

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class FoodStepSoundsPlayer : MonoBehaviour
 {
@@ -7,6 +8,10 @@ public class FoodStepSoundsPlayer : MonoBehaviour
     public AudioClip[] WaterClips;
 
     public LayerMask Environment;
+
+    [Header("Audio Settings")]
+    [Tooltip("Grupo SFX del AudioMixer al que se enviarán estos sonidos.")]
+    public AudioMixerGroup sfxMixerGroup;
 
     [Header("Volumes")]
     [Range(0f, 1f)] public float woodVolume = 1f;
@@ -63,6 +68,13 @@ public class FoodStepSoundsPlayer : MonoBehaviour
                 source.spatialBlend = 1f;
                 source.volume = currentVolume;
                 source.priority = priority;
+                
+                // Asignar el grupo del mixer si está configurado
+                if (sfxMixerGroup != null)
+                {
+                    source.outputAudioMixerGroup = sfxMixerGroup;
+                }
+                
                 source.Play();
                 Destroy(audioObj, randomClip.length);
             }

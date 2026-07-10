@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Audio;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -7,15 +8,26 @@ public class PauseMenu : MonoBehaviour
     [Tooltip("El panel central del menú de pausa que se activará/desactivará.")]
     public GameObject pausePanel;
     
-    [Tooltip("El slider que controla el volumen maestro. Su valor debería estar entre 0.0001 y 1.")]
+    [Tooltip("El slider que controla el volumen maestro.")]
     public Slider volumeSlider;
 
+    [Tooltip("El slider que controla el volumen de la voz (Voice).")]
+    public Slider voiceSlider;
+
     [Header("Audio Settings")]
+    [Tooltip("El AudioMixer principal que contiene los grupos de audio.")]
+    public AudioMixer mainAudioMixer;
+
+    
+    [Tooltip("Nombre del parámetro expuesto en el AudioMixer para Voice.")]
+    public string voiceExposedParam = "VoiceVolume";
+
     [Tooltip("Boost máximo en decibelios (dB). Por ejemplo, 10 permite que el volumen suba por encima del estándar.")]
     public float maxVolumeBoost = 10f; 
 
     private bool isPaused = false;
-    private const string VolumePrefKey = "MasterVolumePref";
+    private const string MasterVolumePrefKey = "MasterVolumePref";
+    private const string VoiceVolumePrefKey = "VoiceVolumePref";
 
     private void Start()
     {
@@ -25,22 +37,31 @@ public class PauseMenu : MonoBehaviour
             pausePanel.SetActive(false);
         }
 
-        // Cargar el volumen guardado o establecer un valor por defecto
-        float savedVolume = PlayerPrefs.GetFloat(VolumePrefKey, 0.75f);
+        // Cargar los volúmenes guardados o establecer un valor por defecto
+        float savedMasterVolume = PlayerPrefs.GetFloat(MasterVolumePrefKey, 0.75f);
+        float savedVoiceVolume = PlayerPrefs.GetFloat(VoiceVolumePrefKey, 0.75f);
 
+        // Inicializar Slider Master
         if (volumeSlider != null)
         {
-            // Forzamos el mínimo a un valor muy pequeño para evitar logaritmo de 0
             volumeSlider.minValue = 0.0001f;
             volumeSlider.maxValue = 1f;
-            volumeSlider.value = savedVolume;
-
-            // Añadir el listener para cuando el jugador mueva el slider
-            volumeSlider.onValueChanged.AddListener(SetVolume);
+            volumeSlider.value = savedMasterVolume;
+            volumeSlider.onValueChanged.AddListener(SetMasterVolume);
         }
 
-        // Aplicar el volumen inicial
-        SetVolume(savedVolume);
+        // Inicializar Slider Voice
+        if (voiceSlider != null)
+        {
+            voiceSlider.minValue = 0.0001f;
+            voiceSlider.maxValue = 1f;
+            voiceSlider.value = savedVoiceVolume;
+            voiceSlider.onValueChanged.AddListener(SetVoiceVolume);
+        }
+
+        // Aplicar los volúmenes iniciales
+        SetMasterVolume(savedMasterVolume);
+        SetVoiceVolume(savedVoiceVolume);
     }
 
     private void Update()
@@ -93,24 +114,29 @@ public class PauseMenu : MonoBehaviour
         Cursor.visible = false;
     }
 
-    public void SetVolume(float sliderValue)
+    public void SetMasterVolume(float sliderValue)
     {
-        // Asegurarse de que el valor nunca sea 0 o menor
         sliderValue = Mathf.Max(sliderValue, 0.0001f);
-
-        // Calcular los decibelios deseados basados en el slider
         float dB = Mathf.Log10(sliderValue) * 20f + maxVolumeBoost;
-
-        // Convertir de decibelios a un multiplicador lineal (amplitud)
-        // La fórmula es: multiplicador = 10 ^ (dB / 20)
         float linearVolume = Mathf.Pow(10f, dB / 20f);
 
-        // Aplicar al AudioListener: Esto afecta a TODOS los AudioSources de la escena, 
-        // pasen o no por el AudioMixer, e incluso a los creados dinámicamente.
         AudioListener.volume = linearVolume;
 
-        // Guardar la preferencia localmente
-        PlayerPrefs.SetFloat(VolumePrefKey, sliderValue);
+        PlayerPrefs.SetFloat(MasterVolumePrefKey, sliderValue);
+        PlayerPrefs.Save();
+    }
+
+    public void SetVoiceVolume(float sliderValue)
+    {
+        sliderValue = Mathf.Max(sliderValue, 0.0001f);
+        float dB = Mathf.Log10(sliderValue) * 20f + maxVolumeBoost;
+
+        if (mainAudioMixer != null)
+        {
+            mainAudioMixer.SetFloat(voiceExposedParam, dB);
+        }
+
+        PlayerPrefs.SetFloat(VoiceVolumePrefKey, sliderValue);
         PlayerPrefs.Save();
     }
 }
