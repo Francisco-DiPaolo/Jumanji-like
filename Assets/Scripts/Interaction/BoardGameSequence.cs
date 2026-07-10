@@ -53,6 +53,8 @@ public class BoardGameSequence : NetworkBehaviour
     [SerializeField] private Color           nameColor = new Color(1f, 0.843f, 0f); // Amarillo dorado por defecto
     [Tooltip("Mensaje de condena. Usa {nombre} como placeholder del jugador con el casco.\nEj: {nombre}: Tu condena es el océano, respirá bajo el agua.")]
     [TextArea] [SerializeField] private string condenaTemplate = "{nombre}: Tu condena es el océano, respirá bajo el agua.";
+    [Tooltip("Activa o desactiva el efecto de voz de agua al recibir el casco.")]
+    [SerializeField] private bool enableUnderwaterVoice = true;
 
     [Header("Visual Effects & Particles")]
     [Tooltip("Objetos que se activarán al empezar el texto (ej: sistemas de partículas).")]
@@ -140,9 +142,12 @@ public class BoardGameSequence : NetworkBehaviour
             Rpc_SetHelmetPlayerName(nickname);
 
             // Aplicar el efecto de voz directamente al jugador local
-            VoiceEffectController voiceEffect = localPlayer.GetComponent<VoiceEffectController>();
-            if (voiceEffect != null)
-                voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
+            if (enableUnderwaterVoice)
+            {
+                VoiceEffectController voiceEffect = localPlayer.GetComponent<VoiceEffectController>();
+                if (voiceEffect != null)
+                    voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
+            }
         }
         // ------------------------------------
 

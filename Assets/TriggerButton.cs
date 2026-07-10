@@ -7,7 +7,7 @@ public class TriggerButton : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-    if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
+        if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
         {
             playersInside++;
             UpdateState();
@@ -19,9 +19,9 @@ public class TriggerButton : MonoBehaviour
         if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
         {
             playersInside--;
-            // Un pequeño fail-safe para que no baje de cero por errores de física
+            // Fail-safe para que no baje de cero por errores de física
             if (playersInside < 0) playersInside = 0;
-            
+
             UpdateState();
         }
     }
@@ -31,8 +31,8 @@ public class TriggerButton : MonoBehaviour
         bool wasPressed = pressed;
         pressed = playersInside > 0;
 
-        // Solo avisar al manager si el estado cambió de 'libre' a 'presionado'
-        if (pressed && !wasPressed)
+        // Avisar al manager siempre que el estado cambie, no solo al presionar
+        if (pressed != wasPressed)
         {
             ButtonsManager.instance.checkButton();
         }

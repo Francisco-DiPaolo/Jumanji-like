@@ -270,13 +270,6 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
         {
             fishBowlObject.SetActive(currentFishBowl);
             lastFishBowlState = currentFishBowl;
-
-            if (currentFishBowl && HasInputAuthority)
-            {
-                VoiceEffectController voiceEffect = GetComponent<VoiceEffectController>();
-                if (voiceEffect != null)
-                    voiceEffect.RPC_SetVoiceMode(VoiceEffectController.VoiceMode.Underwater);
-            }
         }
     }
 
