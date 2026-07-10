@@ -186,7 +186,6 @@ GameObject:
   - component: {fileID: 6956056683162042068}
   - component: {fileID: 3335992317070965483}
   - component: {fileID: 6122514887274884769}
-  - component: {fileID: 8377237092674128988}
   - component: {fileID: 2595770815282596302}
   - component: {fileID: 7519530970816820350}
   - component: {fileID: 2370537476140238220}
@@ -262,7 +261,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 6956056683162042068}
-  - {fileID: 8377237092674128988}
   - {fileID: 2595770815282596302}
   - {fileID: 7519530970816820350}
   - {fileID: 5500000000000000001}
@@ -296,26 +294,6 @@ CharacterController:
   m_SkinWidth: 0.02
   m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0.85, z: 0}
---- !u!114 &8377237092674128988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1446421614054784240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 378411a89480da345945c2f888327a2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Unity::Fusion.NetworkCharacterController
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  gravity: -15
-  jumpImpulse: 6
-  acceleration: 10
-  braking: 10
-  maxSpeed: 4
-  rotationSpeed: 15
-  orientRotationToMovement: 0
 --- !u!114 &2595770815282596302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -329,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   walkSpeed: 2.2
-  sprintSpeed: 4.8
+  sprintSpeed: 3.9
   acceleration: 15
   deceleration: 20
   jumpHeight: 1.2

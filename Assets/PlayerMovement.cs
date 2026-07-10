@@ -2,8 +2,11 @@ using Fusion;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovement : NetworkBehaviour
+public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
 {
+    public static PlayerMovement Local { get; private set; }
+
+    public float GetLocalYaw() => localYaw;
     [Header("Movement Settings")]
     [SerializeField] float walkSpeed = 4.0f;
     [SerializeField] float sprintSpeed = 6.0f;
@@ -62,6 +65,12 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] NetworkBool WasJumpHeld { get; set; }
     [Networked] public NetworkBool IsReadyAtBoard { get; set; }
 
+    // Posición y rotación sincronizadas para restaurar el CharacterController
+    // en cada batch de ticks (BeforeAllTicks/AfterAllTicks) y para interpolar
+    // proxies remotos en Render(). Reemplaza la función de NetworkCharacterController.
+    [Networked] Vector3 NetPosition { get; set; }
+    [Networked] Quaternion NetRotation { get; set; }
+
     /// <summary>True cuando este jugador es el primero que interactuó con el tablero y debe llevar el casco Fish_Bowl_2.</summary>
     [Networked] public NetworkBool HasFishBowl { get; set; }
 
@@ -91,6 +100,11 @@ public class PlayerMovement : NetworkBehaviour
             CurrentStamina = maxStamina;
         }
         unityController = GetComponent<CharacterController>();
+
+        if (HasInputAuthority)
+        {
+            Local = this;
+        }
 
         // Inicializar Yaw y Pitch desde el transform actual
         localYaw   = transform.eulerAngles.y;
@@ -136,6 +150,44 @@ public class PlayerMovement : NetworkBehaviour
             if (cameraPivot != null)
                 cameraPivot.gameObject.SetActive(false);
         }
+
+        // Inicializar el buffer de red con la posición/rotación de spawn.
+        // Necesario para que BeforeAllTicks tenga valores válidos desde el primer tick.
+        // Además, deshabilitar/habilitar el CC limpia su estado interno (igual que
+        // hacía NetworkCharacterController.Spawned() para evitar el reset a 0,0,0).
+        if (HasStateAuthority)
+        {
+            unityController.enabled = false;
+            unityController.enabled = true;
+            NetPosition = transform.position;
+            NetRotation = transform.rotation;
+        }
+    }
+
+    /// <summary>
+    /// Llamado por Fusion ANTES de simular el batch de ticks de este frame.
+    /// Restaura la posición del CharacterController desde el buffer de red para que
+    /// la simulación (y la re-simulación de client-side prediction) parta
+    /// del estado correcto confirmado por el servidor.
+    /// </summary>
+    void IBeforeAllTicks.BeforeAllTicks(bool resimulation, int tickCount)
+    {
+        if (unityController == null) return;
+
+        unityController.enabled = false;
+        transform.SetPositionAndRotation(NetPosition, NetRotation);
+        unityController.enabled = true;
+    }
+
+    /// <summary>
+    /// Llamado por Fusion DESPUÉS de simular el batch de ticks de este frame.
+    /// Guarda la posición final en el buffer de red para que el próximo BeforeAllTicks
+    /// pueda restaurarla correctamente.
+    /// </summary>
+    void IAfterAllTicks.AfterAllTicks(bool resimulation, int tickCount)
+    {
+        NetPosition = transform.position;
+        NetRotation = transform.rotation;
     }
 
     /// <summary>Búsqueda recursiva de un Transform por nombre en toda la jerarquía.</summary>
@@ -233,10 +285,10 @@ public class PlayerMovement : NetworkBehaviour
     private void HandleMovement(PlayerInputData data)
     {
         // Fusion llama a CopyToEngine() antes de FixedUpdateNetwork, lo que resetea
-        // transform.rotation a la rotación guardada en red. Re-aplicamos localYaw aquí
-        // para que transform.forward/.right apunten en la dirección visual correcta.
-        if (HasInputAuthority)
-            transform.rotation = Quaternion.Euler(0f, localYaw, 0f);
+        // transform.rotation a la rotación guardada en red. Re-aplicamos el yaw del input
+        // aquí para que transform.forward/.right apunten en la dirección visual correcta
+        // tanto en el cliente como en el servidor durante la simulación de este tick.
+        transform.rotation = Quaternion.Euler(0f, data.yaw, 0f);
 
         // Freeze movement if game is over or camera is overridden
         bool freezeMovement = CameraOverrideActive || (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver);
@@ -357,13 +409,24 @@ public class PlayerMovement : NetworkBehaviour
         {
             CurrentVelocity = new Vector3(CurrentVelocity.x, 0, CurrentVelocity.z);
         }
+
+        // AfterAllTicks también guarda estos valores, pero lo hacemos aquí también
+        // por si HandleMovement se llama múltiples veces en el mismo batch.
+        NetPosition = transform.position;
+        NetRotation = transform.rotation;
     }
 
     public override void Render()
     {
-        // LateUpdate ya maneja la cámara y el animador para el cliente local.
-        // Render() de Fusion se usa para interpolación visual de clientes remotos.
-        // El pivot de la cámara y el animador son gestionados íntegramente por LateUpdate.
+        // Para proxies remotos (ni Input Authority ni State Authority):
+        // interpolamos suavemente posición y rotación entre snapshots de red.
+        // Quaternion evita el artifact de wrap-around que tendría un float de ángulo.
+        if (!HasInputAuthority && !HasStateAuthority)
+        {
+            var interpolator = new NetworkBehaviourBufferInterpolator(this);
+            transform.position = interpolator.Vector3(nameof(NetPosition));
+            transform.rotation = interpolator.Quaternion(nameof(NetRotation));
+        }
     }
 
 

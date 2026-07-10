@@ -54,6 +54,11 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         data.buttons.Set(InputButton.Interact, Input.GetKey(KeyCode.E));
         data.buttons.Set(InputButton.Weave, Input.GetKeyDown(KeyCode.G));
 
+        if (PlayerMovement.Local != null)
+        {
+            data.yaw = PlayerMovement.Local.GetLocalYaw();
+        }
+
         input.Set(data);
     }
 
