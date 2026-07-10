@@ -1,38 +1,78 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TriggerButton : MonoBehaviour
 {
     public bool pressed;
-    [SerializeField] private int playersInside = 0;
+    [SerializeField] private List<Collider> collidersInside = new List<Collider>();
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
+        PlayerMovement p = other.GetComponentInParent<PlayerMovement>();
+        if (p != null)
         {
-            playersInside++;
-            UpdateState();
+            if (!collidersInside.Contains(other))
+            {
+                collidersInside.Add(other);
+                UpdateState();
+            }
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent<PlayerMovement>(out PlayerMovement p))
+        if (collidersInside.Contains(other))
         {
-            playersInside--;
-            // Fail-safe para que no baje de cero por errores de física
-            if (playersInside < 0) playersInside = 0;
-
+            collidersInside.Remove(other);
             UpdateState();
         }
     }
 
+    private void Update()
+    {
+        if (collidersInside.Count > 0)
+        {
+            Collider buttonCollider = GetComponent<Collider>();
+            if (buttonCollider != null)
+            {
+                int countBefore = collidersInside.Count;
+
+                // Limpiar colisionadores nulos, deshabilitados, inactivos o que ya no intersectan físicamente
+                collidersInside.RemoveAll(c => 
+                    c == null || 
+                    !c.enabled || 
+                    !c.gameObject.activeInHierarchy || 
+                    !buttonCollider.bounds.Intersects(c.bounds)
+                );
+
+                if (collidersInside.Count != countBefore)
+                {
+                    UpdateState();
+                }
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        collidersInside.Clear();
+        UpdateState();
+    }
+
     private void UpdateState()
     {
-        bool wasPressed = pressed;
-        pressed = playersInside > 0;
+        collidersInside.RemoveAll(c => c == null);
 
-        // Avisar al manager siempre que el estado cambie, no solo al presionar
+        bool wasPressed = pressed;
+        pressed = collidersInside.Count > 0;
+
         if (pressed != wasPressed)
+        {
+            Debug.Log($"[TriggerButton] {gameObject.name} pressed state changed to: {pressed} (Colliders inside: {collidersInside.Count})");
+        }
+
+        // Solo avisar al manager si el estado cambió de 'libre' a 'presionado'
+        if (pressed && !wasPressed)
         {
             ButtonsManager.instance.checkButton();
         }

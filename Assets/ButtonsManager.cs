@@ -168,13 +168,26 @@ public class ButtonsManager : NetworkBehaviour
             LeanTween.move(rightFloor, rightFloorOriginalPos, animationDuration).setEase(LeanTweenType.easeInOutQuad)
                 .setOnComplete(() => {
                     isAnimating = false;
+                    ReactivateButtons();
                 });
         }
         else
         {
             LeanTween.delayedCall(gameObject, animationDuration, () => {
                 isAnimating = false;
+                ReactivateButtons();
             });
+        }
+    }
+
+    private void ReactivateButtons()
+    {
+        if (triggerButtons != null)
+        {
+            foreach (var btn in triggerButtons)
+            {
+                if (btn != null) btn.gameObject.SetActive(true);
+            }
         }
     }
 }
