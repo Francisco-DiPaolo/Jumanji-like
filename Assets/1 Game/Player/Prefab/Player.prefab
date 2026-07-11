@@ -3593,9 +3593,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 17
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
-  woodVolume: 0.16
-  concreteVolume: 0.16
-  waterVolume: 0.206
+  woodVolume: 0.1
+  concreteVolume: 0.1
+  waterVolume: 0.15
   waterStepFrequency: 2
   priority: 94
   Animator: {fileID: 8925748940849128339}

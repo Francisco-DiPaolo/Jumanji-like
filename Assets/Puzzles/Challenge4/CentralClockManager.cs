@@ -86,10 +86,10 @@ public class CentralClockManager : NetworkBehaviour
         if (HasStateAuthority)
         {
             CycleTimeRemaining = cycleDuration;
+            PickNewSymbols(); // Elige la combinación inicial para la Fase 1
             if (autoStart)
             {
                 IsRunning = true;
-                PickNewSymbols();
             }
         }
 
