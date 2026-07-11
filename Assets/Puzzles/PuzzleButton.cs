@@ -21,6 +21,7 @@ public class PuzzleButton : MonoBehaviour
 
     [Header("Unity Events (Inspector)")]
     public UnityEvent OnPressedStarted;   // Se ejecuta apenas lo pisan
+    public UnityEvent OnReleased;         // Se ejecuta cuando el jugador deja de pisarlo
     public UnityEvent OnCorrectPressed;   // Se ejecuta al acertar
     public UnityEvent OnIncorrectPressed; // Se ejecuta al errar
     public UnityEvent OnPhaseStarted;
@@ -48,6 +49,7 @@ public class PuzzleButton : MonoBehaviour
             isPressed = false;
             Debug.Log("[puzle]: Botón " + Id + " LIBERADO (OnDisable).");
             OnPressedStateChanged?.Invoke(this, false);
+            OnReleased?.Invoke();
         }
     }
 
@@ -82,6 +84,7 @@ public class PuzzleButton : MonoBehaviour
                 isPressed = false;
                 Debug.Log("[puzle]: Botón " + Id + " LIBERADO por el jugador.");
                 OnPressedStateChanged?.Invoke(this, false);
+                OnReleased?.Invoke();
             }
         }
     }
