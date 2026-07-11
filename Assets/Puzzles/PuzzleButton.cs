@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class PuzzleButton : MonoBehaviour
 {
     private bool isPressed;
-    private int playersInside;
+    private System.Collections.Generic.HashSet<Collider> collidersInside = new System.Collections.Generic.HashSet<Collider>();
     private AudioSource audioSource;
     private Coroutine pressRoutine;
 
@@ -35,30 +35,29 @@ public class PuzzleButton : MonoBehaviour
         Debug.Log($"[puzle]: Botón {Id} - OnTriggerEnter con: {other.gameObject.name} (tag: {other.tag})");
         if (other.GetComponentInParent<PlayerMovement>() != null)
         {
-            playersInside++;
+            collidersInside.Add(other);
             UpdateState();
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.GetComponentInParent<PlayerMovement>() != null)
+        if (collidersInside.Remove(other))
         {
-            playersInside--;
-            if (playersInside < 0) playersInside = 0;
             UpdateState();
         }
     }
 
     private void OnDisable()
     {
-        playersInside = 0;
+        collidersInside.Clear();
         UpdateState();
     }
 
     private void UpdateState()
     {
-        bool pressed = playersInside > 0;
+        collidersInside.RemoveWhere(c => c == null || !c.enabled || !c.gameObject.activeInHierarchy);
+        bool pressed = collidersInside.Count > 0;
         
         if (pressed)
         {
