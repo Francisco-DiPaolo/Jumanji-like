@@ -57,21 +57,16 @@ public class DamageSource : MonoBehaviour
         // Apply damage
         playerCooldowns[other] = currentTime;
 
-        if (SharedHealthSystem.Instance != null)
-        {
-            bool isPoison = (damageType == DamageType.DamageOverTime);
-            SharedHealthSystem.Instance.TakeDamage(damageAmount, isPoison);
-        }
-        else
-        {
-            Debug.LogError("[DamageSource] ¡SharedHealthSystem.Instance NO ENCONTRADO!");
-        }
-
-        // Play hurt sound directly from the player
         PlayerMovement pm = other.GetComponent<PlayerMovement>();
         if (pm != null)
         {
+            bool isPoison = (damageType == DamageType.DamageOverTime);
+            pm.TakeDamage(damageAmount, isPoison);
             pm.Rpc_PlayHurtSound();
+        }
+        else
+        {
+            Debug.LogError("[DamageSource] PlayerMovement no encontrado en el objeto dañado.");
         }
 
         // Apply Knockback if it's an Instant trap (like Spikes)

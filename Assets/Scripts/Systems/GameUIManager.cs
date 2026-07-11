@@ -5,6 +5,7 @@ public class GameUIManager : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private Image healthBarFill;
+    [SerializeField] private Image[] healthBarFills;
     [SerializeField] private Image healthBarFrame;
     [SerializeField] private Image staminaBarFill;
     [SerializeField] private GameObject gameOverPanel;
@@ -80,6 +81,48 @@ public class GameUIManager : MonoBehaviour
             canRevive = false;
             SharedHealthSystem.Instance.Revive();
         }
+
+        // Update individual health bar segments
+        UpdateSegmentedHealthBars();
+    }
+
+    private void UpdateSegmentedHealthBars()
+    {
+        if (healthBarFills == null || healthBarFills.Length == 0) return;
+
+        PlayerMovement[] players = FindObjectsOfType<PlayerMovement>();
+        
+        // Sort players by NetId / PlayerId so order is identical on all clients
+        System.Array.Sort(players, (a, b) => {
+            int idA = (a.Object != null && a.Object.IsValid) ? a.Object.InputAuthority.RawEncoded : 0;
+            int idB = (b.Object != null && b.Object.IsValid) ? b.Object.InputAuthority.RawEncoded : 0;
+            return idA.CompareTo(idB);
+        });
+
+        for (int i = 0; i < healthBarFills.Length; i++)
+        {
+            if (healthBarFills[i] == null) continue;
+
+            if (i < players.Length)
+            {
+                healthBarFills[i].gameObject.SetActive(true);
+                healthBarFills[i].fillAmount = players[i].CurrentHealth / players[i].MaxHealth;
+                
+                // Color the fill according to poison state
+                if (players[i].IsPoisoned)
+                {
+                    healthBarFills[i].color = poisonHealthColor;
+                }
+                else
+                {
+                    healthBarFills[i].color = normalHealthColor;
+                }
+            }
+            else
+            {
+                healthBarFills[i].gameObject.SetActive(false);
+            }
+        }
     }
 
     private void SubscribeToHealth()
@@ -110,6 +153,22 @@ public class GameUIManager : MonoBehaviour
 
     private void SubscribeToStamina(PlayerMovement player)
     {
+        if (!player.UseStamina)
+        {
+            if (staminaBarFill != null)
+            {
+                if (staminaBarFill.transform.parent != null && staminaBarFill.transform.parent != transform)
+                {
+                    staminaBarFill.transform.parent.gameObject.SetActive(false);
+                }
+                else
+                {
+                    staminaBarFill.gameObject.SetActive(false);
+                }
+            }
+            return;
+        }
+
         player.OnStaminaChanged += UpdateStaminaBar;
         
         // Initialize UI with current stamina if possible

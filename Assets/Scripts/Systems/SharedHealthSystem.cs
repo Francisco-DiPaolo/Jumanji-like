@@ -170,6 +170,20 @@ public class SharedHealthSystem : NetworkBehaviour
         OnGameOver?.Invoke();
     }
 
+    public void TriggerGameOver()
+    {
+        if (isGameOver) return;
+        if (Object != null && Object.IsValid)
+        {
+            RPC_GameOver();
+        }
+        else
+        {
+            isGameOver = true;
+            OnGameOver?.Invoke();
+        }
+    }
+
     public void Revive()
     {
         if (Object != null && Object.IsValid)
@@ -190,6 +204,12 @@ public class SharedHealthSystem : NetworkBehaviour
         OnPoisonStateChanged?.Invoke(false);
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
         OnRevived?.Invoke();
+
+        PlayerMovement[] players = FindObjectsOfType<PlayerMovement>();
+        foreach (var p in players)
+        {
+            p.ResetHealthLocal();
+        }
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -198,6 +218,13 @@ public class SharedHealthSystem : NetworkBehaviour
         CurrentHealth = maxHealth;
         isGameOver = false;
         IsPoisoned = false;
+
+        PlayerMovement[] players = FindObjectsOfType<PlayerMovement>();
+        foreach (var p in players)
+        {
+            p.ResetHealthStateAuthority();
+        }
+
         RPC_BroadcastRevive();
     }
 

@@ -37,9 +37,23 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
     [SerializeField] float animatorDampTime = 0.1f; // Suavidad del Lerp de Speed
 
     [Header("Stamina Settings")]
+    [SerializeField] private bool useStamina = true;
     [SerializeField] float maxStamina = 100f;
     [SerializeField] float staminaDrainRate = 20f;
     [SerializeField] float staminaRegenRate = 15f;
+
+    public bool UseStamina => useStamina;
+
+    [Header("Health Settings")]
+    [SerializeField] private float maxHealth = 100f;
+    [Networked] public float CurrentHealth { get; set; }
+    [Networked] public NetworkBool IsPoisoned { get; set; }
+    private float poisonResetTimer = 0f;
+    private const float POISON_TIMEOUT = 1.0f; // Seconds without acid damage to clear poison
+
+    public float MaxHealth => maxHealth;
+    public System.Action<float, float> OnHealthChanged;
+    public System.Action<bool> OnPoisonStateChanged;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioSource audioSource;
@@ -100,7 +114,9 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
         if (HasStateAuthority)
         {
             CurrentStamina = maxStamina;
+            CurrentHealth = maxHealth;
         }
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
         unityController = GetComponent<CharacterController>();
 
         // Asignar el grupo SFX al AudioSource por código si están configurados
@@ -222,6 +238,25 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
     /// </summary>
     private void Update()
     {
+        // Procesar el temporizador de veneno
+        if (IsPoisoned && Object != null && Object.IsValid)
+        {
+            poisonResetTimer -= Time.deltaTime;
+            if (poisonResetTimer <= 0)
+            {
+                if (HasStateAuthority)
+                {
+                    IsPoisoned = false;
+                    RPC_BroadcastPoisonState(false);
+                }
+                else
+                {
+                    IsPoisoned = false;
+                    OnPoisonStateChanged?.Invoke(false);
+                }
+            }
+        }
+
         if (!HasInputAuthority) return;
         if (CameraOverrideActive)  return;
 
@@ -341,13 +376,20 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
         bool isMoving = data.move.sqrMagnitude > 0.01f;
         bool isSprinting = false;
 
-        if (sprintKey && isMoving && CurrentStamina > 0)
+        if (sprintKey && isMoving && (!useStamina || CurrentStamina > 0))
         {
             isSprinting = true;
-            CurrentStamina -= staminaDrainRate * Runner.DeltaTime;
-            if (CurrentStamina < 0)
+            if (useStamina)
             {
-                CurrentStamina = 0;
+                CurrentStamina -= staminaDrainRate * Runner.DeltaTime;
+                if (CurrentStamina < 0)
+                {
+                    CurrentStamina = 0;
+                }
+            }
+            else
+            {
+                CurrentStamina = maxStamina;
             }
         }
         else
@@ -515,6 +557,97 @@ public class PlayerMovement : NetworkBehaviour, IBeforeAllTicks, IAfterAllTicks
         if (audioSource != null && hurtSound != null)
         {
             audioSource.PlayOneShot(hurtSound, hurtSoundVolume);
+        }
+    }
+
+    public void TakeDamage(float amount, bool isPoison = false)
+    {
+        if (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver) return;
+        
+        if (isPoison)
+        {
+            poisonResetTimer = POISON_TIMEOUT;
+        }
+
+        if (Object != null && Object.IsValid)
+        {
+            RPC_TakeDamage(amount, isPoison);
+        }
+        else
+        {
+            ApplyDamageLocal(amount, isPoison);
+        }
+    }
+
+    private void ApplyDamageLocal(float amount, bool isPoison)
+    {
+        CurrentHealth -= amount;
+        if (CurrentHealth < 0) CurrentHealth = 0;
+        
+        if (isPoison && !IsPoisoned)
+        {
+            IsPoisoned = true;
+            OnPoisonStateChanged?.Invoke(true);
+        }
+
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+
+        if (CurrentHealth <= 0 && SharedHealthSystem.Instance != null)
+        {
+            SharedHealthSystem.Instance.TriggerGameOver();
+        }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_TakeDamage(float amount, NetworkBool isPoison)
+    {
+        if (SharedHealthSystem.Instance != null && SharedHealthSystem.Instance.isGameOver) return;
+
+        CurrentHealth -= amount;
+        if (CurrentHealth < 0) CurrentHealth = 0;
+        
+        if (isPoison && !IsPoisoned)
+        {
+            IsPoisoned = true;
+            RPC_BroadcastPoisonState(true);
+        }
+
+        if (CurrentHealth <= 0 && SharedHealthSystem.Instance != null)
+        {
+            SharedHealthSystem.Instance.TriggerGameOver();
+        }
+
+        RPC_BroadcastDamage(CurrentHealth);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_BroadcastDamage(float newHealth)
+    {
+        OnHealthChanged?.Invoke(newHealth, maxHealth);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_BroadcastPoisonState(NetworkBool state)
+    {
+        OnPoisonStateChanged?.Invoke(state);
+    }
+
+    public void ResetHealthLocal()
+    {
+        CurrentHealth = maxHealth;
+        IsPoisoned = false;
+        OnPoisonStateChanged?.Invoke(false);
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+    }
+
+    public void ResetHealthStateAuthority()
+    {
+        if (HasStateAuthority)
+        {
+            CurrentHealth = maxHealth;
+            IsPoisoned = false;
+            RPC_BroadcastPoisonState(false);
+            RPC_BroadcastDamage(maxHealth);
         }
     }
 }
