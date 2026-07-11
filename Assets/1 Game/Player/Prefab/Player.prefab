@@ -431,7 +431,7 @@ MonoBehaviour:
     _value: 0
   audioSource: {fileID: 2352314732951535373}
   hurtSound: {fileID: 8300000, guid: e9847bb45a575804db7ea5d9f9d4841f, type: 3}
-  hurtSoundVolume: 0.709
+  hurtSoundVolume: 0.662
   hurtSoundCooldown: 2.3
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
   _CurrentStamina: 0
@@ -926,7 +926,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -80, y: 0.10000038}
+  m_AnchoredPosition: {x: -80, y: 0}
   m_SizeDelta: {x: 78, y: 22.736}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2008196745664868440
@@ -950,7 +950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5372549, g: 0.16470589, b: 0, a: 0.9019608}
+  m_Color: {r: 1, g: 0.630581, b: 0.4669811, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1229,7 +1229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5372549, g: 0.16470589, b: 0, a: 0.9019608}
+  m_Color: {r: 1, g: 0.630581, b: 0.4669811, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1304,7 +1304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5372549, g: 0.16470589, b: 0, a: 0.9019608}
+  m_Color: {r: 1, g: 0.630581, b: 0.4669811, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3593,9 +3593,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 17
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
-  woodVolume: 0.26
-  concreteVolume: 0.26
-  waterVolume: 0.306
+  woodVolume: 0.16
+  concreteVolume: 0.16
+  waterVolume: 0.206
   waterStepFrequency: 2
   priority: 94
   Animator: {fileID: 8925748940849128339}
