@@ -7,9 +7,9 @@ using UnityEngine.Events;
 public class PuzzleButton : MonoBehaviour
 {
     private bool isPressed;
-    private System.Collections.Generic.HashSet<Collider> collidersInside = new System.Collections.Generic.HashSet<Collider>();
     private AudioSource audioSource;
     private Coroutine pressRoutine;
+    private static readonly Collider[] hitBuffer = new Collider[8];
 
     [Header("Puzzle Settings")]
     public string Id;
@@ -30,34 +30,14 @@ public class PuzzleButton : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void FixedUpdate()
     {
-        Debug.Log($"[puzle]: Botón {Id} - OnTriggerEnter con: {other.gameObject.name} (tag: {other.tag})");
-        if (other.GetComponentInParent<PlayerMovement>() != null)
-        {
-            collidersInside.Add(other);
-            UpdateState();
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (collidersInside.Remove(other))
-        {
-            UpdateState();
-        }
-    }
-
-    private void OnDisable()
-    {
-        collidersInside.Clear();
         UpdateState();
     }
 
     private void UpdateState()
     {
-        collidersInside.RemoveWhere(c => c == null || !c.enabled || !c.gameObject.activeInHierarchy);
-        bool pressed = collidersInside.Count > 0;
+        bool pressed = CheckIfPlayerIsOnButton();
         
         if (pressed)
         {
@@ -88,6 +68,53 @@ public class PuzzleButton : MonoBehaviour
                 OnPressedStateChanged?.Invoke(this, false);
             }
         }
+    }
+
+    private bool CheckIfPlayerIsOnButton()
+    {
+        Collider myCollider = GetComponent<Collider>();
+        if (myCollider == null) return false;
+
+        if (myCollider is BoxCollider box)
+        {
+            Vector3 center = transform.TransformPoint(box.center);
+            Vector3 halfExtents = Vector3.Scale(box.size, transform.lossyScale) * 0.5f;
+            int count = Physics.OverlapBoxNonAlloc(center, halfExtents, hitBuffer, transform.rotation);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = hitBuffer[i];
+                if (hit != null && hit.GetComponentInParent<PlayerMovement>() != null)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (myCollider is SphereCollider sphere)
+        {
+            Vector3 center = transform.TransformPoint(sphere.center);
+            float radius = sphere.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+            int count = Physics.OverlapSphereNonAlloc(center, radius, hitBuffer);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = hitBuffer[i];
+                if (hit != null && hit.GetComponentInParent<PlayerMovement>() != null)
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            var players = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            foreach (var player in players)
+            {
+                if (player != null && myCollider.bounds.Contains(player.transform.position))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void ExecutePress()
