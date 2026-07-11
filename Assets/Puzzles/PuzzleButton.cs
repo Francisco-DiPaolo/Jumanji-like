@@ -35,6 +35,22 @@ public class PuzzleButton : MonoBehaviour
         UpdateState();
     }
 
+    private void OnDisable()
+    {
+        if (pressRoutine != null)
+        {
+            StopCoroutine(pressRoutine);
+            pressRoutine = null;
+        }
+        
+        if (isPressed)
+        {
+            isPressed = false;
+            Debug.Log("[puzle]: Botón " + Id + " LIBERADO (OnDisable).");
+            OnPressedStateChanged?.Invoke(this, false);
+        }
+    }
+
     private void UpdateState()
     {
         bool pressed = CheckIfPlayerIsOnButton();
@@ -83,9 +99,14 @@ public class PuzzleButton : MonoBehaviour
             for (int i = 0; i < count; i++)
             {
                 var hit = hitBuffer[i];
-                if (hit != null && hit.GetComponentInParent<PlayerMovement>() != null)
+                if (hit != null)
                 {
-                    return true;
+                    var player = hit.GetComponentInParent<PlayerMovement>();
+                    if (player != null)
+                    {
+                        Debug.Log($"[puzle]: Botón {Id} detectó a {player.gameObject.name} (Collider: {hit.gameObject.name}) en pos {player.transform.position}");
+                        return true;
+                    }
                 }
             }
         }
@@ -97,9 +118,14 @@ public class PuzzleButton : MonoBehaviour
             for (int i = 0; i < count; i++)
             {
                 var hit = hitBuffer[i];
-                if (hit != null && hit.GetComponentInParent<PlayerMovement>() != null)
+                if (hit != null)
                 {
-                    return true;
+                    var player = hit.GetComponentInParent<PlayerMovement>();
+                    if (player != null)
+                    {
+                        Debug.Log($"[puzle]: Botón {Id} detectó a {player.gameObject.name} (Collider: {hit.gameObject.name}) en pos {player.transform.position}");
+                        return true;
+                    }
                 }
             }
         }
@@ -110,6 +136,7 @@ public class PuzzleButton : MonoBehaviour
             {
                 if (player != null && myCollider.bounds.Contains(player.transform.position))
                 {
+                    Debug.Log($"[puzle]: Botón {Id} (Bounds) detectó a {player.gameObject.name} en pos {player.transform.position}");
                     return true;
                 }
             }
