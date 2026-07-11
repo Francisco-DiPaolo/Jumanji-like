@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class PlayerVoiceSetup : NetworkBehaviour
 {
+    [Header("Spatial Audio Settings")]
+    [SerializeField] private AudioRolloffMode rolloffMode = AudioRolloffMode.Linear;
+    [SerializeField] private float minDistance = 1.0f;
+    [SerializeField] private float maxDistance = 25.0f;
+    [SerializeField] private float voiceVolume = 1.0f;
+
     public override void Spawned()
     {
         // Local setup
@@ -28,10 +34,10 @@ public class PlayerVoiceSetup : NetworkBehaviour
         {
             audioSource.spatialize = true;
             audioSource.spatialBlend = 1.0f; // 3D Spatial
-            audioSource.rolloffMode = AudioRolloffMode.Linear;
-            audioSource.minDistance = 1.0f;
-            audioSource.maxDistance = 25.0f;
-            audioSource.volume = 1.0f;
+            audioSource.rolloffMode = rolloffMode;
+            audioSource.minDistance = minDistance;
+            audioSource.maxDistance = maxDistance;
+            audioSource.volume = voiceVolume;
         }
     }
 }

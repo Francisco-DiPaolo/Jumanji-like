@@ -541,6 +541,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae35d333677e57e468ed0e72fbb1f9c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVoiceSetup
+  rolloffMode: 1
+  minDistance: 1
+  maxDistance: 38
+  voiceVolume: 1
 --- !u!114 &5989695226466159440
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -571,9 +575,9 @@ MonoBehaviour:
   occlusionLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  muffledFrequency: 700
+  muffledFrequency: 1700
   clearFrequency: 22000
-  occlusionVolumeFactor: 0.5
+  occlusionVolumeFactor: 0.85
   occlusionCheckInterval: 0.1
   smoothingSpeed: 5
 --- !u!114 &4715506338492157670
