@@ -48,7 +48,7 @@ public class TorchController : NetworkBehaviour
         _loopSource.rolloffMode = AudioRolloffMode.Linear;
         _loopSource.minDistance = 3f;
         _loopSource.maxDistance = 20f;
-        _loopSource.priority = 128; // Prioridad normal
+        _loopSource.priority = 94; // Prioridad normal
         
         _sfxSource.playOnAwake = false;
         _sfxSource.spatialBlend = 1f;
@@ -92,6 +92,10 @@ public class TorchController : NetworkBehaviour
             _fireVfx.SetActive(IsLit);
 
         if (_loopSource == null || _sfxSource == null) return;
+
+        // Asegurar la prioridad siempre antes de reproducir, como solicitaste.
+        _loopSource.priority = 94;
+        _sfxSource.priority = 94;
 
         if (IsLit)
         {
