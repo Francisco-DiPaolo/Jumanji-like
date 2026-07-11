@@ -12,11 +12,26 @@ public class PuzzleSubController : MonoBehaviour
     private string incorrectButtonId2;
 
     public string ControllerIndex => controllerIndex;
+    public string CorrectId => correctButtonId;
     public string IncorrectId1 => incorrectButtonId1;
     public string IncorrectId2 => incorrectButtonId2;
 
     public UnityEvent OnCorrectButtonPressed;
     public event Action OnButtonStateChanged;
+
+    public string GetButtonsStateDescription()
+    {
+        if (buttons == null) return "No buttons";
+        var descList = new System.Collections.Generic.List<string>();
+        foreach (var btn in buttons)
+        {
+            if (btn != null)
+            {
+                descList.Add($"{btn.Id}:IsPressed={btn.IsPressed}");
+            }
+        }
+        return string.Join(", ", descList);
+    }
 
     public bool IsCorrectButtonPressed
     {
