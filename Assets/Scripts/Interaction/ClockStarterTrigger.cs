@@ -2,8 +2,9 @@ using UnityEngine;
 using Fusion;
 
 /// <summary>
-/// Disparador que arranca el CentralClockManager cuando cualquier jugador
-/// (host o cliente) entra en el trigger.
+/// [DEPRECATED] Este trigger ya no es necesario para iniciar el CentralClockManager.
+/// El reloj ahora se inicia automáticamente al completar la Fase 1, desde
+/// Challenge4Manager.Rpc_CompletePhase1(). Este script puede desactivarse o eliminarse de la escena.
 /// </summary>
 public class ClockStarterTrigger : MonoBehaviour
 {

@@ -24,6 +24,14 @@ public class CentralClockManager : NetworkBehaviour
     [SerializeField] private Renderer[] clockSymbolRenderers;
     [SerializeField] private Material symbolDefaultMaterial;
     [SerializeField] private Material symbolActiveMaterial;
+    [Tooltip("Material que se usará para los símbolos activos durante la Fase 2 (en lugar de Symbol Active Material)")]
+    [SerializeField] private Material symbolPhase2Material;
+
+    [Header("Forbidden Combination Filters")]
+    [Tooltip("Referencia a la SoloWheelController; se usa para excluir su combinación actual en Fase 1")]
+    [SerializeField] private SoloWheelController soloWheelRef;
+    [Tooltip("Las 3 WheelRingControllers cooperativas; se usan para excluir sus selecciones actuales en Fase 2")]
+    [SerializeField] private WheelRingController[] wheelRingRefs;
 
     [Header("Events")]
     public UnityEvent OnCycleChanged;
@@ -32,6 +40,8 @@ public class CentralClockManager : NetworkBehaviour
     [Networked] public float CycleTimeRemaining { get; private set; }
     [Networked] public NetworkBool IsRunning { get; set; }
     [Networked] public int CycleCount { get; set; }
+    /// <summary>True a partir de la Fase 2. Controla el material de símbolos activos y el filtro de combinaciones prohibidas.</summary>
+    [Networked] public NetworkBool IsPhase2 { get; set; }
 
     [Networked, Capacity(3)]
     private NetworkArray<NetworkString<_32>> ActiveSymbolIdsNetworked => default;
@@ -137,16 +147,44 @@ public class CentralClockManager : NetworkBehaviour
             return;
         }
 
-        int index = UnityEngine.Random.Range(0, symbolCombinations.Length);
-        
-        // Evitar repetir la misma combinación dos veces seguidas si hay más de una opción
-        if (symbolCombinations.Length > 1)
+        // Construir índices prohibidos según la fase
+        var forbiddenIndices = BuildForbiddenIndices();
+
+        // Intentar elegir un índice válido (no prohibido y no el mismo que el anterior)
+        int index = -1;
+        int maxAttempts = symbolCombinations.Length * 4;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            while (index == _lastCombinationIndex)
+            int candidate = UnityEngine.Random.Range(0, symbolCombinations.Length);
+
+            // Evitar repetir la misma combinación dos veces seguidas si hay más de una opción
+            if (symbolCombinations.Length > 1 && candidate == _lastCombinationIndex)
+                continue;
+
+            if (!forbiddenIndices.Contains(candidate))
             {
-                index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+                index = candidate;
+                break;
             }
         }
+
+        // Fallback: si no encontramos índice válido respetando filtros, ignoramos los prohibidos
+        if (index == -1)
+        {
+            Debug.LogWarning("[CentralClock] No se pudo respetar todos los filtros de combinación. Eligiendo sin filtro de ruedas.", this);
+            index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+            if (symbolCombinations.Length > 1)
+            {
+                int safety = 0;
+                while (index == _lastCombinationIndex && safety < 20)
+                {
+                    index = UnityEngine.Random.Range(0, symbolCombinations.Length);
+                    safety++;
+                }
+            }
+        }
+
         _lastCombinationIndex = index;
 
         SymbolTrio trio = symbolCombinations[index];
@@ -160,6 +198,78 @@ public class CentralClockManager : NetworkBehaviour
         Debug.Log($"[CentralClock] Nueva combinación [{index}]: '{trio.Id0}', '{trio.Id1}', '{trio.Id2}'");
     }
 
+    /// <summary>
+    /// Devuelve los índices de symbolCombinations que están prohibidos para la selección actual,
+    /// según la fase del puzzle.
+    /// </summary>
+    private System.Collections.Generic.HashSet<int> BuildForbiddenIndices()
+    {
+        var forbidden = new System.Collections.Generic.HashSet<int>();
+
+        if (!IsPhase2)
+        {
+            // Fase 1: excluir la combinación actualmente puesta en la SoloWheel
+            if (soloWheelRef != null)
+            {
+                var soloSet = new System.Collections.Generic.HashSet<string>
+                {
+                    soloWheelRef.SelectedSymbolId0,
+                    soloWheelRef.SelectedSymbolId1,
+                    soloWheelRef.SelectedSymbolId2
+                };
+                soloSet.RemoveWhere(s => string.IsNullOrEmpty(s));
+
+                if (soloSet.Count == 3)
+                {
+                    for (int i = 0; i < symbolCombinations.Length; i++)
+                    {
+                        var trioSet = new System.Collections.Generic.HashSet<string>
+                        {
+                            symbolCombinations[i].Id0,
+                            symbolCombinations[i].Id1,
+                            symbolCombinations[i].Id2
+                        };
+                        if (trioSet.SetEquals(soloSet))
+                            forbidden.Add(i);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Fase 2: excluir combinaciones cuyos 3 IDs estén cubiertos por las selecciones actuales
+            // de las WheelRingControllers (2 IDs × 3 ruedas = hasta 6 IDs únicos).
+            // La combinación con la que se abrió la SoloWheel SÍ puede elegirse si está en la lista.
+            if (wheelRingRefs != null)
+            {
+                var wheelSet = new System.Collections.Generic.HashSet<string>();
+                foreach (var w in wheelRingRefs)
+                {
+                    if (w == null) continue;
+                    if (!string.IsNullOrEmpty(w.SelectedSymbolId0)) wheelSet.Add(w.SelectedSymbolId0);
+                    if (!string.IsNullOrEmpty(w.SelectedSymbolId1)) wheelSet.Add(w.SelectedSymbolId1);
+                }
+
+                for (int i = 0; i < symbolCombinations.Length; i++)
+                {
+                    var trioSet = new System.Collections.Generic.HashSet<string>
+                    {
+                        symbolCombinations[i].Id0,
+                        symbolCombinations[i].Id1,
+                        symbolCombinations[i].Id2
+                    };
+                    trioSet.RemoveWhere(s => string.IsNullOrEmpty(s));
+
+                    // Si los 3 símbolos del trio están todos cubiertos por las ruedas, prohibir
+                    if (trioSet.Count > 0 && trioSet.IsSubsetOf(wheelSet))
+                        forbidden.Add(i);
+                }
+            }
+        }
+
+        return forbidden;
+    }
+
     public override void Render()
     {
         foreach (var change in _changeDetector.DetectChanges(this))
@@ -168,6 +278,11 @@ public class CentralClockManager : NetworkBehaviour
             {
                 ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
                 OnCycleChanged?.Invoke();
+            }
+            else if (change == nameof(IsPhase2))
+            {
+                // Al cambiar de fase, refrescar materiales para que usen el material correcto
+                ApplyActiveSymbolMaterials(ActiveSymbolId0, ActiveSymbolId1, ActiveSymbolId2);
             }
         }
     }
@@ -182,12 +297,17 @@ public class CentralClockManager : NetworkBehaviour
     {
         if (clockSymbolRenderers == null) return;
 
+        // En Fase 2 se usa el material de Fase 2 (si está asignado); de lo contrario el Active normal
+        Material activeMat = (IsPhase2 && symbolPhase2Material != null)
+            ? symbolPhase2Material
+            : symbolActiveMaterial;
+
         for (int i = 0; i < clockSymbolRenderers.Length; i++)
         {
             if (clockSymbolRenderers[i] == null) continue;
             string id = _symbolIds[i];
             bool isActive = id == id0 || id == id1 || id == id2;
-            clockSymbolRenderers[i].material = isActive ? symbolActiveMaterial : symbolDefaultMaterial;
+            clockSymbolRenderers[i].material = isActive ? activeMat : symbolDefaultMaterial;
         }
     }
 

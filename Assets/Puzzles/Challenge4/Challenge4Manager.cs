@@ -251,6 +251,9 @@ private bool CheckAnyWheelMatches()
                 soloWheel.SelectedSymbolId1,
                 soloWheel.SelectedSymbolId2
             );
+            // Activar material de Fase 2 e iniciar el timer del reloj
+            centralClock.IsPhase2 = true;
+            centralClock.StartClock();
         }
 
         OnPhase1Completed?.Invoke();
