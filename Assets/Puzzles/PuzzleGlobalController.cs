@@ -20,6 +20,7 @@ public class PuzzleGlobalController : NetworkBehaviour
 
     private ChangeDetector changeDetector;
     private bool isEvaluating;
+    private bool needsEvaluation;
 
     public UnityEvent OnPhaseCompleted;
     public UnityEvent OnPuzzleCompleted;
@@ -171,14 +172,20 @@ public class PuzzleGlobalController : NetworkBehaviour
             Debug.Log("[puzle]: Se ignoró HandleLocalButtonStateChanged porque este cliente no tiene State Authority.");
             return;
         }
+        needsEvaluation = true;
+    }
+
+    private void EvaluateButtons()
+    {
+        Debug.Log("[puzle]: EvaluateButtons invocado. HasStateAuthority=" + HasStateAuthority + ", IsPuzzleSolved=" + IsPuzzleSolved + ", isEvaluating=" + isEvaluating);
         if (IsPuzzleSolved)
         {
-            Debug.Log("[puzle]: Se ignoró HandleLocalButtonStateChanged porque el puzzle ya está resuelto.");
+            Debug.Log("[puzle]: Se ignoró EvaluateButtons porque el puzzle ya está resuelto.");
             return;
         }
         if (isEvaluating)
         {
-            Debug.Log("[puzle]: Se ignoró HandleLocalButtonStateChanged porque ya se está evaluando.");
+            Debug.Log("[puzle]: Se ignoró EvaluateButtons porque ya se está evaluando.");
             return;
         }
 
@@ -346,6 +353,12 @@ public class PuzzleGlobalController : NetworkBehaviour
                 Rpc_RequestServerEvaluation();
             }
         }
+
+        if (HasStateAuthority && needsEvaluation && !isEvaluating)
+        {
+            needsEvaluation = false;
+            EvaluateButtons();
+        }
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -357,8 +370,8 @@ public class PuzzleGlobalController : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestServerEvaluation()
     {
-        Debug.Log("[puzle]: Rpc_RequestServerEvaluation recibido. Forzando evaluación en el servidor.");
-        HandleLocalButtonStateChanged();
+        Debug.Log("[puzle]: Rpc_RequestServerEvaluation recibido. Encolando evaluación en el servidor.");
+        needsEvaluation = true;
     }
 
     private void LogDetailedDebugState(string label)
