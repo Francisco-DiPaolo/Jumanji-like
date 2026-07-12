@@ -671,7 +671,7 @@ MonoBehaviour:
   occlusionLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  muffledFrequency: 1700
+  muffledFrequency: 1500
   clearFrequency: 22000
   occlusionVolumeFactor: 0.85
   occlusionCheckInterval: 0.1

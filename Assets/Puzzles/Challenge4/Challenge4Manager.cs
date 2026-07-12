@@ -312,13 +312,10 @@ private bool CheckAnyWheelMatches()
 
         if (HasStateAuthority)
         {
-            // Daño compartido (solo el que tiene autoridad lo aplica para no duplicarlo)
-            if (SharedHealthSystem.Instance != null)
-                SharedHealthSystem.Instance.TakeDamage(caveInDamage);
-                
-            // Hacer que los personajes emitan su sonido de dolor
+            // Daño individual a todos los jugadores conectados
             foreach (var pm in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
             {
+                pm.TakeDamage(caveInDamage);
                 pm.Rpc_PlayHurtSound();
             }
         }

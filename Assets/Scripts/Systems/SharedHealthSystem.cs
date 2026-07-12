@@ -88,6 +88,13 @@ public class SharedHealthSystem : NetworkBehaviour
     {
         if (isGameOver) return;
         
+        // Aplicar daño a todos los jugadores individuales
+        PlayerMovement[] players = FindObjectsOfType<PlayerMovement>();
+        foreach (var p in players)
+        {
+            p.TakeDamage(amount, isPoison);
+        }
+        
         if (isPoison)
         {
             poisonResetTimer = POISON_TIMEOUT;
