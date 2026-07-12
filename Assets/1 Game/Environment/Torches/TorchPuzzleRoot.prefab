@@ -977,18 +977,18 @@ PrefabInstance:
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: igniteVolume
-      value: 0.514
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: extinguishVolume
-      value: 0.31
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 3614378434925007151, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: m_Name
@@ -1048,7 +1048,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.718
+  m_Volume: 0.761
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1158,18 +1158,18 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteVolume
-      value: 0.514
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishVolume
-      value: 0.31
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
@@ -1275,7 +1275,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.718
+  m_Volume: 0.761
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1529,18 +1529,18 @@ PrefabInstance:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteClip
       value: 
-      objectReference: {fileID: 8300000, guid: 2fccc04f741346a4db8eb1b0fb492421, type: 3}
+      objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteVolume
-      value: 0.514
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
-      objectReference: {fileID: 8300000, guid: 67c769c8a5b476d4fa0ed3965ceb770a, type: 3}
+      objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishVolume
-      value: 0.31
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
@@ -1635,7 +1635,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.718
+  m_Volume: 0.761
   m_Pitch: 1
   Loop: 0
   Mute: 0

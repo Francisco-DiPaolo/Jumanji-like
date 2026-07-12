@@ -431,7 +431,7 @@ MonoBehaviour:
     _value: 0
   audioSource: {fileID: 2352314732951535373}
   hurtSound: {fileID: 8300000, guid: e9847bb45a575804db7ea5d9f9d4841f, type: 3}
-  hurtSoundVolume: 0.662
+  hurtSoundVolume: 0.75
   hurtSoundCooldown: 2.3
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
   _CurrentStamina: 0
@@ -3593,9 +3593,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 17
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
-  woodVolume: 0.1
-  concreteVolume: 0.1
-  waterVolume: 0.15
+  woodVolume: 0.3
+  concreteVolume: 0.3
+  waterVolume: 0.35
   waterStepFrequency: 2
   priority: 94
   Animator: {fileID: 8925748940849128339}
