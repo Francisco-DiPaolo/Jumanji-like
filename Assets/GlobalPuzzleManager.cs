@@ -238,19 +238,32 @@ public class GlobalPuzzleManager : NetworkBehaviour
                 validManagers.Add(m);
         }
 
-        bool allSolved = true;
-        foreach (var manager in validManagers)
+        // Contar jugadores activos en la sesión de Fusion
+        int activePlayerCount = 0;
+        if (Runner != null)
         {
-            if (manager.PlayerInteracted.Count == 0)
+            foreach (var p in Runner.ActivePlayers)
             {
-                allSolved = false;
-                break;
+                activePlayerCount++;
             }
         }
 
+        // Contar cuántos managers tienen al menos una interacción registrada
+        int managersWithInteractions = 0;
+        foreach (var manager in validManagers)
+        {
+            if (manager.PlayerInteracted.Count > 0)
+            {
+                managersWithInteractions++;
+            }
+        }
+
+        // Se resuelve si todos los jugadores activos interactuaron en sus respectivos managers
+        bool allSolved = (activePlayerCount > 0) && (managersWithInteractions >= activePlayerCount);
+
         if (allSolved && validManagers.Count > 0)
         {
-            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON (Botón)! Abriendo {validManagers.Count} puertas.");
+            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON (Botón)! Jugadores activos: {activePlayerCount}. Abriendo {validManagers.Count} puertas.");
             foreach (var manager in validManagers)
             {
                 manager.IsPuzzleSolved = true;
