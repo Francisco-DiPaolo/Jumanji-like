@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.6808, y: 3.7034}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 2.4454, y: 0.3688}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5182307833748960470
@@ -742,7 +742,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1517768843869494070}
   m_LocalRotation: {x: -0, y: -0.9959022, z: -0, w: -0.09043757}
-  m_LocalPosition: {x: 0, y: 0, z: -0.27360308}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -751,7 +751,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 280.378, y: 90, z: 90}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -0.74686337, y: -1.8560655}
+  m_AnchoredPosition: {x: 0, y: 1.9}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &7235729749092460750
@@ -3593,9 +3593,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 17
   sfxMixerGroup: {fileID: -7853010194061034891, guid: 7accf9396237c224bbbebfaedd121142, type: 2}
-  woodVolume: 0.3
-  concreteVolume: 0.3
-  waterVolume: 0.35
+  woodVolume: 0.2
+  concreteVolume: 0.2
+  waterVolume: 0.25
   waterStepFrequency: 2
   priority: 94
   Animator: {fileID: 8925748940849128339}
