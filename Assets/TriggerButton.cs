@@ -6,6 +6,15 @@ public class TriggerButton : MonoBehaviour
     public bool pressed;
     [SerializeField] private List<Collider> collidersInside = new List<Collider>();
 
+    [Header("Pressed Visuals")]
+    [Tooltip("GameObject que se activa mientras el botón está presionado")]
+    [SerializeField] private GameObject pressedObject;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [Tooltip("Sonido que se reproduce cuando el botón es presionado")]
+    [SerializeField] private AudioClip pressSound;
+
     void OnTriggerEnter(Collider other)
     {
         PlayerMovement p = other.GetComponentInParent<PlayerMovement>();
@@ -69,10 +78,18 @@ public class TriggerButton : MonoBehaviour
         if (pressed != wasPressed)
         {
             Debug.Log($"[TriggerButton] {gameObject.name} pressed state changed to: {pressed} (Colliders inside: {collidersInside.Count})");
+
+            // Activar/desactivar el objeto visual según el estado
+            if (pressedObject != null)
+                pressedObject.SetActive(pressed);
+
+            // Reproducir sonido al presionar
+            if (pressed && audioSource != null && pressSound != null)
+                audioSource.PlayOneShot(pressSound);
         }
 
-        // Solo avisar al manager si el estado cambió de 'libre' a 'presionado'
-        if (pressed && !wasPressed)
+        // Avisar al manager cuando el estado cambia (tanto al presionar como al soltar)
+        if (pressed != wasPressed)
         {
             ButtonsManager.instance.checkButton();
         }

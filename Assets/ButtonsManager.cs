@@ -23,6 +23,8 @@ public class ButtonsManager : NetworkBehaviour
     public AudioSource audioSource;
     public AudioClip openSound;
     public AudioClip closeSound;
+    [Tooltip("Sonido que se reproduce cuando todos los botones están presionados")]
+    public AudioClip allPressedSound;
 
     [Header("Objects To Disable")]
     public GameObject[] extraObjectsToDisable;
@@ -32,9 +34,16 @@ public class ButtonsManager : NetworkBehaviour
     [Tooltip("Tiempo en segundos para encender el objeto luego de activar")]
     public float delayToEnableObject = 1f;
 
+    [Header("All Buttons Pressed")]
+    [Tooltip("GameObject que se activa cuando TODOS los botones están presionados")]
+    public GameObject allPressedObject;
+    [Tooltip("Tiempo en segundos antes de ejecutar la secuencia del piso")]
+    public float delayBeforeSequence = 2f;
+
     private Vector3 leftFloorOriginalPos;
     private Vector3 rightFloorOriginalPos;
     private bool isAnimating = false;
+    private int allPressedTweenId = -1;
 
     public static ButtonsManager instance{
         get
@@ -70,16 +79,53 @@ public class ButtonsManager : NetworkBehaviour
 
     public void checkButton()
     {
-        if(triggerButtons.All(b=> b.pressed)) 
+        bool allPressed = triggerButtons.All(b => b.pressed);
+
+        if (allPressed)
         {
-            if (Runner != null && Object != null && Object.IsValid)
+            // Activar el objeto cuando todos están presionados
+            if (allPressedObject != null)
+                allPressedObject.SetActive(true);
+
+            // Reproducir sonido de todos presionados
+            if (audioSource != null && allPressedSound != null)
+                audioSource.PlayOneShot(allPressedSound);
+
+            // Cancelar cualquier llamada previa pendiente
+            if (allPressedTweenId != -1)
             {
-                Rpc_TriggerFloorSequence();
+                LeanTween.cancel(allPressedTweenId);
+                allPressedTweenId = -1;
             }
-            else
+
+            // Esperar el delay antes de ejecutar la secuencia
+            allPressedTweenId = LeanTween.delayedCall(gameObject, delayBeforeSequence, () =>
             {
-                TriggerFloorSequenceLocal();
+                allPressedTweenId = -1;
+                if (triggerButtons.All(b => b.pressed))
+                {
+                    if (Runner != null && Object != null && Object.IsValid)
+                    {
+                        Rpc_TriggerFloorSequence();
+                    }
+                    else
+                    {
+                        TriggerFloorSequenceLocal();
+                    }
+                }
+            }).id;
+        }
+        else
+        {
+            // Algún botón se soltó: cancelar secuencia pendiente y apagar objeto
+            if (allPressedTweenId != -1)
+            {
+                LeanTween.cancel(allPressedTweenId);
+                allPressedTweenId = -1;
             }
+
+            if (allPressedObject != null)
+                allPressedObject.SetActive(false);
         }
     }
 
