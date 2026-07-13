@@ -4,8 +4,9 @@ using UnityEngine;
 
 /// <summary>
 /// GlobalPuzzleManager — Controla la secuencia de encendido de antorchas del puzzle.
-/// El jugador presiona un botón para validar: si no todas las antorchas están en verde,
-/// la secuencia se resetea y vuelve a empezar desde el principio.
+/// Cuando TODAS las antorchas están encendidas (verdes), todos los jugadores deben
+/// apretar el botón simultáneamente dentro de la ventana de sincronización para resolver el puzzle.
+/// Si algún jugador aprieta cuando no todas están encendidas, la secuencia se resetea.
 /// </summary>
 public class GlobalPuzzleManager : NetworkBehaviour
 {
@@ -16,22 +17,11 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [SerializeField] List<TorchController> torches;
     [SerializeField] LeanTweenDoor tweenDoor;
 
-    public enum PuzzleResolutionMode
-    {
-        PressButtonWhenGreen,
-        SyncGreenTorchesAutomatically
-    }
-
-    [Header("Modo de Resolución")]
-    [Tooltip("PressButtonWhenGreen: Apretar botón cuando está en verde.\nSyncGreenTorchesAutomatically: Alinear los tiempos para que las verdes coincidan solas, el botón solo resetea.")]
-    [SerializeField] PuzzleResolutionMode resolutionMode = PuzzleResolutionMode.PressButtonWhenGreen;
-
     [Header("Temporización de la secuencia")]
     [Tooltip("Tiempo en segundos que tarda en encenderse la siguiente antorcha de la secuencia.")]
     [SerializeField] float torch_frequency = 2f;        // Frecuencia de encendido entre antorchas
-
-    [SerializeField] float allLitDuration     = 3f;     // Tiempo que permanecen todas encendidas
     [SerializeField] float resetPauseDuration = 1f;     // Pausa breve tras apagar todas (ciclo normal)
+    [Tooltip("Tiempo que los jugadores tienen para apretar el botón una vez que todas las antorchas están encendidas.")]
     [SerializeField] float syncWindowDuration = 1.5f;   // Ventana de sincronización multijugador
 
     [Header("Sonido de puerta al resolver")]
@@ -138,7 +128,15 @@ public class GlobalPuzzleManager : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         if (!Object.HasStateAuthority) return;
-        if (IsPuzzleSolved || !IsStarted) return;
+
+        // ── Puzzle resuelto: asegurar que el ladrillo quede deshabilitado ──
+        if (IsPuzzleSolved)
+        {
+            if (IsBrickEnabled) { IsBrickEnabled = false; if (Brick != null) Brick.IsInteractable = false; }
+            return;
+        }
+
+        if (!IsStarted) return;
         if (Runner.SimulationTime < NextActionTime) return;
 
         // ── Pausa breve tras apagarse todas (ciclo normal) ──
@@ -157,10 +155,11 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
             if (CurrentTorchIndex >= torches.Count)
             {
-                // Todas encendidas: habilitar ladrillo interactivo
-                IsBrickEnabled = true;
-                if (Brick != null) Brick.IsInteractable = true;
-                NextActionTime = Runner.SimulationTime + allLitDuration;
+                // Todas encendidas: marcar estado e iniciar ventana de sincronización
+                IsBrickEnabled     = true;
+                SyncWindowOpenTime = Runner.SimulationTime;
+                NextActionTime     = Runner.SimulationTime + syncWindowDuration;
+                Debug.Log("[PuzzleManager] ¡Todas las antorchas encendidas! Ventana de sincronización abierta.");
             }
             else
             {
@@ -170,31 +169,9 @@ public class GlobalPuzzleManager : NetworkBehaviour
         }
         else
         {
-            // Secuencia completa sin resolver → apagar todo y reiniciar ciclo
+            // Ventana de sincronización expiró sin que todos presionaran → apagar y reiniciar
+            Debug.Log("[PuzzleManager] Ventana de sincronización expiró. Reseteando...");
             ExtinguishAll();
-        }
-
-        // ── Comprobación de modos ──
-        if (resolutionMode == PuzzleResolutionMode.PressButtonWhenGreen)
-        {
-            // En modo manual, comprobamos si la ventana de sincronización expiró
-            if (PlayerInteracted.Count > 0)
-            {
-                float elapsed = Runner.SimulationTime - SyncWindowOpenTime;
-                if (elapsed > syncWindowDuration)
-                {
-                    Debug.Log("[PuzzleManager] Sync window expiró. Reseteando interacción.");
-                    ResetSyncWindow();
-                }
-            }
-        }
-        else if (resolutionMode == PuzzleResolutionMode.SyncGreenTorchesAutomatically)
-        {
-            // En modo automático, comprobamos continuamente si las verdes coinciden
-            if (IsGreenTorchLit())
-            {
-                TryResolveAutoSync();
-            }
         }
     }
 
@@ -204,9 +181,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     /// <summary>
     /// Llamar cuando el jugador presiona el botón de validación.
-    /// Comprueba si TODAS las antorchas están en estado Verde (apagadas).
-    /// → Si están todas en verde: registra la interacción del jugador (posible resolución).
-    /// → Si alguna NO está en verde: resetea la secuencia desde el principio.
+    /// → Si TODAS las antorchas están encendidas: registra la interacción del jugador.
+    ///    Cuando todos los jugadores hayan interactuado → puzzle resuelto.
+    /// → Si alguna antorcha NO está encendida: resetea SOLO la secuencia de este jugador.
+    /// El botón permanece activo en todo momento mientras el puzzle está activo.
     /// Solo el StateAuthority ejecuta la lógica; los clientes envían RPC al host.
     /// </summary>
     public void ValidateAnswer(PlayerRef player)
@@ -221,38 +199,32 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (!IsStarted)
         {
-            // Arrancar el puzzle por primera vez
+            // Arrancar el puzzle por primera vez y habilitar el botón permanentemente
             Debug.Log("[PuzzleManager] Arrancando el puzzle (primer click).");
             IsStarted = true;
+            if (Brick != null) Brick.IsInteractable = true;
             ResetSequence();
             return;
         }
 
-        if (resolutionMode == PuzzleResolutionMode.SyncGreenTorchesAutomatically)
+        if (AreAllTorchesLit())
         {
-            // En este modo, el botón es puramente para resetear y desfasar la secuencia
-            Debug.Log("[PuzzleManager] Botón presionado en modo Auto-Sync. Reseteando secuencia.");
-            ResetSequence();
-            return;
-        }
+            // ✅ Todas las antorchas encendidas: registrar interacción del jugador
+            if (PlayerInteracted.ContainsKey(player))
+            {
+                Debug.Log($"[PuzzleManager] Player {player} ya registrado.");
+                return;
+            }
 
-        if (IsGreenTorchLit())
-        {
-            // ✅ Respuesta correcta local. Registramos que este jugador apretó a tiempo.
-            Debug.Log($"[PuzzleManager] Validación CORRECTA local. Esperando a otros... (Player {player})");
-            
-            bool isFirstInteract = PlayerInteracted.Count == 0;
             PlayerInteracted.Set(player, true);
-
-            if (isFirstInteract)
-                SyncWindowOpenTime = Runner.SimulationTime;
+            Debug.Log($"[PuzzleManager] Player {player} apretó a tiempo. ({PlayerInteracted.Count} jugadores registrados)");
 
             TryResolveSync();
         }
         else
         {
-            // ❌ Respuesta incorrecta: resetear la secuencia de esta celda
-            Debug.Log("[PuzzleManager] Validación INCORRECTA — reseteando secuencia.");
+            // ❌ No todas las antorchas encendidas: resetear la secuencia
+            Debug.Log($"[PuzzleManager] Player {player} apretó con antorchas apagadas — reseteando secuencia.");
             ResetSequence();
         }
     }
@@ -286,34 +258,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
         }
     }
 
-    void TryResolveAutoSync()
-    {
-        var validManagers = new List<GlobalPuzzleManager>();
-        foreach (var m in _activeManagers)
-        {
-            if (m != null && m.Object != null && m.Object.IsValid)
-                validManagers.Add(m);
-        }
 
-        bool allGreen = true;
-        foreach (var manager in validManagers)
-        {
-            if (!manager.IsGreenTorchLit())
-            {
-                allGreen = false;
-                break;
-            }
-        }
-
-        if (allGreen && validManagers.Count > 0)
-        {
-            Debug.Log($"[PuzzleManager] ¡TODAS LAS ANTORCHAS VERDES SINCRONIZADAS! Abriendo {validManagers.Count} puertas.");
-            foreach (var manager in validManagers)
-            {
-                manager.IsPuzzleSolved = true;
-            }
-        }
-    }
 
     void ResetSyncWindow()
     {
@@ -322,28 +267,13 @@ public class GlobalPuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Devuelve true si la antorcha configurada como verde está actualmente encendida.
-    /// Si hay varias, deben estar todas encendidas.
+    /// Devuelve true si TODAS las antorchas del puzzle están actualmente encendidas.
+    /// Esta es la condición para que el jugador pueda validar correctamente.
     /// </summary>
-    bool IsGreenTorchLit()
+    bool AreAllTorchesLit()
     {
-        bool hasGreenTorch = false;
         foreach (var torch in torches)
-        {
-            if (torch.IsGreenTorch)
-            {
-                hasGreenTorch = true;
-                if (!torch.IsLit) return false; // Falta encender la antorcha verde
-            }
-        }
-        
-        // Si por algún motivo no hay antorchas verdes, ganan cuando todas estén prendidas
-        if (!hasGreenTorch)
-        {
-            foreach (var torch in torches)
-                if (!torch.IsLit) return false;
-        }
-        
+            if (!torch.IsLit) return false;
         return true;
     }
 
@@ -353,22 +283,20 @@ public class GlobalPuzzleManager : NetworkBehaviour
     /// </summary>
     void ResetSequence()
     {
-        // Apagar todas las antorchas → estado Verde
+        // Apagar todas las antorchas
         foreach (var torch in torches)
             torch.Extinguish();
 
         // Reiniciar estado de la secuencia
         CurrentTorchIndex = 0;
         AllExtinguished   = false;
-
-        // Deshabilitar el ladrillo interactivo
-        IsBrickEnabled = false;
-        if (Brick != null) Brick.IsInteractable = false;
+        IsBrickEnabled    = false;
 
         // Limpiar ventana de sincronización
         ResetSyncWindow();
 
         // Reiniciar temporizador con la frecuencia configurada
+        // (Brick.IsInteractable NO se toca — el botón sigue activo)
         NextActionTime = Runner.SimulationTime + torch_frequency;
     }
 
@@ -387,7 +315,8 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         CurrentTorchIndex = 0;
         IsBrickEnabled    = false;
-        if (Brick != null) Brick.IsInteractable = false;
+        // Brick.IsInteractable NO se toca — el botón sigue activo para que el jugador pueda
+        // intentar apretar (y sea penalizado con reset si lo hace con antorchas apagadas)
         ResetSyncWindow();
         AllExtinguished = true;
         NextActionTime  = Runner.SimulationTime + resetPauseDuration;

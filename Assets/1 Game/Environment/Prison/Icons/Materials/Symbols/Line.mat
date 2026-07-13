@@ -33,7 +33,7 @@ Material:
     - _Softness: 0.15
     - _Threshold: 0.1
     m_Colors:
-    - _BaseColor: {r: 0.7176471, g: 0.2745098, b: 0.39763662, a: 1}
+    - _BaseColor: {r: 0.2745098, g: 0.7176471, b: 0.32723266, a: 1}
     - _EmissionColor: {r: 0.6698113, g: 0, b: 0.018714711, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

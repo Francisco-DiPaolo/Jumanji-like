@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   walkSpeed: 2.2
-  sprintSpeed: 4.1
+  sprintSpeed: 4.4
   acceleration: 15
   deceleration: 20
   jumpHeight: 1.2
@@ -425,7 +425,7 @@ MonoBehaviour:
   maxStamina: 100
   staminaDrainRate: 18
   staminaRegenRate: 12
-  maxHealth: 100
+  maxHealth: 400
   _CurrentHealth: 0
   _IsPoisoned:
     _value: 0
