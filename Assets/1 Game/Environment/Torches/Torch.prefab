@@ -151,7 +151,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TorchController
   isGreenTorch: 0
+  fireParticleSystem1: {fileID: 0}
+  fireParticleSystem2: {fileID: 0}
+  orangeColor: {r: 1, g: 0.5921569, b: 0, a: 1}
+  greenColor: {r: 0.007843138, g: 0.67058825, b: 0.019607844, a: 1}
+  igniteClip: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
+  igniteVolume: 1
+  loopClip: {fileID: 8300000, guid: e1a9e3df2e5690e4c91e21a177d0baf0, type: 3}
+  extinguishClip: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
+  extinguishVolume: 0.8
   _IsLit:
+    _value: 0
+  _UseSuccessColor:
     _value: 0
 --- !u!114 &7587246975818119484
 MonoBehaviour:

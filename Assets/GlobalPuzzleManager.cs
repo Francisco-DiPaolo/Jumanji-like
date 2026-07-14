@@ -212,7 +212,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
                 {
                     // Primer paso: apagar las antorchas para dar feedback visual de que terminó
                     foreach (var torch in torches)
+                    {
                         torch.Extinguish();
+                        torch.UseSuccessColor = false;
+                    }
 
                     InCoyoteAfter = true;
                     // Esperar coyoteTolerance adicionales antes de resetear
@@ -287,6 +290,11 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
             PlayerInteracted.Set(player, true);
             Debug.Log($"[PuzzleManager] Player {player} apretó en ventana de validación (isBefore={isBefore}, isAfter={isAfter}). ({PlayerInteracted.Count} jugadores registrados)");
+            
+            // Cambiar color de partículas a verde
+            foreach (var torch in torches)
+                torch.UseSuccessColor = true;
+
             TryResolveSync();
         }
         else
@@ -400,7 +408,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
     void StopSequence()
     {
         foreach (var torch in torches)
+        {
             torch.Extinguish();
+            torch.UseSuccessColor = false;
+        }
 
         CurrentTorchIndex = 0;
         CurrentRound      = 0;
@@ -419,7 +430,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
     void ExtinguishAllWithPause()
     {
         foreach (var torch in torches)
+        {
             torch.Extinguish();
+            torch.UseSuccessColor = false;
+        }
 
         CurrentTorchIndex = 0;
         IsBrickEnabled    = false;
@@ -435,7 +449,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
     void ResetSequence()
     {
         foreach (var torch in torches)
+        {
             torch.Extinguish();
+            torch.UseSuccessColor = false;
+        }
 
         CurrentTorchIndex = 0;
         AllExtinguished   = false;

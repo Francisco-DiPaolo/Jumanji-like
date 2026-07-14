@@ -6,6 +6,12 @@ public class TorchController : NetworkBehaviour
     [SerializeField] bool isGreenTorch;
     public bool IsGreenTorch => isGreenTorch;
 
+    [Header("Colores y Partículas")]
+    [SerializeField] ParticleSystem fireParticleSystem1;
+    [SerializeField] ParticleSystem fireParticleSystem2;
+    [SerializeField] Color orangeColor = new Color(1f, 0.4f, 0f, 1f);
+    [SerializeField] Color greenColor = Color.green;
+
     [Header("Sonidos")]
     [SerializeField] AudioClip igniteClip;  // Sonido al encenderse (one-shot)
     [Range(0f, 1f)] [SerializeField] float igniteVolume = 0.6f;
@@ -14,6 +20,7 @@ public class TorchController : NetworkBehaviour
     [Range(0f, 1f)] [SerializeField] float extinguishVolume = 0.6f;
 
     [Networked] public NetworkBool IsLit { get; set; }
+    [Networked] public NetworkBool UseSuccessColor { get; set; }
 
     ChangeDetector _changeDetector;
     GameObject _fireVfx;
@@ -60,8 +67,10 @@ public class TorchController : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             IsLit = false; // Asegurar que el estado inicial en red sea estrictamente false
+            UseSuccessColor = false;
         }
 
+        UpdateParticleColors();
         ApplyVisuals(false); // Falso para no reproducir sonidos al iniciar
     }
 
@@ -83,11 +92,30 @@ public class TorchController : NetworkBehaviour
         {
             if (change == nameof(IsLit))
                 ApplyVisuals(true);
+            if (change == nameof(UseSuccessColor))
+                ApplyVisuals(false);
+        }
+    }
+
+    void UpdateParticleColors()
+    {
+        Color targetColor = UseSuccessColor ? greenColor : orangeColor;
+        if (fireParticleSystem1 != null)
+        {
+            var main = fireParticleSystem1.main;
+            main.startColor = targetColor;
+        }
+        if (fireParticleSystem2 != null)
+        {
+            var main = fireParticleSystem2.main;
+            main.startColor = targetColor;
         }
     }
 
     void ApplyVisuals(bool playSounds = true)
     {
+        UpdateParticleColors();
+
         if (_fireVfx != null)
             _fireVfx.SetActive(IsLit);
 
