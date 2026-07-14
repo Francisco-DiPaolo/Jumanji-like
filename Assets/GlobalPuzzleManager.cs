@@ -35,6 +35,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [Tooltip("Cuántas veces debe llegar al verde (completar la secuencia entera) antes de apagarse y esperar el botón.")]
     [SerializeField] int roundsToStayLit = 1;
 
+    [Header("Tolerancia (Coyote Time)")]
+    [Tooltip("Tolerancia de validación en segundos (antes y después del verde).")]
+    [SerializeField] float coyoteTolerance = 0.15f;
+
     [Header("Sonido al llegar al verde")]
     [Tooltip("AudioSource que se reproduce en todos los clientes cuando un jugador aprieta el botón con todas las antorchas encendidas.")]
     [SerializeField] AudioSource greenCellAudioSource;
@@ -57,6 +61,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [Networked]        NetworkBool AllExtinguished    { get; set; }
     [Networked]        float       SyncWindowOpenTime { get; set; }
     [Networked]        int         CurrentRound       { get; set; }
+    [Networked]        NetworkBool InCoyoteAfter      { get; set; }
     /// <summary>
     /// Contador que se incrementa cada vez que debe reproducirse el sonido verde.
     /// El cambio se detecta en Render() en todos los clientes.
@@ -95,6 +100,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
             GreenSoundTick    = 0;
             AllExtinguished   = true;
             IsStarted         = false;
+            InCoyoteAfter     = false;
         }
     }
 
@@ -198,20 +204,34 @@ public class GlobalPuzzleManager : NetworkBehaviour
         }
         else
         {
-            // ── Ventana de sincronización expiró: completar la ronda ──
-            CurrentRound++;
-            Debug.Log($"[PuzzleManager] Ronda {CurrentRound}/{roundsToStayLit} completada.");
-
-            if (CurrentRound >= roundsToStayLit)
+            // ── Ventana de sincronización expiró ──
+            if (CurrentRound + 1 >= roundsToStayLit)
             {
-                // Todas las rondas completadas → apagar todo y esperar botón
-                Debug.Log("[PuzzleManager] Todas las rondas completadas. Apagando y esperando botón...");
-                StopSequence();
+                // Es la última ronda
+                if (!InCoyoteAfter)
+                {
+                    // Primer paso: apagar las antorchas para dar feedback visual de que terminó
+                    foreach (var torch in torches)
+                        torch.Extinguish();
+
+                    InCoyoteAfter = true;
+                    // Esperar coyoteTolerance adicionales antes de resetear
+                    NextActionTime = Runner.SimulationTime + coyoteTolerance;
+                    Debug.Log($"[PuzzleManager] Verde finalizó. Entrando en coyote time de salida ({coyoteTolerance}s)...");
+                }
+                else
+                {
+                    // El coyote time de salida expiró → Resetear todo
+                    InCoyoteAfter = false;
+                    CurrentRound++;
+                    Debug.Log("[PuzzleManager] Coyote time de salida expiró. Deteniendo secuencia...");
+                    StopSequence();
+                }
             }
             else
             {
-                // Quedan más rondas → apagar inmediatamente y continuar con el mismo ritmo
-                Debug.Log($"[PuzzleManager] Iniciando ronda {CurrentRound + 1}/{roundsToStayLit}...");
+                // Rondas intermedias: apagar y continuar al mismo ritmo
+                CurrentRound++;
                 ResetSequence();
             }
         }
@@ -243,19 +263,21 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (!IsStarted)
         {
             Debug.Log("[PuzzleManager] Arrancando el puzzle (botón apretado).");
-            IsStarted    = true;
-            CurrentRound = 0;
+            IsStarted     = true;
+            CurrentRound  = 0;
+            InCoyoteAfter = false;
             if (Brick != null) Brick.IsInteractable = true;
             ResetSequence();
             return;
         }
 
-        if (AreAllTorchesLit())
+        bool isBefore, isAfter;
+        if (IsInValidationWindow(out isBefore, out isAfter))
         {
-            // ✅ Verde: registrar interacción y disparar sonido
+            // ✅ Verde o Coyote Time: registrar interacción y disparar sonido
             if (PlayerInteracted.ContainsKey(player))
             {
-                Debug.Log($"[PuzzleManager] Player {player} ya registrado en verde.");
+                Debug.Log($"[PuzzleManager] Player {player} ya registrado en ventana de validación.");
                 return;
             }
 
@@ -264,13 +286,13 @@ public class GlobalPuzzleManager : NetworkBehaviour
                 GreenSoundTick++;
 
             PlayerInteracted.Set(player, true);
-            Debug.Log($"[PuzzleManager] Player {player} apretó en verde. ({PlayerInteracted.Count} jugadores registrados)");
+            Debug.Log($"[PuzzleManager] Player {player} apretó en ventana de validación (isBefore={isBefore}, isAfter={isAfter}). ({PlayerInteracted.Count} jugadores registrados)");
             TryResolveSync();
         }
         else
         {
-            // ❌ Mitad de secuencia: apagar todo y volver a esperar
-            Debug.Log($"[PuzzleManager] Player {player} apagó la secuencia manualmente.");
+            // ❌ Fuera de ventana: apagar todo y volver a esperar
+            Debug.Log($"[PuzzleManager] Player {player} apretó fuera de ventana de validación — apagando secuencia manualmente.");
             StopSequence();
         }
     }
@@ -315,6 +337,48 @@ public class GlobalPuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// Devuelve true si el momento de presionar el botón está dentro del rango de validación
+    /// permitido (incluyendo coyote time antes y después del verde).
+    /// </summary>
+    bool IsInValidationWindow(out bool isBefore, out bool isAfter)
+    {
+        isBefore = false;
+        isAfter = false;
+
+        if (!IsStarted || IsPuzzleSolved) return false;
+
+        // Si ya estamos en el coyote time de salida:
+        if (InCoyoteAfter)
+        {
+            isAfter = true;
+            return true;
+        }
+
+        bool isLastRound = (CurrentRound >= roundsToStayLit - 1);
+        if (!isLastRound) return false;
+
+        // CASO 1: En el verde (todas encendidas)
+        if (CurrentTorchIndex >= torches.Count)
+        {
+            if (Runner.SimulationTime < NextActionTime)
+            {
+                return true;
+            }
+        }
+        // CASO 2: A punto de encender la última (antes de verde)
+        else if (CurrentTorchIndex == torches.Count - 1)
+        {
+            if (NextActionTime - Runner.SimulationTime <= coyoteTolerance && NextActionTime >= Runner.SimulationTime)
+            {
+                isBefore = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Devuelve true si TODAS las antorchas del puzzle están actualmente encendidas (estado verde).
     /// </summary>
     bool AreAllTorchesLit()
@@ -341,9 +405,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
         CurrentTorchIndex = 0;
         CurrentRound      = 0;
         IsBrickEnabled    = false;
-        AllExtinguished   = false; // Sin pausa automática; IsStarted=false detiene el bucle
+        AllExtinguished   = false;
+        InCoyoteAfter     = false;
         ResetSyncWindow();
-        IsStarted = false;
+        IsStarted         = false;
         // Brick.IsInteractable NO se toca — el botón sigue activo para poder reiniciar
     }
 
