@@ -21,7 +21,7 @@ MonoBehaviour:
     m_Value: 0.95
   intensity:
     m_OverrideState: 1
-    m_Value: 0.39
+    m_Value: 0.2
   scatter:
     m_OverrideState: 1
     m_Value: 0.68
@@ -65,7 +65,7 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: 0.28
+    m_Value: 0.7
   contrast:
     m_OverrideState: 0
     m_Value: 2.4
@@ -77,7 +77,7 @@ MonoBehaviour:
     m_Value: 0
   saturation:
     m_OverrideState: 1
-    m_Value: -6
+    m_Value: -14
 --- !u!114 &-6421806582843670541
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -94,7 +94,7 @@ MonoBehaviour:
   master:
     m_OverrideState: 1
     m_Value:
-      <length>k__BackingField: 2
+      <length>k__BackingField: 3
       m_Loop: 0
       m_ZeroValue: 0
       m_Range: 1
@@ -106,6 +106,15 @@ MonoBehaviour:
           value: 0
           inSlope: 0
           outSlope: 1.7708739
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 0.526178
+          value: 0.53591156
+          inSlope: -0.13190567
+          outSlope: -0.13190567
           tangentMode: 0
           weightedMode: 0
           inWeight: 0
