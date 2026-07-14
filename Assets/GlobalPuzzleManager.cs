@@ -4,9 +4,16 @@ using UnityEngine;
 
 /// <summary>
 /// GlobalPuzzleManager — Controla la secuencia de encendido de antorchas del puzzle.
-/// Cuando TODAS las antorchas están encendidas (verdes), todos los jugadores deben
-/// apretar el botón simultáneamente dentro de la ventana de sincronización para resolver el puzzle.
-/// Si algún jugador aprieta cuando no todas están encendidas, la secuencia se resetea.
+///
+/// Comportamiento por celda:
+///  - Al apretar el botón por primera vez (o tras detenerse): arranca la secuencia.
+///  - Si el jugador aprieta mientras las antorchas están encendidas pero NO en verde:
+///      se apaga todo y el puzzle vuelve a esperar (IsStarted = false).
+///  - Al llegar al verde (todas encendidas): ventana de sincronización abierta.
+///      Si todos los jugadores validan → puzzle resuelto.
+///      Al expirar la ventana → se completa una ronda.
+///  - Tras completar todas las rondas configuradas: se apaga y espera nuevo botón.
+///  - Entre rondas: breve pausa (resetPauseDuration) y nueva secuencia automática.
 /// </summary>
 public class GlobalPuzzleManager : NetworkBehaviour
 {
@@ -20,9 +27,17 @@ public class GlobalPuzzleManager : NetworkBehaviour
     [Header("Temporización de la secuencia")]
     [Tooltip("Tiempo en segundos que tarda en encenderse la siguiente antorcha de la secuencia.")]
     [SerializeField] float torch_frequency = 2f;        // Frecuencia de encendido entre antorchas
-    [SerializeField] float resetPauseDuration = 1f;     // Pausa breve tras apagar todas (ciclo normal)
+    [SerializeField] float resetPauseDuration = 1f;     // Pausa breve entre rondas
     [Tooltip("Tiempo que los jugadores tienen para apretar el botón una vez que todas las antorchas están encendidas.")]
     [SerializeField] float syncWindowDuration = 1.5f;   // Ventana de sincronización multijugador
+
+    [Header("Rondas")]
+    [Tooltip("Cuántas veces debe llegar al verde (completar la secuencia entera) antes de apagarse y esperar el botón.")]
+    [SerializeField] int roundsToStayLit = 1;
+
+    [Header("Sonido al llegar al verde")]
+    [Tooltip("AudioSource que se reproduce en todos los clientes cuando un jugador aprieta el botón con todas las antorchas encendidas.")]
+    [SerializeField] AudioSource greenCellAudioSource;
 
     [Header("Sonido de puerta al resolver")]
     [SerializeField] AudioSource doorAudioSource;       // Sonido de puerta de prisión al abrir
@@ -34,13 +49,19 @@ public class GlobalPuzzleManager : NetworkBehaviour
     // Networked State
     // ──────────────────────────────────────────────────────────────────────────
 
-    [Networked] public NetworkBool IsBrickEnabled   { get; set; }
-    [Networked] public NetworkBool IsPuzzleSolved   { get; set; }
-    [Networked] public NetworkBool IsStarted        { get; set; }
-    [Networked]        int         CurrentTorchIndex { get; set; }
-    [Networked]        float       NextActionTime    { get; set; }
-    [Networked]        NetworkBool AllExtinguished   { get; set; }
+    [Networked] public NetworkBool IsBrickEnabled    { get; set; }
+    [Networked] public NetworkBool IsPuzzleSolved    { get; set; }
+    [Networked] public NetworkBool IsStarted         { get; set; }
+    [Networked]        int         CurrentTorchIndex  { get; set; }
+    [Networked]        float       NextActionTime     { get; set; }
+    [Networked]        NetworkBool AllExtinguished    { get; set; }
     [Networked]        float       SyncWindowOpenTime { get; set; }
+    [Networked]        int         CurrentRound       { get; set; }
+    /// <summary>
+    /// Contador que se incrementa cada vez que debe reproducirse el sonido verde.
+    /// El cambio se detecta en Render() en todos los clientes.
+    /// </summary>
+    [Networked]        int         GreenSoundTick     { get; set; }
 
     [Networked, Capacity(8)]
     NetworkDictionary<PlayerRef, NetworkBool> PlayerInteracted => default;
@@ -70,9 +91,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             CurrentTorchIndex = 0;
+            CurrentRound      = 0;
+            GreenSoundTick    = 0;
             AllExtinguished   = true;
             IsStarted         = false;
-            // No seteamos NextActionTime hasta que el jugador apriete el botón
         }
     }
 
@@ -88,19 +110,15 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     void Update()
     {
-        // Solo verificamos el input en la primera instancia para no enviar múltiples RPCs a la vez
+        // Solo verificamos el input en la primera instancia para no enviar múltiples RPCs
         if (_activeManagers.Count > 0 && _activeManagers[0] == this)
         {
             if (Input.GetKeyDown(KeyCode.F9))
             {
                 if (Object.HasStateAuthority)
-                {
                     ForceSolveAll();
-                }
                 else
-                {
                     RPC_ForceSolvePuzzle();
-                }
             }
         }
     }
@@ -139,7 +157,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
         if (!IsStarted) return;
         if (Runner.SimulationTime < NextActionTime) return;
 
-        // ── Pausa breve tras apagarse todas (ciclo normal) ──
+        // ── Pausa breve entre rondas ──
         if (AllExtinguished)
         {
             AllExtinguished = false;
@@ -155,23 +173,47 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
             if (CurrentTorchIndex >= torches.Count)
             {
-                // Todas encendidas: marcar estado e iniciar ventana de sincronización
-                IsBrickEnabled     = true;
-                SyncWindowOpenTime = Runner.SimulationTime;
-                NextActionTime     = Runner.SimulationTime + syncWindowDuration;
-                Debug.Log("[PuzzleManager] ¡Todas las antorchas encendidas! Ventana de sincronización abierta.");
+                bool isLastRound = (CurrentRound + 1) >= roundsToStayLit;
+
+                if (isLastRound)
+                {
+                    // Última ronda → abrir ventana de validación (IsBrickEnabled = true)
+                    IsBrickEnabled     = true;
+                    SyncWindowOpenTime = Runner.SimulationTime;
+                    NextActionTime     = Runner.SimulationTime + syncWindowDuration;
+                    Debug.Log("[PuzzleManager] ¡Todas las antorchas encendidas! (Última ronda) Ventana de sincronización abierta.");
+                }
+                else
+                {
+                    // Ronda intermedia → el verde se mantiene visible syncWindowDuration, pero sin abrir validación
+                    SyncWindowOpenTime = Runner.SimulationTime;
+                    NextActionTime     = Runner.SimulationTime + syncWindowDuration;
+                    Debug.Log($"[PuzzleManager] Verde intermedio (ronda {CurrentRound + 1}/{roundsToStayLit}). Duración: {syncWindowDuration}s.");
+                }
             }
             else
             {
-                // Esperar torch_frequency antes de encender la siguiente
                 NextActionTime = Runner.SimulationTime + torch_frequency;
             }
         }
         else
         {
-            // Ventana de sincronización expiró sin que todos presionaran → apagar y reiniciar
-            Debug.Log("[PuzzleManager] Ventana de sincronización expiró. Reseteando...");
-            ExtinguishAll();
+            // ── Ventana de sincronización expiró: completar la ronda ──
+            CurrentRound++;
+            Debug.Log($"[PuzzleManager] Ronda {CurrentRound}/{roundsToStayLit} completada.");
+
+            if (CurrentRound >= roundsToStayLit)
+            {
+                // Todas las rondas completadas → apagar todo y esperar botón
+                Debug.Log("[PuzzleManager] Todas las rondas completadas. Apagando y esperando botón...");
+                StopSequence();
+            }
+            else
+            {
+                // Quedan más rondas → apagar inmediatamente y continuar con el mismo ritmo
+                Debug.Log($"[PuzzleManager] Iniciando ronda {CurrentRound + 1}/{roundsToStayLit}...");
+                ResetSequence();
+            }
         }
     }
 
@@ -181,10 +223,10 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
     /// <summary>
     /// Llamar cuando el jugador presiona el botón de validación.
-    /// → Si TODAS las antorchas están encendidas: registra la interacción del jugador.
-    ///    Cuando todos los jugadores hayan interactuado → puzzle resuelto.
-    /// → Si alguna antorcha NO está encendida: resetea SOLO la secuencia de este jugador.
-    /// El botón permanece activo en todo momento mientras el puzzle está activo.
+    ///  • Si el puzzle NO está iniciado  → arranca la secuencia.
+    ///  • Si está en verde (todas lit)    → registra interacción + dispara sonido verde.
+    ///                                      Si todos los jugadores validan → puzzle resuelto.
+    ///  • Si hay antorchas encendidas pero no todas → apaga todo (StopSequence).
     /// Solo el StateAuthority ejecuta la lógica; los clientes envían RPC al host.
     /// </summary>
     public void ValidateAnswer(PlayerRef player)
@@ -197,11 +239,12 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (IsPuzzleSolved) return;
 
+        // ── Arrancar la secuencia (no iniciado o tras detenerse) ──
         if (!IsStarted)
         {
-            // Arrancar el puzzle por primera vez y habilitar el botón permanentemente
-            Debug.Log("[PuzzleManager] Arrancando el puzzle (primer click).");
-            IsStarted = true;
+            Debug.Log("[PuzzleManager] Arrancando el puzzle (botón apretado).");
+            IsStarted    = true;
+            CurrentRound = 0;
             if (Brick != null) Brick.IsInteractable = true;
             ResetSequence();
             return;
@@ -209,23 +252,26 @@ public class GlobalPuzzleManager : NetworkBehaviour
 
         if (AreAllTorchesLit())
         {
-            // ✅ Todas las antorchas encendidas: registrar interacción del jugador
+            // ✅ Verde: registrar interacción y disparar sonido
             if (PlayerInteracted.ContainsKey(player))
             {
-                Debug.Log($"[PuzzleManager] Player {player} ya registrado.");
+                Debug.Log($"[PuzzleManager] Player {player} ya registrado en verde.");
                 return;
             }
 
-            PlayerInteracted.Set(player, true);
-            Debug.Log($"[PuzzleManager] Player {player} apretó a tiempo. ({PlayerInteracted.Count} jugadores registrados)");
+            // Disparar sonido verde en todos los clientes solo al primer jugador que aprieta
+            if (PlayerInteracted.Count == 0)
+                GreenSoundTick++;
 
+            PlayerInteracted.Set(player, true);
+            Debug.Log($"[PuzzleManager] Player {player} apretó en verde. ({PlayerInteracted.Count} jugadores registrados)");
             TryResolveSync();
         }
         else
         {
-            // ❌ No todas las antorchas encendidas: resetear la secuencia
-            Debug.Log($"[PuzzleManager] Player {player} apretó con antorchas apagadas — reseteando secuencia.");
-            ResetSequence();
+            // ❌ Mitad de secuencia: apagar todo y volver a esperar
+            Debug.Log($"[PuzzleManager] Player {player} apagó la secuencia manualmente.");
+            StopSequence();
         }
     }
 
@@ -238,40 +284,29 @@ public class GlobalPuzzleManager : NetworkBehaviour
                 validManagers.Add(m);
         }
 
-        // Contar jugadores activos en la sesión de Fusion
         int activePlayerCount = 0;
         if (Runner != null)
         {
             foreach (var p in Runner.ActivePlayers)
-            {
                 activePlayerCount++;
-            }
         }
 
-        // Contar cuántos managers tienen al menos una interacción registrada
         int managersWithInteractions = 0;
         foreach (var manager in validManagers)
         {
             if (manager.PlayerInteracted.Count > 0)
-            {
                 managersWithInteractions++;
-            }
         }
 
-        // Se resuelve si todos los jugadores activos interactuaron en sus respectivos managers
         bool allSolved = (activePlayerCount > 0) && (managersWithInteractions >= activePlayerCount);
 
         if (allSolved && validManagers.Count > 0)
         {
-            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON (Botón)! Jugadores activos: {activePlayerCount}. Abriendo {validManagers.Count} puertas.");
+            Debug.Log($"[PuzzleManager] ¡TODOS LOS JUGADORES RESOLVIERON! Abriendo {validManagers.Count} puertas.");
             foreach (var manager in validManagers)
-            {
                 manager.IsPuzzleSolved = true;
-            }
         }
     }
-
-
 
     void ResetSyncWindow()
     {
@@ -280,8 +315,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Devuelve true si TODAS las antorchas del puzzle están actualmente encendidas.
-    /// Esta es la condición para que el jugador pueda validar correctamente.
+    /// Devuelve true si TODAS las antorchas del puzzle están actualmente encendidas (estado verde).
     /// </summary>
     bool AreAllTorchesLit()
     {
@@ -290,49 +324,59 @@ public class GlobalPuzzleManager : NetworkBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Apaga y resetea TODAS las antorchas al estado Verde y reinicia la secuencia
-    /// inmediatamente, sin la pausa de resetPauseDuration del ciclo normal.
-    /// </summary>
-    void ResetSequence()
-    {
-        // Apagar todas las antorchas
-        foreach (var torch in torches)
-            torch.Extinguish();
-
-        // Reiniciar estado de la secuencia
-        CurrentTorchIndex = 0;
-        AllExtinguished   = false;
-        IsBrickEnabled    = false;
-
-        // Limpiar ventana de sincronización
-        ResetSyncWindow();
-
-        // Reiniciar temporizador con la frecuencia configurada
-        // (Brick.IsInteractable NO se toca — el botón sigue activo)
-        NextActionTime = Runner.SimulationTime + torch_frequency;
-    }
-
     // ──────────────────────────────────────────────────────────────────────────
     // Internal Helpers
     // ──────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Apaga todas las antorchas al terminar el ciclo normal (sin que el jugador valide).
-    /// Incluye la pausa de reset estándar (resetPauseDuration) antes de reiniciar.
+    /// Apaga todas las antorchas y detiene la secuencia completamente (IsStarted = false).
+    /// El jugador deberá volver a apretar el botón para reiniciar.
+    /// El ladrillo permanece interactivo para permitir el reinicio.
     /// </summary>
-    void ExtinguishAll()
+    void StopSequence()
+    {
+        foreach (var torch in torches)
+            torch.Extinguish();
+
+        CurrentTorchIndex = 0;
+        CurrentRound      = 0;
+        IsBrickEnabled    = false;
+        AllExtinguished   = false; // Sin pausa automática; IsStarted=false detiene el bucle
+        ResetSyncWindow();
+        IsStarted = false;
+        // Brick.IsInteractable NO se toca — el botón sigue activo para poder reiniciar
+    }
+
+    /// <summary>
+    /// Apaga todas las antorchas con una breve pausa antes de iniciar la siguiente ronda
+    /// (AllExtinguished = true dispara la pausa en FixedUpdateNetwork).
+    /// </summary>
+    void ExtinguishAllWithPause()
     {
         foreach (var torch in torches)
             torch.Extinguish();
 
         CurrentTorchIndex = 0;
         IsBrickEnabled    = false;
-        // Brick.IsInteractable NO se toca — el botón sigue activo para que el jugador pueda
-        // intentar apretar (y sea penalizado con reset si lo hace con antorchas apagadas)
         ResetSyncWindow();
         AllExtinguished = true;
         NextActionTime  = Runner.SimulationTime + resetPauseDuration;
+    }
+
+    /// <summary>
+    /// Apaga todas las antorchas e inicia la secuencia desde cero inmediatamente
+    /// (sin pausa de AllExtinguished). Usado al arrancar o reiniciar manualmente.
+    /// </summary>
+    void ResetSequence()
+    {
+        foreach (var torch in torches)
+            torch.Extinguish();
+
+        CurrentTorchIndex = 0;
+        AllExtinguished   = false;
+        IsBrickEnabled    = false;
+        ResetSyncWindow();
+        NextActionTime = Runner.SimulationTime + torch_frequency;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -345,6 +389,14 @@ public class GlobalPuzzleManager : NetworkBehaviour
         {
             if (change == nameof(IsPuzzleSolved) && IsPuzzleSolved)
                 ResolvePuzzle();
+
+            // GreenSoundTick se incrementa en el servidor cuando el primer jugador
+            // aprieta en verde → todos los clientes reproducen el audio verde
+            if (change == nameof(GreenSoundTick))
+            {
+                if (greenCellAudioSource != null)
+                    greenCellAudioSource.Play();
+            }
         }
     }
 
