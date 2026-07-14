@@ -1110,6 +1110,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: torchLight
+      value: 
+      objectReference: {fileID: 6757720755165437665}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: greenColor.b
       value: 0.019607844
       objectReference: {fileID: 0}
@@ -1126,6 +1130,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: greenMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: b79c3b0636148634a8a0ce51c6e71de6, type: 2}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: orangeColor.g
       value: 0.5921569
       objectReference: {fileID: 0}
@@ -1134,8 +1142,32 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: orangeMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 5919a04249d83d34e8fcc24085b2c298, type: 2}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: targetRenderer
+      value: 
+      objectReference: {fileID: 5890478962880037464}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: extinguishVolume
       value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightGreenColor.g
+      value: 0.62352943
+      objectReference: {fileID: 0}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightGreenColor.r
+      value: 0.06666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightOrangeColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightOrangeColor.g
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: fireParticleSystem1
@@ -1145,6 +1177,14 @@ PrefabInstance:
       propertyPath: fireParticleSystem2
       value: 
       objectReference: {fileID: 6849607286233349631}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightGreenTemperature
+      value: 2837
+      objectReference: {fileID: 0}
+    - target: {fileID: 3119812175096762181, guid: cf830b52965d7b7419288a33da722200, type: 3}
+      propertyPath: lightOrangeTemperature
+      value: 1900
+      objectReference: {fileID: 0}
     - target: {fileID: 3614378434925007151, guid: cf830b52965d7b7419288a33da722200, type: 3}
       propertyPath: m_Name
       value: Torch_3_Green
@@ -1307,6 +1347,38 @@ PrefabInstance:
     m_TransformParent: {fileID: 1266832016585347048}
     m_Modifications:
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: torchLight
+      value: 
+      objectReference: {fileID: 8502694513744171678}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: greenMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: b79c3b0636148634a8a0ce51c6e71de6, type: 2}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: orangeMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 5919a04249d83d34e8fcc24085b2c298, type: 2}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: targetRenderer
+      value: 
+      objectReference: {fileID: 4532914090037703398}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenColor.g
+      value: 0.62352943
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenColor.r
+      value: 0.06666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: fireParticleSystem1
       value: 
       objectReference: {fileID: 8206533070530677733}
@@ -1314,6 +1386,14 @@ PrefabInstance:
       propertyPath: fireParticleSystem2
       value: 
       objectReference: {fileID: 8590947432686449024}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenTemperature
+      value: 2837
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeTemperature
+      value: 1900
+      objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
       value: 3303675584
@@ -1581,15 +1661,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Color.b
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Color.g
-      value: 0.6226415
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Color.r
-      value: 0.067326434
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+      propertyPath: m_Intensity
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Lightmapping
@@ -1601,7 +1685,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_ColorTemperature
-      value: 2837
+      value: 1900
       objectReference: {fileID: 0}
     - target: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
       propertyPath: m_Shadows.m_Strength
@@ -1662,6 +1746,11 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5537296929194652799, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
   m_PrefabInstance: {fileID: 1516733159271691237}
   m_PrefabAsset: {fileID: 0}
+--- !u!108 &6757720755165437665 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+  m_PrefabInstance: {fileID: 1516733159271691237}
+  m_PrefabAsset: {fileID: 0}
 --- !u!198 &6849607286233349631 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5332883511502982682, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
@@ -1684,16 +1773,48 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 4de4851e9b973c546a0844c8a0efd0d1, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: torchLight
+      value: 
+      objectReference: {fileID: 4397813223078670568}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: igniteVolume
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: greenMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: b79c3b0636148634a8a0ce51c6e71de6, type: 2}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishClip
       value: 
       objectReference: {fileID: 8300000, guid: fb2ecfdc10b8e9d43a743c0cb9d8323e, type: 3}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: orangeMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 5919a04249d83d34e8fcc24085b2c298, type: 2}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: targetRenderer
+      value: 
+      objectReference: {fileID: 8511712131785396368}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: extinguishVolume
       value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenColor.g
+      value: 0.62352943
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenColor.r
+      value: 0.06666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeColor.g
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: fireParticleSystem1
@@ -1703,6 +1824,14 @@ PrefabInstance:
       propertyPath: fireParticleSystem2
       value: 
       objectReference: {fileID: 4597794115590591478}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightGreenTemperature
+      value: 2837
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372547091164409214, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
+      propertyPath: lightOrangeTemperature
+      value: 1900
+      objectReference: {fileID: 0}
     - target: {fileID: 7587246975818119484, guid: 19281b4da5ea12f4296da17850f16eaf, type: 3}
       propertyPath: SortKey
       value: 501921045
@@ -2007,6 +2136,11 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5537296929194652799, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
   m_PrefabInstance: {fileID: 4412147064209162138}
   m_PrefabAsset: {fileID: 0}
+--- !u!108 &8502694513744171678 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+  m_PrefabInstance: {fileID: 4412147064209162138}
+  m_PrefabAsset: {fileID: 0}
 --- !u!198 &8590947432686449024 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5332883511502982682, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
@@ -2198,6 +2332,11 @@ PrefabInstance:
 --- !u!198 &4113191738477570451 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5537296929194652799, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
+  m_PrefabInstance: {fileID: 8488317932739550700}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &4397813223078670568 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 5243522560252603652, guid: 888c793fcb934f8488bcc5fdafe5cccf, type: 3}
   m_PrefabInstance: {fileID: 8488317932739550700}
   m_PrefabAsset: {fileID: 0}
 --- !u!198 &4597794115590591478 stripped

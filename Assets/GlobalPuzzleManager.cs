@@ -205,9 +205,17 @@ public class GlobalPuzzleManager : NetworkBehaviour
         else
         {
             // ── Ventana de sincronización expiró ──
-            if (CurrentRound + 1 >= roundsToStayLit)
+            bool hasInteracted = (PlayerInteracted.Count > 0);
+
+            if (hasInteracted)
             {
-                // Es la última ronda
+                // Si el jugador interactuó pero no se resolvió la validación conjunta, falló
+                Debug.Log("[PuzzleManager] Validación incorrecta/no sincronizada. Deteniendo secuencia...");
+                StopSequence();
+            }
+            else if (CurrentRound + 1 >= roundsToStayLit)
+            {
+                // Es la última ronda sin interacción → entrar en coyote time de salida
                 if (!InCoyoteAfter)
                 {
                     // Primer paso: apagar las antorchas para dar feedback visual de que terminó
@@ -220,20 +228,20 @@ public class GlobalPuzzleManager : NetworkBehaviour
                     InCoyoteAfter = true;
                     // Esperar coyoteTolerance adicionales antes de resetear
                     NextActionTime = Runner.SimulationTime + coyoteTolerance;
-                    Debug.Log($"[PuzzleManager] Verde finalizó. Entrando en coyote time de salida ({coyoteTolerance}s)...");
+                    Debug.Log($"[PuzzleManager] Verde finalizó sin interacción. Entrando en coyote time de salida ({coyoteTolerance}s)...");
                 }
                 else
                 {
-                    // El coyote time de salida expiró → Resetear todo
+                    // El coyote time de salida expiró sin interacción → Resetear todo
                     InCoyoteAfter = false;
                     CurrentRound++;
-                    Debug.Log("[PuzzleManager] Coyote time de salida expiró. Deteniendo secuencia...");
+                    Debug.Log("[PuzzleManager] Coyote time de salida expiró sin interacción. Deteniendo secuencia...");
                     StopSequence();
                 }
             }
             else
             {
-                // Rondas intermedias: apagar y continuar al mismo ritmo
+                // Rondas intermedias sin interacción: apagar y continuar al mismo ritmo
                 CurrentRound++;
                 ResetSequence();
             }
@@ -362,10 +370,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
             return true;
         }
 
-        bool isLastRound = (CurrentRound >= roundsToStayLit - 1);
-        if (!isLastRound) return false;
-
-        // CASO 1: En el verde (todas encendidas)
+        // CASO 1: En el verde (todas encendidas) - en cualquier ronda
         if (CurrentTorchIndex >= torches.Count)
         {
             if (Runner.SimulationTime < NextActionTime)
@@ -373,7 +378,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
                 return true;
             }
         }
-        // CASO 2: A punto de encender la última (antes de verde)
+        // CASO 2: A punto de encender la última (antes de verde) - en cualquier ronda
         else if (CurrentTorchIndex == torches.Count - 1)
         {
             if (NextActionTime - Runner.SimulationTime <= coyoteTolerance && NextActionTime >= Runner.SimulationTime)

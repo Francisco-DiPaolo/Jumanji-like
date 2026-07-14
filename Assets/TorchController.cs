@@ -12,6 +12,16 @@ public class TorchController : NetworkBehaviour
     [SerializeField] Color orangeColor = new Color(1f, 0.4f, 0f, 1f);
     [SerializeField] Color greenColor = Color.green;
 
+    [Header("Luz y Materiales")]
+    [SerializeField] Light torchLight;
+    [SerializeField] Color lightOrangeColor = new Color(1f, 0.4f, 0f, 1f);
+    [SerializeField] Color lightGreenColor = Color.green;
+    [SerializeField] float lightOrangeTemperature = 6500f;
+    [SerializeField] float lightGreenTemperature = 6500f;
+    [SerializeField] Renderer targetRenderer;
+    [SerializeField] Material orangeMaterial;
+    [SerializeField] Material greenMaterial;
+
     [Header("Sonidos")]
     [SerializeField] AudioClip igniteClip;  // Sonido al encenderse (one-shot)
     [Range(0f, 1f)] [SerializeField] float igniteVolume = 0.6f;
@@ -70,7 +80,7 @@ public class TorchController : NetworkBehaviour
             UseSuccessColor = false;
         }
 
-        UpdateParticleColors();
+        UpdateVisualState();
         ApplyVisuals(false); // Falso para no reproducir sonidos al iniciar
     }
 
@@ -97,9 +107,11 @@ public class TorchController : NetworkBehaviour
         }
     }
 
-    void UpdateParticleColors()
+    void UpdateVisualState()
     {
         Color targetColor = UseSuccessColor ? greenColor : orangeColor;
+        
+        // Partículas
         if (fireParticleSystem1 != null)
         {
             var main = fireParticleSystem1.main;
@@ -110,11 +122,26 @@ public class TorchController : NetworkBehaviour
             var main = fireParticleSystem2.main;
             main.startColor = targetColor;
         }
+
+        // Luz (PointLight)
+        Color targetLightColor = UseSuccessColor ? lightGreenColor : lightOrangeColor;
+        if (torchLight != null)
+        {
+            torchLight.color = targetLightColor;
+            torchLight.useColorTemperature = true;
+            torchLight.colorTemperature = UseSuccessColor ? lightGreenTemperature : lightOrangeTemperature;
+        }
+
+        // Material del GameObject
+        if (targetRenderer != null)
+        {
+            targetRenderer.sharedMaterial = UseSuccessColor ? greenMaterial : orangeMaterial;
+        }
     }
 
     void ApplyVisuals(bool playSounds = true)
     {
-        UpdateParticleColors();
+        UpdateVisualState();
 
         if (_fireVfx != null)
             _fireVfx.SetActive(IsLit);
