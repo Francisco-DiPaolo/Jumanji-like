@@ -123,7 +123,7 @@ public class BoardGameSequence : NetworkBehaviour
         
         // --- RESTAURANDO LÓGICA DEL CASCO ---
         // Si nadie tiene el casco todavía, este jugador (el primero en llegar) se lo pone
-        bool anyoneHasHelmet = false;
+        bool anyoneHasHelmet = !string.IsNullOrEmpty(HelmetPlayerName.ToString());
         PlayerMovement localPlayer = null;
         
         foreach (var p in FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None))
@@ -134,8 +134,6 @@ public class BoardGameSequence : NetworkBehaviour
 
         if (!anyoneHasHelmet && localPlayer != null)
         {
-            localPlayer.Rpc_SetHasFishBowl(true);
-            
             // Guardar el nombre del jugador en red para que todos puedan leerlo al mostrar el texto
             string nickname = SessionLauncher.LocalNickname;
             if (string.IsNullOrEmpty(nickname)) nickname = localPlayer.gameObject.name;
@@ -377,6 +375,18 @@ public class BoardGameSequence : NetworkBehaviour
         if (canvasNarrator != null) canvasNarrator.SetActive(false);
         // Restaurar el StatusBar del jugador local
         if (_lifeCanvas != null) _lifeCanvas.SetActive(true);
+
+        // Si este jugador es el asignado para llevar el casco, activarlo al terminar la interacción
+        if (PlayerMovement.Local != null)
+        {
+            string localNickname = SessionLauncher.LocalNickname;
+            if (string.IsNullOrEmpty(localNickname)) localNickname = PlayerMovement.Local.gameObject.name;
+
+            if (HelmetPlayerName.ToString() == localNickname)
+            {
+                PlayerMovement.Local.Rpc_SetHasFishBowl(true);
+            }
+        }
     }
 
     /// <summary>Búsqueda recursiva de un Transform por nombre en la jerarquía.</summary>
