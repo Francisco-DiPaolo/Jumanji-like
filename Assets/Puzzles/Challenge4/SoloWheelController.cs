@@ -134,13 +134,14 @@ public class SoloWheelController : NetworkBehaviour
 
     public void RotateRing(int ringIndex, int direction)
     {
-        if (_isAnimating) return;
+        if (_isAnimating || IsResolved) return;
         Rpc_RequestRotate(ringIndex, direction);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void Rpc_RequestRotate(int ringIndex, int direction)
     {
+        if (IsResolved) return;
         switch (ringIndex)
         {
             case 0: Ring0Steps += direction; break;
