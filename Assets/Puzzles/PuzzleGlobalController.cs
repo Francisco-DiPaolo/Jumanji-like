@@ -374,6 +374,45 @@ public class PuzzleGlobalController : NetworkBehaviour
         needsEvaluation = true;
     }
 
+    /// <summary>
+    /// Llamado por PuzzleResetTrigger cuando un jugador toca el collider de reset de una sala.
+    /// Solo funciona si este cliente tiene StateAuthority.
+    /// </summary>
+    public void RequestResetRoom(string roomIndex)
+    {
+        if (!HasStateAuthority)
+        {
+            Debug.Log("[puzle]: RequestResetRoom ignorado, este cliente no tiene StateAuthority.");
+            return;
+        }
+        Debug.Log("[puzle]: RequestResetRoom para sala '" + roomIndex + "'. Emitiendo Rpc_ResetRoom.");
+        Rpc_ResetRoom(roomIndex);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_ResetRoom(string roomIndex)
+    {
+        Debug.Log("[puzle]: Rpc_ResetRoom recibido para sala '" + roomIndex + "'.");
+
+        if (puzzleSequence == null || puzzleSequence.Phases == null || CurrentPhaseIndex >= puzzleSequence.Phases.Count)
+        {
+            Debug.LogWarning("[puzle]: Rpc_ResetRoom: no hay datos de fase disponibles para CurrentPhaseIndex=" + CurrentPhaseIndex);
+            return;
+        }
+
+        var currentPhase = puzzleSequence.Phases[CurrentPhaseIndex];
+        string idx = roomIndex?.ToLower().Trim();
+
+        if ((idx == "a" || idx == "1") && isRoom1Enabled && subController1 != null)
+            subController1.SetPhaseData(currentPhase.sub1.correctButtonId, currentPhase.sub1.incorrectButtonId1, currentPhase.sub1.incorrectButtonId2);
+        else if ((idx == "b" || idx == "2") && isRoom2Enabled && subController2 != null)
+            subController2.SetPhaseData(currentPhase.sub2.correctButtonId, currentPhase.sub2.incorrectButtonId1, currentPhase.sub2.incorrectButtonId2);
+        else if ((idx == "c" || idx == "3") && isRoom3Enabled && subController3 != null)
+            subController3.SetPhaseData(currentPhase.sub3.correctButtonId, currentPhase.sub3.incorrectButtonId1, currentPhase.sub3.incorrectButtonId2);
+        else
+            Debug.LogWarning("[puzle]: Rpc_ResetRoom: índice de sala desconocido o deshabilitado: '" + roomIndex + "'.");
+    }
+
     private void LogDetailedDebugState(string label)
     {
         System.Text.StringBuilder sb = new System.Text.StringBuilder();

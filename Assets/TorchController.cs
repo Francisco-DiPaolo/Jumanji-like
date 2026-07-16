@@ -14,9 +14,22 @@ public class TorchController : NetworkBehaviour
 
     [Header("Luz y Materiales")]
     [SerializeField] Light torchLight;
-    [SerializeField] Color lightOrangeColor = new Color(1f, 0.4f, 0f, 1f);
+
+    [Tooltip("4 colores que usará la luz según la ronda actual.\n" +
+             "[0] = Ronda 1 (naranja base)\n" +
+             "[1] = Ronda 2 (solo en modo 4 rondas)\n" +
+             "[2] = Ronda 3 (solo en modo 4 rondas)\n" +
+             "[3] = Ronda final (compartido por modo 2 y 4 rondas)")]
+    [SerializeField] Color[] lightRoundColors = new Color[4]
+    {
+        new Color(1f, 0.4f, 0f, 1f),   // [0] Naranja
+        new Color(1f, 0.75f, 0f, 1f),  // [1] Amarillo-naranja
+        new Color(1f, 0.9f, 0.2f, 1f), // [2] Amarillo
+        new Color(1f, 1f, 0.6f, 1f),   // [3] Blanco-cálido
+    };
+
     [SerializeField] Color lightGreenColor = Color.green;
-    [SerializeField] float lightOrangeTemperature = 6500f;
+    [SerializeField] float lightRoundTemperature = 6500f;
     [SerializeField] float lightGreenTemperature = 6500f;
     [SerializeField] Renderer targetRenderer;
     [SerializeField] Material orangeMaterial;
@@ -29,8 +42,10 @@ public class TorchController : NetworkBehaviour
     [SerializeField] AudioClip extinguishClip; // Sonido al apagarse (one-shot)
     [Range(0f, 1f)] [SerializeField] float extinguishVolume = 0.6f;
 
-    [Networked] public NetworkBool IsLit { get; set; }
-    [Networked] public NetworkBool UseSuccessColor { get; set; }
+    [Networked] public NetworkBool IsLit            { get; set; }
+    [Networked] public NetworkBool UseSuccessColor   { get; set; }
+    /// <summary>Índice (0-3) del color de ronda activo. Lo asigna GlobalPuzzleManager.</summary>
+    [Networked]        int         RoundColorIndex   { get; set; }
 
     ChangeDetector _changeDetector;
     GameObject _fireVfx;
@@ -78,6 +93,7 @@ public class TorchController : NetworkBehaviour
         {
             IsLit = false; // Asegurar que el estado inicial en red sea estrictamente false
             UseSuccessColor = false;
+            RoundColorIndex = 0;
         }
 
         UpdateVisualState();
@@ -96,6 +112,16 @@ public class TorchController : NetworkBehaviour
             IsLit = false;
     }
 
+    /// <summary>
+    /// Cambia el índice de color de ronda (0-3). Solo el StateAuthority puede llamarlo.
+    /// El cambio se propaga a todos los clientes vía ChangeDetector.
+    /// </summary>
+    public void SetRoundColorIndex(int index)
+    {
+        if (Object.HasStateAuthority)
+            RoundColorIndex = Mathf.Clamp(index, 0, 3);
+    }
+
     public override void Render()
     {
         foreach (var change in _changeDetector.DetectChanges(this))
@@ -104,6 +130,8 @@ public class TorchController : NetworkBehaviour
                 ApplyVisuals(true);
             if (change == nameof(UseSuccessColor))
                 ApplyVisuals(false);
+            if (change == nameof(RoundColorIndex))
+                ApplyVisuals(false); // Actualizar color de luz sin reproducir sonidos
         }
     }
 
@@ -124,12 +152,23 @@ public class TorchController : NetworkBehaviour
         }
 
         // Luz (PointLight)
-        Color targetLightColor = UseSuccessColor ? lightGreenColor : lightOrangeColor;
+        // Si está en verde (validación): usa lightGreenColor.
+        // Si no: usa el color del array según la ronda actual.
         if (torchLight != null)
         {
-            torchLight.color = targetLightColor;
-            torchLight.useColorTemperature = true;
-            torchLight.colorTemperature = UseSuccessColor ? lightGreenTemperature : lightOrangeTemperature;
+            if (UseSuccessColor)
+            {
+                torchLight.color = lightGreenColor;
+                torchLight.useColorTemperature = true;
+                torchLight.colorTemperature = lightGreenTemperature;
+            }
+            else
+            {
+                int idx = Mathf.Clamp(RoundColorIndex, 0, lightRoundColors.Length - 1);
+                torchLight.color = lightRoundColors[idx];
+                torchLight.useColorTemperature = true;
+                torchLight.colorTemperature = lightRoundTemperature;
+            }
         }
 
         // Material del GameObject

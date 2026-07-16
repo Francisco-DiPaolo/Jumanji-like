@@ -241,8 +241,12 @@ public class GlobalPuzzleManager : NetworkBehaviour
             }
             else
             {
-                // Rondas intermedias sin interacción: apagar y continuar al mismo ritmo
+                // Rondas intermedias sin interacción: apagar y continuar a la siguiente ronda
                 CurrentRound++;
+                int colorIdx = GetColorIndexForRound(CurrentRound, roundsToStayLit);
+                foreach (var torch in torches)
+                    torch.SetRoundColorIndex(colorIdx);
+                Debug.Log($"[PuzzleManager] Avanzando a ronda {CurrentRound + 1}/{roundsToStayLit}. Índice de color de luz: {colorIdx}.");
                 ResetSequence();
             }
         }
@@ -416,6 +420,7 @@ public class GlobalPuzzleManager : NetworkBehaviour
         {
             torch.Extinguish();
             torch.UseSuccessColor = false;
+            torch.SetRoundColorIndex(0); // Resetear al color base al detenerse
         }
 
         CurrentTorchIndex = 0;
@@ -464,6 +469,28 @@ public class GlobalPuzzleManager : NetworkBehaviour
         IsBrickEnabled    = false;
         ResetSyncWindow();
         NextActionTime = Runner.SimulationTime + torch_frequency;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Helpers de Color por Ronda
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Devuelve el índice de color (0-3) que debe usar la luz de la antorcha en la ronda dada.
+    /// <para>1 ronda  : siempre 0 (no cambia).</para>
+    /// <para>2 rondas : ronda 0 → 0, ronda 1 → 3 (salto brusco al color final).</para>
+    /// <para>4 rondas : igual al número de ronda (gradual: 0, 1, 2, 3).</para>
+    /// <para>Cualquier otro valor: Mathf.Clamp(round, 0, 3).</para>
+    /// </summary>
+    int GetColorIndexForRound(int round, int totalRounds)
+    {
+        switch (totalRounds)
+        {
+            case 1:  return 0;
+            case 2:  return round == 0 ? 0 : 3;
+            case 4:  return Mathf.Clamp(round, 0, 3);
+            default: return Mathf.Clamp(round, 0, 3);
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────────

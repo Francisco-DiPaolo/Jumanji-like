@@ -110,6 +110,24 @@ public class PuzzleSubController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Re-enciende los botones de la fase actual (correctButtonId, incorrectButtonId1, incorrectButtonId2).
+    /// Útil para usarlo desde un trigger de reset en la sala.
+    /// </summary>
+    public void ResetCurrentPhaseButtons()
+    {
+        Debug.Log("[puzle]: ResetCurrentPhaseButtons invocado en subcontrolador de sala " + controllerIndex);
+        foreach (var button in buttons)
+        {
+            if (CompareIds(button.Id, correctButtonId) ||
+                CompareIds(button.Id, incorrectButtonId1) ||
+                CompareIds(button.Id, incorrectButtonId2))
+            {
+                button.TriggerPhaseStarted();
+            }
+        }
+    }
+
     public void TriggerPhaseButtonsOnSuccess(string correctId, string inc1Id, string inc2Id)
     {
         foreach (var button in buttons)
